@@ -4,11 +4,8 @@ Fortschritt gesamt: 70 %
 
 ## Offen
 - [ ] Kontraste gezielt verbessern, ohne das bestehende Design komplett umzubauen.
-- [ ] Offene Entwicklung in Phasen planen, damit jede Iteration klein, prüfbar und rückbaubar bleibt.
 - [ ] Speicher-/Importpfad im Browser anhand der Release-Checkliste manuell prüfen: Standardstart, kaputte localStorage-Daten, Backup-Wiederherstellung und JSON-Import.
 - [ ] Kontraständerungen in mindestens einem Chromium- und einem Firefox-basierten Browser visuell prüfen.
-- [ ] Leere Zustände in `dashboard-studio-ultimate-pro-v3.1.0.html` prüfen, zum Beispiel Debug-Ereignisse, Termine, Code- oder Entwicklungsvorhaben, Schnelllinks und Aufgaben.
-- [ ] Eingabe-Platzhalter in Formularen in `dashboard-studio-ultimate-pro-v3.1.0.html` prüfen; sicherstellen, dass sie nur Beispiele sind und keine notwendigen Feldbeschriftungen ersetzen.
 - [ ] Systemmodule-Bündel später aus der HTML-Datei in echte Moduldateien überführen, sobald der Loader existiert.
 - [ ] Die große HTML-Datei schrittweise in kleine Bereiche zerlegen: Styles, Standarddaten, Speicherlogik, Modul-Renderer und Hilfsfunktionen.
 - [ ] Kleine Testdatei für reine Hilfsfunktionen bei Bedarf weiter ausbauen, sobald weitere reine Logik identifiziert ist.
@@ -20,14 +17,17 @@ Fortschritt gesamt: 70 %
 - [ ] Tastaturbedienung für Modulplatzierung ergänzen und Fokusverhalten in Browsern manuell prüfen.
 - [ ] Schriftkontraste für Statuschips, deaktivierte Module und kleine Metatexte nach visueller Prüfung weiter feinjustieren.
 - [ ] Aktivitätsprotokoll und große Textmodule bei sehr vielen Einträgen begrenzen oder seitenweise anzeigen.
-- [ ] Minimalen Loader-Prototyp planen, ohne die bestehende HTML-Datei umzubenennen oder ein Build-System einzuführen.
 - [ ] Fehlermeldungen für ungültige Module nach dem Projektstandard formulieren.
-- [ ] Ein kleines, fachlich klares Modul als Muster weiter auslagern.
-- [ ] Rückbaupfad für ausgelagerte Module festhalten, falls die Auslagerung Probleme verursacht.
 - [ ] Performance-Hotspots prüfen und nur belegte Engstellen optimieren.
 - [ ] Schnell-Text-Speicher im späteren Loader mit `module.html` und `module.css` gemeinsam anzeigen und Kontrast sowie Abstände visuell prüfen.
 
 ## Erledigt
+- [x] Offene Entwicklung wurde am 2026-07-16 in drei getrennte Phasen ergänzt: Loader-Prototyp ohne Ausführung, gezielte Modul-Auslagerung und abgesicherter Rückbaupfad.
+- [x] Leere Zustände in der Haupt-App wurden am 2026-07-16 geprüft und handlungsorientierter formuliert: Debug-Ereignisse, Termine, Code- oder Entwicklungsvorhaben, Schnelllinks und Aufgaben.
+- [x] Eingabe-Platzhalter in der Haupt-App wurden am 2026-07-16 geprüft und bei Modul-Erstellung, Import und Befehlssuche durch sichtbare Hilfetexte abgesichert.
+- [x] Minimaler Loader-Prototyp wurde am 2026-07-16 als eigene Phase geplant, ohne die HTML-Startdatei umzubenennen oder ein Build-System einzuführen.
+- [x] Auslagerung eines kleinen fachlichen Muster-Moduls wurde am 2026-07-16 als getrennte Phase festgehalten, damit sie nicht mit dem Loader-Prototyp vermischt wird.
+- [x] Rückbaupfad für ausgelagerte Module wurde am 2026-07-16 als eigene Phase dokumentiert: Single-File-Bereich festhalten, Modul deaktivierbar halten und alte Daten erst nach Prüfung entfernen.
 - [x] Manifestprüfungen wurden am 2026-07-16 weiter an das Loader-Konzept angeglichen: Einstiegspunkte dürfen nur erlaubte Moduldateien sein und vorhandene Einstiegspunkt-Dateien werden geprüft.
 - [x] Eingabe-Platzhalter im GenreTool wurden am 2026-07-16 geprüft und durch sichtbare Hilfstexte ergänzt, damit Pflichtangaben auch ohne Platzhalter verständlich bleiben.
 - [x] Sentinel-Prüfung auf `PLACEHOLDER` wurde am 2026-07-16 nach der GenreTool-Moduländerung erneut ausgeführt und bestanden.

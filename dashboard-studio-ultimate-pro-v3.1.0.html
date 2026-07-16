@@ -1783,7 +1783,7 @@
         <section id="workspace" class="workspace" aria-label="3 mal 3 Arbeitsraster"></section>
         <div id="emptyState" class="empty-state">
           <h1>Modularer Arbeitsbereich</h1>
-          <p>Der Arbeitsbereich startet leer. Aktivieren Sie links ein Modul. Es wird automatisch in das erste freie Feld des 3×3-Rasters eingesetzt.</p>
+          <p>Der Arbeitsbereich startet leer. Aktivieren Sie links ein Modul oder erstellen Sie ein eigenes Modul. Es wird automatisch in das erste freie Feld des 3×3-Rasters eingesetzt; es wurde noch nichts gespeichert oder verändert.</p>
           <button id="emptyCreateButton" class="primary-button">Erstes Modul erstellen</button>
           <div class="empty-steps">
             <div class="empty-step"><strong>1. Aktivieren</strong>Module links einschalten; die Einblendung erfolgt automatisch.</div>
@@ -1806,7 +1806,8 @@
           <div class="form-grid">
             <div class="form-field full">
               <label for="moduleName">Modulname</label>
-              <input id="moduleName" name="name" maxlength="42" required placeholder="z. B. Projektstatus" />
+              <input id="moduleName" name="name" maxlength="42" required placeholder="z. B. Projektstatus" aria-describedby="moduleNameHelp" />
+              <small id="moduleNameHelp" class="pro-meta">Pflichtfeld: kurzer sichtbarer Name des Moduls. Der Platzhalter ist nur ein Beispiel.</small>
             </div>
             <div class="form-field">
               <label for="moduleType">Modultyp</label>
@@ -1834,7 +1835,8 @@
             </div>
             <div class="form-field full">
               <label for="moduleDescription">Beschreibung</label>
-              <textarea id="moduleDescription" name="description" placeholder="Zweck oder Inhalt des Moduls …"></textarea>
+              <textarea id="moduleDescription" name="description" placeholder="Zweck oder Inhalt des Moduls …" aria-describedby="moduleDescriptionHelp"></textarea>
+              <small id="moduleDescriptionHelp" class="pro-meta">Optional: kurze Erklärung für die Modulübersicht. Der Platzhalter ersetzt keine Eingabe.</small>
             </div>
           </div>
         </div>
@@ -1858,7 +1860,8 @@
         </div>
         <div class="form-field">
           <label for="importData">JSON-Konfiguration</label>
-          <textarea id="importData" class="generic-textarea" placeholder="Exportierte JSON-Konfiguration hier einfügen …"></textarea>
+          <textarea id="importData" class="generic-textarea" placeholder="Exportierte JSON-Konfiguration hier einfügen …" aria-describedby="importDataHelp"></textarea>
+          <small id="importDataHelp" class="pro-meta">Optional, wenn eine Datei gewählt wird. Ohne gültige JSON-Daten wird nichts importiert oder gespeichert.</small>
         </div>
       </div>
       <div class="modal-footer">
@@ -1877,7 +1880,8 @@
       <div class="modal-body">
         <div class="form-field">
           <label for="commandSearch">Befehl oder Modul suchen</label>
-          <input id="commandSearch" maxlength="120" autocomplete="off" placeholder="z. B. Editor, Backup, Einstellungen …" />
+          <input id="commandSearch" maxlength="120" autocomplete="off" placeholder="z. B. Editor, Backup, Einstellungen …" aria-describedby="commandSearchHelp" />
+          <small id="commandSearchHelp" class="pro-meta">Suchbegriff eingeben; der Beispieltext ist kein notwendiger Inhalt.</small>
         </div>
         <div id="commandList" class="command-list"></div>
       </div>
@@ -2710,7 +2714,7 @@
         shell.innerHTML = `<section class="core-card"><strong>Debugging & Logging</strong><div class="core-feedback">Detaillierte Ereignisse mit Bereich, Ursache, Lösung und Änderungsstatus.</div><div class="pro-actions"><button class="small-button" data-debug="export">TXT exportieren</button><button class="danger-button small-button" data-debug="clear">Leeren</button></div></section><div class="core-list"></div>`;
         const list = shell.querySelector(".core-list");
         const items = (state.debugLog || []).slice(0, clamp(Number(module.content.limit) || 120, 20, 300));
-        if (!items.length) list.innerHTML = '<div class="module-placeholder">Noch keine Debug-Ereignisse.</div>';
+        if (!items.length) list.innerHTML = '<div class="module-placeholder">Noch keine Debug-Ereignisse. Sobald eine prüfbare Aktion läuft, erscheinen hier Ereignisse mit Ursache, Lösung und Status.</div>';
         items.forEach(item => {
           const row = document.createElement("div");
           row.className = "core-row";
@@ -2750,14 +2754,14 @@
           <div class="overview-section"><strong>Entwicklungsvorhaben</strong><div class="overview-list" data-overview-list="projects"></div></div>
         `;
         const eventList = shell.querySelector('[data-overview-list="events"]');
-        if (!upcomingEvents.length) eventList.innerHTML = '<div class="module-placeholder">Keine Termine in den nächsten sieben Tagen.</div>';
+        if (!upcomingEvents.length) eventList.innerHTML = '<div class="module-placeholder">Keine Termine in den nächsten sieben Tagen. Öffnen Sie den Kalender, um einen Termin anzulegen.</div>';
         upcomingEvents.forEach(event => {
           const row = document.createElement("div"); row.className = "overview-row";
           row.innerHTML = `<span class="overview-dot" style="background:${event.color}"></span><span>${escapeHtml(event.title)}</span><small>${formatDate(event.date)}</small>`;
           eventList.appendChild(row);
         });
         const projectList = shell.querySelector('[data-overview-list="projects"]');
-        if (!codeProjects.length) projectList.innerHTML = '<div class="module-placeholder">Noch kein Code- oder Entwicklungsvorhaben.</div>';
+        if (!codeProjects.length) projectList.innerHTML = '<div class="module-placeholder">Noch kein Code- oder Entwicklungsvorhaben. Öffnen Sie ein Code-Modul, um Ziele oder nächste Schritte festzuhalten.</div>';
         codeProjects.slice(0, 6).forEach(project => {
           const row = document.createElement("div"); row.className = "overview-row";
           row.innerHTML = `<span class="overview-dot" style="background:${project.color}"></span><span>${escapeHtml(project.content?.title || project.name)}</span><small>${escapeHtml(project.content?.status || "idee")}</small>`;
@@ -3151,7 +3155,7 @@
         if (!items.length) {
           const empty = document.createElement("div");
           empty.className = "module-placeholder";
-          empty.textContent = data.items.length ? "Keine Aufgaben für diesen Filter." : "Noch keine Aufgaben.";
+          empty.textContent = data.items.length ? "Keine Aufgaben für diesen Filter. Filter ändern, um andere Aufgaben zu sehen." : "Noch keine Aufgaben. Oben eine Aufgabe eintragen und hinzufügen.";
           list.appendChild(empty);
         }
 
@@ -3451,7 +3455,7 @@
         const form = document.createElement("form"); form.className = "bookmark-pro-form";
         const title = createInput("text", "Titel", 100); const url = createInput("url", "https://…", 2000); const add = createButton("Hinzufügen", "primary-button small-button"); add.type = "submit"; form.append(title, url, add); shell.appendChild(form);
         const list = document.createElement("div"); list.className = "bookmark-pro-list";
-        if (!data.items.length) { const empty = document.createElement("div"); empty.className = "module-placeholder"; empty.textContent = "Noch keine Schnelllinks."; list.appendChild(empty); }
+        if (!data.items.length) { const empty = document.createElement("div"); empty.className = "module-placeholder"; empty.textContent = "Noch keine Schnelllinks. Titel und Adresse eintragen, dann hinzufügen."; list.appendChild(empty); }
         data.items.forEach(item => {
           const row = document.createElement("div"); row.className = "bookmark-pro-item";
           const link = document.createElement("a"); link.href = item.url; link.target = "_blank"; link.rel = "noopener noreferrer";
