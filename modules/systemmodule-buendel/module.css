@@ -1,0 +1,77 @@
+.systembundle-module {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  color: #e5edf7;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.97), rgba(49, 46, 129, 0.86));
+  border: 1px solid rgba(165, 180, 252, 0.34);
+  border-radius: 1.25rem;
+}
+
+.systembundle-module__header {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.systembundle-module__eyebrow,
+.systembundle-module__note {
+  color: #c7d2fe;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.systembundle-module__eyebrow {
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.systembundle-module h2,
+.systembundle-module p,
+.systembundle-module ul {
+  margin: 0;
+}
+
+.systembundle-module h2 {
+  color: #f8fafc;
+  font-size: clamp(1.6rem, 3vw, 2.3rem);
+  line-height: 1.1;
+}
+
+.systembundle-module__header p {
+  color: #dbeafe;
+  line-height: 1.6;
+}
+
+.systembundle-module__list {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0;
+  list-style: none;
+}
+
+.systembundle-module__list li {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.9rem 1rem;
+  background: rgba(15, 23, 42, 0.62);
+  border: 1px solid rgba(199, 210, 254, 0.24);
+  border-radius: 0.95rem;
+}
+
+.systembundle-module__list strong {
+  color: #f8fafc;
+}
+
+.systembundle-module__list span {
+  color: #dbeafe;
+  line-height: 1.5;
+}
+
+.systembundle-module__note {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(199, 210, 254, 0.24);
+}

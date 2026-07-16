@@ -5,8 +5,8 @@
   "type": "custom",
   "description": "Bündelt die bestehenden Systemmodule Muttermodul, Registry, Debugging, Einstellungen und Modul-Werkstatt als klare Übergangsgruppe.",
   "entry": {
-    "html": null,
-    "css": null,
+    "html": "module.html",
+    "css": "module.css",
     "js": null
   },
   "permissions": [

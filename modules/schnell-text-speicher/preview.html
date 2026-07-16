@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Schnell-Text-Speicher Vorschau</title>
+  <link rel="stylesheet" href="module.css">
+  <style>
+    body { margin: 0; padding: 1rem; background: #020617; }
+    .preview-error { color: #fecaca; font: 1rem/1.5 system-ui, sans-serif; }
+  </style>
+</head>
+<body>
+  <main id="quicktext-preview" aria-label="Schnell-Text-Speicher Modulvorschau"></main>
+  <script>
+    fetch("module.html")
+      .then(response => {
+        if (!response.ok) throw new Error("module.html konnte nicht geladen werden");
+        return response.text();
+      })
+      .then(html => { document.getElementById("quicktext-preview").innerHTML = html; })
+      .catch(error => {
+        document.getElementById("quicktext-preview").innerHTML = `<p class="preview-error">Vorschau nicht geladen. Ursache: ${error.message}. Bitte über einen lokalen Webserver starten; es wurde nichts gespeichert.</p>`;
+      });
+  </script>
+</body>
+</html>
