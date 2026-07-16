@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Provoware GenreTool Pro – Modulvorschau</title>
+  <link rel="stylesheet" href="module.css">
+  <style>
+    :root { color-scheme: dark; }
+    body { margin: 0; padding: 16px; background: #07111f; color: #f8fbff; font-family: system-ui, sans-serif; }
+    .preview-note { margin: 0 0 12px; padding: 10px 12px; border: 1px solid #35506f; border-radius: 10px; background: #0b1728; }
+  </style>
+</head>
+<body>
+  <p class="preview-note"><strong>Modulvorschau:</strong> Über <code>scripts/start-local.sh</code> starten, damit <code>genres_db.json</code> geladen werden kann.</p>
+  <main id="module-host" aria-live="polite"></main>
+  <script>
+    fetch("module.html")
+      .then(response => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.text();
+      })
+      .then(html => {
+        document.getElementById("module-host").innerHTML = html;
+        const script = document.createElement("script");
+        script.src = "module.js";
+        document.body.appendChild(script);
+      })
+      .catch(error => {
+        document.getElementById("module-host").textContent = `Modul konnte nicht geladen werden: ${error.message}`;
+      });
+  </script>
+</body>
+</html>

@@ -47,6 +47,7 @@
     "../modules/fokus-timer/module.manifest.json",
     "../modules/schnelllinks/module.manifest.json",
     "../modules/notizen/module.manifest.json",
+    "../modules/provoware-genretool-pro/module.manifest.json",
     "../modules/systemmodule-buendel/module.manifest.json"
   ]
 }

@@ -1,38 +1,57 @@
 # Provoware GenreTool Pro
 
-## Status
+## Zweck
 
-Das Modul ist als separates MULTIMODULTOOL2026-Dateimodul umgesetzt. Es besteht aus Manifest, Oberfläche, Styles und lokaler Browser-Logik.
-
-## Ziel
-
-Das Modul verwaltet eine lokale, eindeutig bereinigte Datenbank für musikalische Begriffe. Es kombiniert Genres, Stimmungen, Stile, Effekte, Themen und Besonderheiten zufällig zu kopierbaren Song-Prompt-Ergebnissen.
+Songs-Untermodul für eine lokale Kreativdatenbank mit Genres, Stimmungen, Stilen, Effekten, Themen und Besonderheiten. Das Modul erzeugt daraus kopierbare Zufallskombinationen.
 
 ## Funktionsumfang
 
-- Mitgelieferte Datenbank mit 1.800 datenbankweit eindeutigen Einträgen.
-- Einträge suchen, ergänzen, bearbeiten, löschen und favorisieren.
-- Einträge nach Kategorien verwalten: Genre, Stimmung, Stil, Effekt, Thema und Besonderheit.
-- Kategorien mischen und mehrere Zufallsergebnisse auf einmal erzeugen.
-- Ergebnisse kommasepariert in die Zwischenablage kopieren.
-- Zufallsergebnisse ohne Duplikate innerhalb eines Ergebnisses bilden.
-- Einzelne Ergebnisbestandteile sperren, offen neu würfeln und einzeln kopieren.
-- Ergebnisverlauf lokal protokollieren.
-- Import, Export, Sicherung, Rücksetzen sowie Undo/Redo anbieten.
-- Beim Import kommaseparierter Werte jeden Wert einzeln prüfen und einzeln ins Archiv aufnehmen.
+- Mitgelieferte `genres_db.json` mit 1.800 datenbankweit eindeutigen Einträgen.
+- Je 300 Werte in Genres, Stimmungen, Stilen, Effekten, Themen und Besonderheiten.
+- Suche, Kategorienfilter, Ergänzen, Bearbeiten, Löschen und Favorisieren.
+- Ein bis zwölf Zufallsergebnisse mit sechs Kategorien.
+- Einzelne Ergebnisbestandteile sperren und offene Bestandteile neu würfeln.
+- Kopieren, Verlauf, Import, Export, Backup, Rücksetzen sowie Undo/Redo.
+- JSON-, TXT- und CSV-Import bis 8 MB mit Dublettenprüfung.
+- Eigener lokaler Speicherbereich: `multimodultool2026.provoware-genretool-pro.v1`.
 
-## Dateien
+## Einbindung
+
+Das Modul ist im App-Manifest registriert:
+
+```text
+../modules/provoware-genretool-pro/module.manifest.json
+```
+
+Dateien:
 
 - `module.manifest.json`: Modulbeschreibung und Sicherheitsgrenzen.
-- `module.html`: lokale Moduloberfläche.
-- `module.css`: gekapselte Modulgestaltung.
-- `module.js`: lokale Logik mit eigenem Speicherbereich.
-- `genres_db.json`: mitgelieferte Startdatenbank mit 1.800 Begriffen.
+- `module.html`: gekapselte Oberfläche.
+- `module.css`: gekapselte Gestaltung.
+- `module.js`: Fachlogik und lokaler Zustand.
+- `genres_db.json`: Startdatenbank.
+- `preview.html`: direkte Modulvorschau über den lokalen Startserver.
 
-## Speicher und Sicherheit
+## Vorschau
 
-Das Modul nutzt ausschließlich den eigenen lokalen Speicherbereich `multimodultool2026.provoware-genretool-pro.v1`. Doppelte Begriffe werden datenbankweit verhindert. Importdateien über 8 MB werden abgelehnt. Lösch- und Reset-Aktionen verlangen eine sichtbare Bestätigung und erstellen vorher einen Undo-Punkt.
+Projekt über `./scripts/start-local.sh` starten und danach öffnen:
 
-## Bekannte Grenze
+```text
+modules/provoware-genretool-pro/preview.html
+```
 
-Das Modul ist dateibasiert vorbereitet. Die Hauptanwendung besitzt noch keinen dynamischen Modul-Loader, der `module.html`, `module.css`, `module.js` und `genres_db.json` automatisch lädt. Beim direkten Öffnen per `file://` können Browser das Laden der Startdaten blockieren; dann bitte über einen lokalen Server öffnen oder importieren.
+Ein direkter Start über `file://` kann das Laden von `genres_db.json` blockieren.
+
+## Prüfung
+
+```sh
+python3 tests/validate_module_manifests.py
+python3 tests/validate_genres_module.py
+node --check modules/provoware-genretool-pro/module.js
+```
+
+Die GenreTool-Prüfung kontrolliert Manifest, App-Registrierung, Einstiegspunkte, Pflichtoberfläche sowie exakt 1.800 normalisierte Unikate.
+
+## Architekturgrenze
+
+Die stabile Hauptanwendung ist weiterhin eine Single-File-HTML-App. Das Genres-Modul ist vollständig dateibasiert vorbereitet; die automatische Anzeige innerhalb der Hauptoberfläche erfolgt, sobald der geplante Manifest-Modul-Loader aktiv ist.
