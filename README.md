@@ -6,7 +6,7 @@ Lokales Dashboard-Werkzeug als Single-File-HTML-App. Die Anwendung soll ohne Ins
 
 - Startdatei: `dashboard-studio-ultimate-pro-v3.1.0.html`
 - Arbeitsmodell: empfohlenes Startskript mit lokalem Server; direkter Datei-Start nur als eingeschränkter Rückfall
-- Entwicklungsfortschritt: 90 % (Details siehe `todo.txt`)
+- Entwicklungsfortschritt: 91 % (Details siehe `todo.txt`)
 - Modulziel: spätere manifestbasierte Module unter `modules/`
 - Wichtige Regel: mittelgroße, sichere Änderungen vor großen Umbauten
 
@@ -65,6 +65,7 @@ Bei GUI-Änderungen bitte prüfen:
 - Sind Eingabefelder, Schaltflächen und aktive Elemente klar erkennbar?
 - Bleibt die Oberfläche ohne lange Suche bedienbar?
 - Sind Fehlermeldungen einfach formuliert und handlungsorientiert?
+- Passt sich das 3×3-Raster ohne unnötiges horizontales Scrollen an kleine und große Browserfenster an?
 - Lassen sich aktive Module per Tastatur einblenden und platzierte Module mit Pfeiltasten im Raster verschieben?
 
 ## Entwicklung

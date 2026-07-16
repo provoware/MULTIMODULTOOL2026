@@ -561,13 +561,14 @@
 
     .workspace {
       position: relative;
-      min-width: 720px;
-      min-height: 620px;
-      height: max(100%, 620px);
+      width: 100%;
+      min-width: min(100%, 720px);
+      min-height: clamp(540px, calc(100vh - var(--menubar-h) - var(--tabbar-h) - 84px), 780px);
+      height: max(100%, clamp(540px, calc(100vh - var(--menubar-h) - var(--tabbar-h) - 84px), 780px));
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      grid-template-rows: repeat(3, minmax(170px, 1fr));
-      gap: var(--grid-gap);
+      grid-template-columns: repeat(3, minmax(clamp(150px, 24vw, 240px), 1fr));
+      grid-template-rows: repeat(3, minmax(clamp(132px, 18vh, 190px), 1fr));
+      gap: clamp(8px, 1.4vw, var(--grid-gap));
       isolation: isolate;
     }
 
@@ -609,8 +610,8 @@
       inset: 0;
       display: flex;
       flex-direction: column;
-      min-width: 220px;
-      min-height: 150px;
+      min-width: min(220px, 100%);
+      min-height: min(150px, 100%);
       border: 1px solid color-mix(in srgb, var(--module-color) 44%, var(--line));
       border-radius: var(--radius);
       background: linear-gradient(155deg, rgba(19, 37, 61, 0.98), rgba(10, 24, 42, 0.96));
@@ -640,8 +641,8 @@
       inset: auto;
       left: 22%;
       top: 18%;
-      width: min(560px, 70vw);
-      height: min(420px, 62vh);
+      width: min(560px, calc(100vw - 24px));
+      height: min(420px, calc(100vh - var(--menubar-h) - 24px));
       z-index: 170;
       resize: both;
       overflow: auto;
@@ -1045,7 +1046,7 @@
 
     @media (max-width: 980px) {
       .app { --sidebar-w: 270px; }
-      .workspace { min-width: 660px; }
+      .workspace { min-width: 100%; }
       .menu-right .status-pill { display: none; }
     }
 
@@ -1070,7 +1071,10 @@
       .workspace-shell { grid-column: 1; }
       .brand-text { display: none; }
       .menu-left .menu-dropdown-wrap { display: none; }
-      .workspace { min-width: 630px; }
+      .workspace {
+        min-width: 100%;
+        grid-template-columns: repeat(3, minmax(132px, 1fr));
+      }
       .empty-steps { grid-template-columns: 1fr; }
       .panel-window.maximized { left: 10px; }
     }
@@ -1078,7 +1082,7 @@
     @media (max-height: 650px) {
       :root { --tabbar-h: 42px; --menubar-h: 38px; }
       .toolbar { min-height: 40px; }
-      .workspace { min-height: 540px; grid-template-rows: repeat(3, minmax(145px, 1fr)); }
+      .workspace { min-height: 500px; grid-template-rows: repeat(3, minmax(120px, 1fr)); }
     }
 
 
@@ -1788,7 +1792,8 @@
       </div>
 
       <div class="workspace-wrap">
-        <section id="workspace" class="workspace" aria-label="3 mal 3 Arbeitsraster"></section>
+        <p id="workspaceHelp" class="live-region">Arbeitsraster mit neun Feldern. Module werden automatisch gruppiert und können per Pfeiltasten verschoben werden. Schwebende Fenster bleiben beim Vergrößern oder Verkleinern des Browserfensters im sichtbaren Bereich.</p>
+        <section id="workspace" class="workspace" role="list" aria-label="3 mal 3 Arbeitsraster" aria-describedby="workspaceHelp"></section>
         <div id="emptyState" class="empty-state">
           <h1>Modularer Arbeitsbereich</h1>
           <p>Der Arbeitsbereich startet leer. Aktivieren Sie links ein Modul oder erstellen Sie ein eigenes Modul. Es wird automatisch in das erste freie Feld des 3×3-Rasters eingesetzt; es wurde noch nichts gespeichert oder verändert.</p>
@@ -2342,8 +2347,9 @@
           cell.dataset.index = String(i + 1);
           cell.dataset.cell = String(i);
           cell.tabIndex = 0;
-          cell.setAttribute("role", "group");
-          cell.setAttribute("aria-label", `Rasterfeld ${i + 1}: Modul hier ablegen`);
+          cell.setAttribute("role", "listitem");
+          cell.setAttribute("aria-label", `Rasterfeld ${i + 1} von 9: Modul hier ablegen oder fokussiertes Modul hierhin verschieben`);
+          cell.setAttribute("aria-describedby", "workspaceHelp");
           cell.addEventListener("dragover", onCellDragOver);
           cell.addEventListener("dragleave", onCellDragLeave);
           cell.addEventListener("drop", onCellDrop);
@@ -2504,7 +2510,7 @@
         refreshModuleLookup();
         createGrid();
         const ws = activeWorkspace();
-        const placements = Object.entries(ws.layout || {});
+        const placements = Object.entries(ws.layout || {}).sort(([a], [b]) => Number(a) - Number(b));
         let visibleCount = 0;
 
         placements.forEach(([cellIndex, placement]) => {
@@ -2528,7 +2534,9 @@
         panel.dataset.moduleId = module.id;
         panel.dataset.cell = String(cellIndex);
         panel.tabIndex = 0;
-        panel.setAttribute("aria-label", `${module.name}. Pfeiltasten verschieben das Modul im Raster.`);
+        panel.setAttribute("role", "region");
+        panel.setAttribute("aria-label", `${module.name}. Pfeiltasten verschieben das Modul im Raster. Die Größe passt sich automatisch an den verfügbaren Platz an.`);
+        panel.setAttribute("aria-describedby", "workspaceHelp");
         panel.style.setProperty("--module-color", module.color);
         placement.zoom = normalizeModuleZoom(placement.zoom);
         panel.style.setProperty("--module-zoom", String(placement.zoom));
@@ -3665,7 +3673,7 @@
           placement.floating = !placement.floating;
           placement.maximized = false;
           if (placement.floating && !placement.geometry) {
-            placement.geometry = { x: window.innerWidth * 0.22, y: window.innerHeight * 0.18, w: Math.min(560, window.innerWidth * 0.68), h: Math.min(420, window.innerHeight * 0.62) };
+            placement.geometry = fitFloatingGeometry({ x: window.innerWidth * 0.22, y: window.innerHeight * 0.18, w: 560, h: 420 });
           }
           saveState();
           renderWorkspace();
@@ -3777,27 +3785,49 @@
         };
       }
 
+      function floatingBounds() {
+        const menuHeight = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--menubar-h")) || 42;
+        return {
+          minX: 6,
+          minY: menuHeight + 4,
+          maxW: Math.max(260, window.innerWidth - 12),
+          maxH: Math.max(180, window.innerHeight - menuHeight - 12)
+        };
+      }
+
+      function fitFloatingGeometry(geometry = {}) {
+        const bounds = floatingBounds();
+        const width = clamp(Number(geometry.w) || 520, Math.min(260, bounds.maxW), bounds.maxW);
+        const height = clamp(Number(geometry.h) || 360, Math.min(180, bounds.maxH), bounds.maxH);
+        const maxX = Math.max(bounds.minX, window.innerWidth - Math.min(width, 180));
+        const maxY = Math.max(bounds.minY, window.innerHeight - Math.min(height, 58));
+        return {
+          x: clamp(Number(geometry.x) || bounds.minX, bounds.minX, maxX),
+          y: clamp(Number(geometry.y) || bounds.minY, bounds.minY, maxY),
+          w: width,
+          h: height
+        };
+      }
+
       function onPointerMove(event) {
         if (activeDrag && event.pointerId === activeDrag.pointerId) {
           const dx = event.clientX - activeDrag.startX;
           const dy = event.clientY - activeDrag.startY;
-          const minX = 6;
-          const minY = Number(getComputedStyle(document.documentElement).getPropertyValue("--menubar-h").replace("px", "")) + 6 || 48;
-          const x = clamp(activeDrag.originX + dx, minX, window.innerWidth - 180);
-          const y = clamp(activeDrag.originY + dy, minY, window.innerHeight - 60);
-          activeDrag.placement.geometry ||= {};
-          activeDrag.placement.geometry.x = x;
-          activeDrag.placement.geometry.y = y;
+          const fitted = fitFloatingGeometry({ ...activeDrag.placement.geometry, x: activeDrag.originX + dx, y: activeDrag.originY + dy });
+          const { x, y } = fitted;
+          activeDrag.placement.geometry = fitted;
           activeDrag.panel.style.left = `${x}px`;
           activeDrag.panel.style.top = `${y}px`;
         }
 
         if (activeResize && event.pointerId === activeResize.pointerId) {
-          const width = clamp(activeResize.startW + event.clientX - activeResize.startX, 240, window.innerWidth - 20);
-          const height = clamp(activeResize.startH + event.clientY - activeResize.startY, 160, window.innerHeight - 20);
-          activeResize.placement.geometry ||= {};
-          activeResize.placement.geometry.w = width;
-          activeResize.placement.geometry.h = height;
+          const fitted = fitFloatingGeometry({
+            ...activeResize.placement.geometry,
+            w: activeResize.startW + event.clientX - activeResize.startX,
+            h: activeResize.startH + event.clientY - activeResize.startY
+          });
+          const { width, height } = { width: fitted.w, height: fitted.h };
+          activeResize.placement.geometry = fitted;
           activeResize.panel.style.width = `${width}px`;
           activeResize.panel.style.height = `${height}px`;
         }
@@ -3817,12 +3847,7 @@
       }
 
       function applyFloatingGeometry(panel, placement) {
-        const geometry = placement.geometry || {};
-        const width = clamp(Number(geometry.w) || 520, 260, Math.max(280, window.innerWidth - 12));
-        const height = clamp(Number(geometry.h) || 360, 180, Math.max(200, window.innerHeight - 12));
-        const x = clamp(Number(geometry.x) || 12, 6, Math.max(6, window.innerWidth - Math.min(width, 180)));
-        const menuHeight = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--menubar-h")) || 42;
-        const y = clamp(Number(geometry.y) || menuHeight + 8, menuHeight + 4, Math.max(menuHeight + 4, window.innerHeight - 58));
+        const { x, y, w: width, h: height } = fitFloatingGeometry(placement.geometry);
         placement.geometry = { x, y, w: width, h: height };
         panel.style.left = `${x}px`;
         panel.style.top = `${y}px`;
@@ -3985,10 +4010,13 @@
       function arrangeWindows(trackHistory = true) {
         if (trackHistory) pushHistory("Fenster automatisch anordnen");
         const ws = activeWorkspace();
-        const placements = Object.values(ws.layout || {}).filter(item => {
-          const module = getModuleById(item.moduleId);
-          return module?.active;
-        });
+        const placements = Object.entries(ws.layout || {})
+          .sort(([a], [b]) => Number(a) - Number(b))
+          .map(([, item]) => item)
+          .filter(item => {
+            const module = getModuleById(item.moduleId);
+            return module?.active;
+          });
         ws.layout = {};
         placements.slice(0, 9).forEach((placement, index) => {
           ws.layout[index] = {
@@ -4003,7 +4031,8 @@
         logAction(`Fenster automatisch angeordnet: ${ws.name}`, "Layout");
         saveState();
         renderWorkspace();
-        toast("Fenster automatisch angeordnet");
+        if (focusedWindowId) document.querySelector(`.panel-window[data-module-id="${CSS.escape(focusedWindowId)}"]`)?.focus();
+        toast("Fenster automatisch gruppiert und angeordnet");
       }
 
       function resetWindowLayout() {
@@ -4623,6 +4652,7 @@
             const placement = findPlacement(panel.dataset.moduleId);
             if (placement) applyFloatingGeometry(panel, placement);
           });
+          saveStateDebounced();
         });
         window.addEventListener("error", event => reportRuntimeIssue(event.error || event.message));
         window.addEventListener("unhandledrejection", event => reportRuntimeIssue(event.reason));
