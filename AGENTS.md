@@ -86,6 +86,7 @@ Erst danach patchen. Nicht raten: vorhandene Dateien prüfen und bei Unsicherhei
 - Keine Architekturwechsel ohne bestätigten Mehrwert.
 - Keine neuen Abhängigkeiten ohne klare Begründung.
 - Keine Platzhalter wie `TODO später`, `hier ergänzen` oder abgeschnittene Codebereiche.
+- Gefundene Platzhalter werden nicht ungeplant nebenbei ersetzt, sondern mit Datei, Stelle, Zweck, Risiko und nächstem Prüfschritt nummeriert in `todo.txt` aufgenommen und danach strukturiert abgearbeitet.
 - Keine destruktiven Dateiaktionen ohne Backup, Papierkorb oder klare Begründung.
 - Dokumentation nur bei echter Struktur-, Verhaltens- oder Bedienänderung anpassen.
 - Offene Folgeprobleme nicht ungeplant mitbearbeiten, sondern in `todo.txt` dokumentieren.
