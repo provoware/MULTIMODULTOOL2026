@@ -18,9 +18,11 @@ Vergleiche ähnliche Meldungen paarweise, bevor du Code änderst: Export, Import
 
 Dokumentiere nach jeder kleinen Änderung genau eine Begründung: Welches Risiko wurde gesenkt, welche Datei wurde berührt und welche Prüfung reicht dafür aus?
 
+Prüfe gekoppelte Statusangaben automatisch: Lies beide Quellen, validiere Wertebereich und Format und brich mit einer klaren Meldung ab, sobald die Angaben voneinander abweichen.
 Erstelle eine Platzhalter-Inventur: Suche nach TODO, FIXME, Dummy, Stub, Beispieltexten und leeren Zuständen. Bearbeite nichts sofort, sondern schreibe zuerst eine nummerierte Liste mit Risiko und Prüfschritt.
 
 Prüfe gekoppelte Statusangaben automatisch: Lies beide Quellen, validiere Wertebereich und Format und brich mit einer klaren Meldung ab, sobald die Angaben voneinander abweichen.
+Prüfe ein Manifest wie einen Türsteher: Stimmen Pflichtfelder, Ordnername, erlaubte Einstiegspunkte und vorhandene Dateien? Lehne nur klar falsche Angaben ab und melde verständlich, was fehlt.
 
 ### Prompting
 
@@ -38,6 +40,7 @@ Bitte gleiche diese Meldung an vorhandene gute Beispiele an, ohne Funktion oder 
 
 Bitte erstelle eine knappe Änderungsanweisung mit Ziel, betroffenen Dateien, Nicht-Zielen und Abnahmekriterium. Halte sie so klein, dass ein Mini-Patch genügt.
 
+Bitte prüfe diese Modulbeschreibung auf Konsistenz: Passt die ID zum Ordner, zeigen Einstiegsdateien auf echte Dateien und bleibt die Fehlermeldung für Laien verständlich?
 Vergleiche alle Stellen, die denselben Kennwert nennen. Liefere Fundorte, abweichende Werte, maßgebliche Quelle und eine minimale Regel, die künftige Abweichungen automatisch verhindert.
 
 ### Vibecoding
@@ -56,6 +59,7 @@ Wenn eine manuelle Prüfung in der Umgebung nicht möglich ist, dokumentiere ehr
 
 Halte die kreative Energie gezielt: Sammle drei Ideen, wähle eine risikoarme Idee aus und setze nur den kleinsten sichtbaren Teil davon um.
 
+Behandle Prüfcode wie Sicherheitsgeländer: Er soll klare Fehltritte verhindern, aber keine funktionierende Übergangslösung unnötig blockieren.
 Suche zuerst nach einer kleinen Inkonsistenz, die Vertrauen kostet. Korrigiere sie an der Quelle und ergänze genau einen einfachen Test, der denselben Fehler künftig sichtbar macht.
 
 ### KI-Bildgenerierung
@@ -74,6 +78,7 @@ Erzeuge eine kleine Import-Hinweisgrafik: geöffnete Datei, prüfendes Häkchen,
 
 Gestalte eine ruhige Modul-Vorschau: sechs Karten in sauberem Raster, leichte Tiefe, klare Überschriften als Formen angedeutet, freundliche Akzente und kein echter Produktname.
 
+Erzeuge ein klares Symbolbild für Manifest-Prüfung: Ordner, Häkchen, kleine Dateikarten und dezenter Schutzrahmen, ruhige Blautöne, keine bedrohliche Warnoptik und kein lesbarer Kleinsttext.
 Visualisiere Datenkonsistenz als zwei Dokumentkarten mit identischer Prozentanzeige, verbunden durch ein geprüftes Häkchen; klare Kontraste, sachliche technische Optik, keine Warnsymbole und kein Kleinsttext.
 
 ### KI-Musikgenerierung
@@ -92,6 +97,7 @@ Beschreibe einen kurzen Bestätigungs-Sound für erfolgreichen Import: 8 Sekunde
 
 Erzeuge einen fokussierten Review-Loop: 70 Sekunden, leiser Puls, weiche E-Piano-Akkorde, kaum Höhen, keine Stimme und gut geeignet für ruhiges Lesen von Prüflisten.
 
+Beschreibe einen sanften Validierungs-Loop: 80 Sekunden, ruhiger Klick-Puls, warme Pads, kurze helle Bestätigungstöne, keine Stimme und passend zum konzentrierten Prüfen von Manifesten.
 Erzeuge einen 12-sekündigen Prüfklang: zwei synchrone Pulse, kurzer heller Bestätigungston, ruhiger Ausklang, keine Stimme, keine Alarmwirkung und geeignet für erfolgreich abgeglichene Projektwerte.
 
 ### KI-Contentcreation
@@ -110,4 +116,5 @@ Schreibe ein kompaktes Prüfprotokoll: Was wurde im Browser geprüft, was war we
 
 Erstelle eine kurze Fortschrittsmeldung: ein Satz zum Nutzen, ein Satz zur geprüften Grenze und ein Satz mit dem nächsten sinnvollen Schritt ohne Werbesprache.
 
+Schreibe eine kurze Prüferklärung für Nicht-Techniker: Ein Manifest ist der Steckbrief eines Moduls; geprüft wurden Name, Ordner, erlaubte Dateien und fehlende Verweise.
 Schreibe eine knappe Änderungsnotiz zur Datenkonsistenz: vorherige Abweichung, festgelegter gemeinsamer Wert, neue automatische Prüfung und ausdrücklich unveränderte Laufzeitfunktion.

@@ -67,7 +67,7 @@ def require(condition: bool, errors: list[str], message: str) -> None:
         errors.append(message)
 
 
-def validate_manifest(path: Path) -> list[str]:
+def validate_manifest(path: Path, module_dir: Path | None = None) -> list[str]:
     data = load_json(path)
     errors: list[str] = []
 
@@ -82,7 +82,13 @@ def validate_manifest(path: Path) -> list[str]:
     require(isinstance(entry, dict) and set(entry) == set(ENTRY_VALUES), errors, "entry muss html, css und js enthalten")
     if isinstance(entry, dict):
         for key, allowed in ENTRY_VALUES.items():
-            require(entry.get(key) in allowed, errors, f"entry.{key} ist ungueltig")
+            entry_file = entry.get(key)
+            require(entry_file in allowed, errors, f"entry.{key} ist ungueltig")
+            if module_dir is not None and entry_file is not None:
+                require((module_dir / entry_file).is_file(), errors, f"entry.{key} verweist auf fehlende Datei")
+
+    if module_dir is not None:
+        require(data.get("id") == module_dir.name, errors, "id passt nicht zum Modulordner")
 
     permissions = data.get("permissions")
     require(isinstance(permissions, list) and len(permissions) >= 1, errors, "permissions braucht mindestens einen Eintrag")
@@ -110,16 +116,16 @@ def validate_manifest(path: Path) -> list[str]:
     return errors
 
 
-def manifest_paths() -> list[Path]:
-    module_manifests = sorted(MODULE_ROOT.glob("*/module.manifest.json"))
-    return [EXAMPLE_MANIFEST, *module_manifests]
+def manifest_paths() -> list[tuple[Path, Path | None]]:
+    module_manifests = [(path, path.parent) for path in sorted(MODULE_ROOT.glob("*/module.manifest.json"))]
+    return [(EXAMPLE_MANIFEST, None), *module_manifests]
 
 
 def main() -> int:
     failures = []
-    for path in manifest_paths():
+    for path, module_dir in manifest_paths():
         try:
-            errors = validate_manifest(path)
+            errors = validate_manifest(path, module_dir)
         except ValueError as exc:
             errors = [str(exc)]
         if errors:
