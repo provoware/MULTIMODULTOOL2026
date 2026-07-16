@@ -33,6 +33,7 @@ Die App arbeitet lokal im Browser. Je nach Funktion können Daten im Browser-Spe
 Wichtige Hinweise:
 
 - Vor riskanten Importen oder Wiederherstellungen sollte ein Backup vorhanden sein.
+- Beim Start prüft die App zuerst den browserlokalen Standardspeicherort `MULTIMODULTOOL2026/dashboard-data` und legt ihn an, wenn der Browser den privaten lokalen Datei-Speicher unterstützt. Falls nicht, wird der vorhandene Browser-Speicher als Rückfall angezeigt.
 - In den Einstellungen kann **Speicher prüfen** einen kurzen Browser-Speicher-Test, eine Speicher-Schätzung und einen Backup-Lesetest ausführen, ohne Nutzdaten zu verändern.
 - Große JSON-Importe sollen vor dem Speichern auf Größe und Inhalt geprüft werden.
 - Keine privaten Echtdaten in Beispiel-, Import-, Export- oder Logdateien committen.
