@@ -6,6 +6,8 @@ Dieses Modul sammelt kurze, wiederverwendbare Textbausteine. Die Bausteine sind 
 
 ### Coding
 
+Prüfe einen mittelgroßen Patch wie ein Paket: Teiländerungen einzeln lesen, gemeinsamen Zweck prüfen, unnötige Nebeneffekte markieren und erst danach die Sammelvalidierung starten.
+
 Prüfe die Änderung in kleinen Schritten: erst Eingaben absichern, dann die kleinste passende Funktion ändern, danach nur die direkt betroffene Ausgabe testen. Vermeide globale Umbauten, solange der Fehler lokal begrenzt ist.
 
 Formuliere vor dem Patch eine kurze Risikozeile: Welche Daten könnten betroffen sein, wie wird ein Abbruch erkannt und welche Prüfung zeigt danach, dass nichts Nebenliegendes beschädigt wurde?
@@ -26,6 +28,8 @@ Prüfe ein Manifest wie einen Türsteher: Stimmen Pflichtfelder, Ordnername, erl
 
 ### Prompting
 
+Plane eine mittelgroße Änderung als Paket: ein Ziel, zwei bis vier zusammenhängende Teilaufgaben, klare Nicht-Ziele und eine gemeinsame Endprüfung. Stoppe, sobald ein Teil unsicher wird.
+
 Ermittle Platzhalter nicht nur nach dem Wort „TODO“, sondern auch nach Beispielen, leeren Zuständen, Dummy-Daten und Stubs. Gib je Fundstelle Datei, Zweck, Risiko und nächsten Schritt an.
 
 Beschreibe zuerst Ziel, gewünschtes Ausgabeformat, Eingabedaten und Ausschlüsse. Bitte danach um Rückfragen nur dann, wenn ohne Antwort ein falsches Ergebnis wahrscheinlich wäre.
@@ -44,6 +48,8 @@ Bitte prüfe diese Modulbeschreibung auf Konsistenz: Passt die ID zum Ordner, ze
 Vergleiche alle Stellen, die denselben Kennwert nennen. Liefere Fundorte, abweichende Werte, maßgebliche Quelle und eine minimale Regel, die künftige Abweichungen automatisch verhindert.
 
 ### Vibecoding
+
+Bitte optimiere eine Arbeitsanweisung auf Effizienz: entferne Wiederholungen, bündle passende Schritte und behalte alle Sicherheits- und Prüfregeln ausdrücklich bei.
 
 Wenn du Platzhalter findest, widerstehe dem Reflex zum Sofortumbau. Sammle sie zuerst nummeriert, ordne sie nach Risiko und bearbeite danach nur den obersten kleinen Punkt.
 
@@ -64,6 +70,8 @@ Suche zuerst nach einer kleinen Inkonsistenz, die Vertrauen kostet. Korrigiere s
 
 ### KI-Bildgenerierung
 
+Arbeite in mittelgroßen Kreativschritten: erst grobe Richtung, dann ein sichtbarer Qualitätsgewinn, danach gezielte Korrektur. Vermeide spontane Komplettumbauten, wenn ein Detailpatch reicht.
+
 Erstelle eine klare Platzhalter-Grafik für einen leeren Modulzustand: freundliche Karte, dezentes Plus-Symbol, kurze visuelle Anleitung, hoher Kontrast, kein echter Text und keine Warnstimmung.
 
 Erzeuge ein ruhiges, kontrastreiches Vorschaubild mit klar erkennbarem Hauptmotiv, einfacher Lichtführung und wenigen Ablenkungen. Nenne Stil, Kameraperspektive, Farbpalette und was ausdrücklich nicht im Bild erscheinen soll.
@@ -83,6 +91,8 @@ Visualisiere Datenkonsistenz als zwei Dokumentkarten mit identischer Prozentanze
 
 ### KI-Musikgenerierung
 
+Beschreibe einen produktiven Iterations-Loop als Musik: 75 Sekunden, moderater Puls, klare kleine Akzente, warme Pads, keine Stimme und ein ruhiger Abschluss nach erfolgreicher Prüfung.
+
 Beschreibe einen kurzen Denkpausen-Loop für Aufräumarbeiten: 60 Sekunden, ruhiger Puls, helle leichte Akkorde, keine Stimme, nicht ablenkend und passend zum strukturierten Prüfen von Listen.
 
 Erstelle einen 90-Sekunden-Entwurf mit klarer Songstruktur: kurzes Intro, prägnante Strophe, wiedererkennbare Hook und weiches Outro. Halte Tempo, Stimmung, Instrumente und gewünschte Produktionsqualität eindeutig fest.
@@ -101,6 +111,8 @@ Beschreibe einen sanften Validierungs-Loop: 80 Sekunden, ruhiger Klick-Puls, war
 Erzeuge einen 12-sekündigen Prüfklang: zwei synchrone Pulse, kurzer heller Bestätigungston, ruhiger Ausklang, keine Stimme, keine Alarmwirkung und geeignet für erfolgreich abgeglichene Projektwerte.
 
 ### KI-Contentcreation
+
+Schreibe ein kompaktes Iterationsprotokoll: gebündelte Teilaufgaben, erreichter Effizienzgewinn, geprüfte Dateien, unveränderte Grenzen und zwei nächste Schritte.
 
 Erstelle aus einer Platzhalter-Liste eine umsetzbare Aufgabenübersicht: zuerst Risiko, dann Nutzerwirkung, dann kleinster nächster Schritt und zuletzt ein klares Abnahmekriterium.
 

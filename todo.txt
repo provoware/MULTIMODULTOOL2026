@@ -3,7 +3,7 @@ Stand: 2026-07-16
 Aktueller Startpunkt: dashboard-studio-ultimate-pro-v3.1.0.html
 Arbeitsweise: lokal im Browser, ohne Build-Schritt, ohne externe Laufzeit-Abhängigkeiten.
 
-Fortschritt gesamt: 58 %
+Fortschritt gesamt: 59 %
 Berechnung: erledigte Grundlagen und Standards zählen 40 %, laufende Qualitäts- und UX-Arbeit 35 %, Modul-Auslagerung und Tests 25 %.
 Aktualisierungsregel: Bei jeder Iteration Stand, Prozentwert, erledigte Punkte, offene Punkte und bekannte Grenzen prüfen und anpassen.
 
@@ -28,6 +28,9 @@ Erledigt
 - Platzhalter-Fundstellen wurden am 2026-07-16 per gezielter Textsuche ermittelt und als nummerierte Abarbeitungsliste aufgenommen.
 - Manifestprüfung kontrolliert nun bei Modulmanifesten zusätzlich, ob die Manifest-ID zum Modulordner passt und deklarierte Einstiegspunkt-Dateien vorhanden sind.
 - Schnell-Text-Speicher wurde in dieser Iteration um je einen weiteren Textbaustein pro Kategorie ergänzt.
+- AGENTS.md legt nun mittelgroße, sicher begrenzte Iterationen als bevorzugten Arbeitsumfang fest und fordert einen benannten Effizienzgewinn pro Iteration.
+- README-Fortschritt wurde auf 59 % angehoben, weil Arbeitsumfang, Effizienzregeln und Iterationsabschluss klarer geregelt sind.
+- Schnell-Text-Speicher wurde für die aktuelle Iteration erneut um je einen Textbaustein pro Kategorie ergänzt.
 
 In Arbeit
 - README als schnelle Einstiegs- und Orientierungshilfe aktuell halten.
@@ -178,6 +181,7 @@ Bewusste Nicht-Änderungen dieser Iteration
 - Kein Einbau eines dynamischen Manifest-Loaders in die HTML-App; ergänzt wurde nur die vorhandene Prüffunktion.
 - Keine vollständige Browserfreigabe, weil diese Umgebung keine interaktive Browser-GUI bereitgestellt hat.
 - Keine neue Laufzeitlogik für den Schnell-Text-Speicher; ergänzt wurden nur weitere dokumentierte Textbausteine.
+- Keine Abschwächung der Sicherheitsregeln zugunsten größerer Patches; mittelgroß bleibt planungs-, risiko- und prüfpflichtig.
 
 Empfohlene nächste Schritte
 1. Speicher-/Importpfad auf einem Arbeitsplatz mit echter Browser-GUI manuell prüfen: Start, Testdaten speichern, Export ausführen, kleinen JSON-Import mit Backup-Hinweis testen und Ergebnis hier dokumentieren.
