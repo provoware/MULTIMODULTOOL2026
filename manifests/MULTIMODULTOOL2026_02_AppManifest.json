@@ -46,6 +46,7 @@
     "../modules/einstellungen/module.manifest.json",
     "../modules/fokus-timer/module.manifest.json",
     "../modules/schnelllinks/module.manifest.json",
-    "../modules/notizen/module.manifest.json"
+    "../modules/notizen/module.manifest.json",
+    "../modules/systemmodule-buendel/module.manifest.json"
   ]
 }
