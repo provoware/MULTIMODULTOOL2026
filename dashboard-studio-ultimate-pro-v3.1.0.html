@@ -2764,7 +2764,7 @@
       function getModuleFallbackText(module) {
         const description = cleanText(module.description, 180);
         if (description) return description;
-        return "Noch keine eigene Ansicht hinterlegt. Bitte Beschreibung ergänzen oder später eine Moduldatei verbinden.";
+        return "Noch keine eigene Ansicht hinterlegt. Bitte Modulbeschreibung ergänzen oder eine geprüfte Moduldatei im Manifest verknüpfen.";
       }
 
       function confirmRiskyAction(message, cancelTitle) {
@@ -5446,6 +5446,21 @@
         toast("Darstellung zurückgesetzt");
       }
 
+      function formatStorageBytes(bytes) {
+        const value = Math.max(0, Number(bytes) || 0);
+        if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)} MB`;
+        if (value >= 1_000) return `${(value / 1_000).toFixed(1)} KB`;
+        return `${value} B`;
+      }
+
+      async function storageEstimateText() {
+        if (!navigator.storage?.estimate) return "Speicher-Schätzung vom Browser nicht verfügbar";
+        const estimate = await navigator.storage.estimate();
+        if (!estimate.quota || typeof estimate.usage !== "number") return "Speicher-Schätzung ohne genaue Größenangabe";
+        const freeBytes = Math.max(0, estimate.quota - estimate.usage);
+        return `ungefähr ${formatStorageBytes(freeBytes)} frei von ${formatStorageBytes(estimate.quota)}`;
+      }
+
       async function checkStorageHealth() {
         const probeKey = `${STORAGE_KEY}-probe`;
         try {
@@ -5454,20 +5469,13 @@
           const primaryBytes = new Blob([storageService.readPrimary() || ""]).size;
           const backupRaw = storageService.readBackup() || "";
           const backupBytes = new Blob([backupRaw]).size;
-          let backupStatus = backupRaw ? "Backup lesbar" : "Kein lokales Backup vorhanden";
+          const backupStatus = backupRaw ? "Backup lesbar" : "Kein lokales Backup vorhanden";
           if (backupRaw) parseJsonConfig(backupRaw, "Lokales Backup");
-          let estimateText = "Speicher-Schätzung nicht verfügbar";
-          if (navigator.storage?.estimate) {
-            const estimate = await navigator.storage.estimate();
-            if (estimate.quota && typeof estimate.usage === "number") {
-              const freeMb = Math.max(0, estimate.quota - estimate.usage) / 1_000_000;
-              estimateText = `ungefähr ${freeMb.toFixed(1)} MB frei`;
-            }
-          }
+          const estimateText = await storageEstimateText();
           logDebugEvent("INFO", "Speicherung", "Speicherprüfung abgeschlossen", estimateText, "Bei knappem Speicher zuerst exportieren und Browser-Speicher freigeben.", "Nichts verändert");
           toast(feedbackText({
             title: "Speicherprüfung abgeschlossen.",
-            cause: `${estimateText}; Daten: ${(primaryBytes / 1000).toFixed(1)} KB; Backup: ${(backupBytes / 1000).toFixed(1)} KB; ${backupStatus}.`,
+            cause: `${estimateText}; Daten: ${formatStorageBytes(primaryBytes)}; Backup: ${formatStorageBytes(backupBytes)}; ${backupStatus}.`,
             solution: "Vor Importen oder Wiederherstellungen trotzdem eine Exportdatei anlegen.",
             changed: "Nur ein kurzer Schreibtest wurde erstellt und wieder entfernt; Nutzdaten bleiben unverändert.",
             level: "success"

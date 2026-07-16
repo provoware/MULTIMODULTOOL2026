@@ -9,6 +9,7 @@ Fortschritt gesamt: 87 %
 - [ ] Schnell-Text-Speicher-CSS später visuell im echten Loader prüfen, sobald HTML und CSS gemeinsam geladen werden.
 
 ## Erledigt
+- [x] Speicherprüfung und Fallbackmeldung wurden am 2026-07-16 robuster formuliert: Speichergrößen werden einheitlich lesbar angezeigt, fehlende Browser-Schätzungen klar benannt und Module ohne Ansicht nennen nun den konkreten Manifest-Schritt.
 - [x] Release-Kandidaten-Protokoll wurde am 2026-07-16 ergänzt: lokale Vorprüfungen, technische Startprüfung und offene echte Browserfreigabe sind getrennt dokumentiert.
 - [x] Startskript startet am 2026-07-16 automatisch einen lokalen Backendserver, prüft die wichtigsten GenreTool-Dateien und öffnet die App über `http://127.0.0.1`, damit ausgelagerte Moduldateien nicht mehr durch `file://` blockiert werden.
 - [x] GenreTool öffnet am 2026-07-16 nicht mehr nur als freie Modul-Platzhalterkarte: die Haupt-App lädt die ausgelagerten HTML-, CSS- und JavaScript-Dateien über den lokalen Modulpfad und erhält bestehende lokale GenreTool-Karten per Migration.

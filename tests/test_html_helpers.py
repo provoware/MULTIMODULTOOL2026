@@ -71,7 +71,13 @@ function normalizeUrl(value) {
 function moduleFallbackText(module) {
   const description = cleanText(module?.description, 180);
   if (description) return description;
-  return "Noch keine eigene Ansicht hinterlegt. Bitte Beschreibung ergänzen oder später eine Moduldatei verbinden.";
+  return "Noch keine eigene Ansicht hinterlegt. Bitte Modulbeschreibung ergänzen oder eine geprüfte Moduldatei im Manifest verknüpfen.";
+}
+function formatStorageBytes(bytes) {
+  const value = Math.max(0, Number(bytes) || 0);
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)} MB`;
+  if (value >= 1_000) return `${(value / 1_000).toFixed(1)} KB`;
+  return `${value} B`;
 }
 function validManifestBasics(manifest) {
   const id = cleanText(manifest?.id, 64);
@@ -97,7 +103,10 @@ const checks = [
   ["tasks normalize invalid state", normalizeContent("tasks", { filter: "bad", sort: "bad", items: [{ text: " Aufgabe ", priority: "urgent", due: "2026-02-29" }] }).items[0].priority === "medium"],
   ["tasks drop empty text", normalizeContent("tasks", { items: [{ text: "   " }, { text: "ok" }] }).items.length === 1],
   ["fallback uses description", moduleFallbackText({ description: "  Eigene Ansicht folgt  " }) === "Eigene Ansicht folgt"],
-  ["fallback explains missing view", moduleFallbackText({}) === "Noch keine eigene Ansicht hinterlegt. Bitte Beschreibung ergänzen oder später eine Moduldatei verbinden."],
+  ["fallback explains missing view", moduleFallbackText({}) === "Noch keine eigene Ansicht hinterlegt. Bitte Modulbeschreibung ergänzen oder eine geprüfte Moduldatei im Manifest verknüpfen."],
+  ["storage bytes formats bytes", formatStorageBytes(999) === "999 B"],
+  ["storage bytes formats kilobytes", formatStorageBytes(1530) === "1.5 KB"],
+  ["storage bytes formats megabytes", formatStorageBytes(2500000) === "2.5 MB"],
   ["manifest id validation", validManifestBasics({ id: "Bad ID", name: "Test", description: "Beschreibung lang genug" }) === "id"],
   ["manifest description validation", validManifestBasics({ id: "gutes-modul", name: "Test", description: "kurz" }) === "description"],
   ["manifest basics pass", validManifestBasics({ id: "gutes-modul", name: "Test", description: "Beschreibung lang genug" }) === "ok"],
@@ -110,7 +119,7 @@ if (failed.length) {
 console.log(JSON.stringify({ checked: checks.length }));
 '''
 
-REQUIRED_HELPERS = ("function cleanText", "function normalizeContent", "function validDate", "function safeFilename", "function normalizeUrl", "function getModuleFallbackText", "function moduleFromManifest")
+REQUIRED_HELPERS = ("function cleanText", "function normalizeContent", "function validDate", "function safeFilename", "function normalizeUrl", "function getModuleFallbackText", "function formatStorageBytes", "function moduleFromManifest")
 
 
 def main() -> int:
@@ -127,7 +136,7 @@ def main() -> int:
         return 1
 
     checked = json.loads(result.stdout)["checked"]
-    print(f"OK: {checked} Hilfslogik-Faelle fuer Text, Zustand, Datum, Dateiname, URL und Modulvalidierung geprueft.")
+    print(f"OK: {checked} Hilfslogik-Faelle fuer Text, Zustand, Datum, Dateiname, URL, Speichergrößen und Modulvalidierung geprueft.")
     return 0
 
 
