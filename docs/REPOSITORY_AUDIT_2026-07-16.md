@@ -15,7 +15,7 @@
 11. **Dokumentationsinkonsistenz in `AGENTS.md` – behoben.** Der Runtime-Ansatz nennt jetzt das empfohlene Startskript mit lokalem Server und den direkten Datei-Start nur noch als eingeschränkten Rückfall.
 12. **Beschädigtes Qualitäts-Gate in `AGENTS.md` – behoben.** Tippfehler, unklare Pflichtpunkte und der leere Punkt 12 wurden durch prüfbare Abschlusskriterien ersetzt.
 13. **Entwicklerdokumentation veraltet – behoben.** Die Tastaturplatzierung ist jetzt als vorhandene Funktion beschrieben; Startweg und relevante Prüfungen sind an den aktuellen Projektstand angepasst.
-14. **Keine sichtbare CI-Konfiguration ermittelt – offen.** Die vorhandenen Python-Prüfungen sollten bei Push und Pull Request automatisiert ausgeführt werden.
+14. **Keine sichtbare CI-Konfiguration ermittelt – behoben.** `.github/workflows/release-gate.yml` führt die vorhandenen Python-Prüfungen bei Pull Requests sowie Pushes auf `work` und `main` aus, ohne eine echte Browserfreigabe vorzutäuschen.
 15. **Release-Status bleibt korrekt eingeschränkt.** Eine echte Chromium- und Firefox-Sichtprüfung ist weiterhin erforderlich; statische und HTTP-Tests ersetzen keine Bedien- und Kontrastprüfung.
 
 ## Geänderte Dateien
@@ -42,5 +42,5 @@ python3 tests/scan_performance_hotspots.py
 
 1. Produktionsnahe Tests statt kopierter Hilfsfunktionen.
 2. Vertrauensgrenze für manifestbasierte JavaScript-Module.
-3. CI-Workflow für alle vorhandenen Prüfungen vorbereiten.
-4. Manuelle Browserfreigabe getrennt dokumentieren, weil automatisierte Prüfungen sie nicht ersetzen.
+3. Manuelle Browserfreigabe getrennt dokumentieren, weil automatisierte Prüfungen sie nicht ersetzen.
+4. Vertrauensgrenze für manifestbasierte JavaScript-Module vor Drittmodulen konkretisieren.

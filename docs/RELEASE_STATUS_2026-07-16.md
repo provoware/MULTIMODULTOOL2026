@@ -35,6 +35,8 @@ curl -I http://127.0.0.1:8765/dashboard-studio-ultimate-pro-v3.1.0.html
 
 Das zusätzliche Release-Gate `python3 tests/validate_release_gate.py` prüft bewusst nur dokumentierte Freigabegrenzen und vorhandene Prüfbefehle. Es ersetzt keine sichtbare Browserprüfung. Dadurch bleibt maschinell belegbar, dass der Stand ein Release-Kandidat ist und die manuelle Browserfreigabe nicht versehentlich als erledigt markiert wurde.
 
+Die vorhandenen lokalen Prüfbefehle sind zusätzlich in `.github/workflows/release-gate.yml` hinterlegt. Dadurch werden Pushes auf `work` und `main` sowie Pull Requests mit denselben statischen Release-Prüfungen abgesichert, ohne Browserfreigabe oder Build-Schritt vorzutäuschen.
+
 ## Manuell offen vor echter Freigabe
 
 Diese Punkte bleiben offen, weil sie eine echte Browserumgebung mit sichtbarer Oberfläche brauchen:
