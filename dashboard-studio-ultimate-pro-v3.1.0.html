@@ -1582,6 +1582,16 @@
       .panel-zoom-button { min-width: 36px; padding-inline: 4px; }
     }
 
+
+    .core-grid { display: grid; gap: 10px; }
+    .core-card { padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,.04); }
+    .core-card strong { display: block; margin-bottom: 5px; }
+    .core-list { display: grid; gap: 6px; max-height: 240px; overflow: auto; }
+    .core-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; align-items: center; padding: 8px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255,255,255,.035); }
+    .core-row small, .core-card small { color: var(--muted); }
+    .core-feedback { line-height: 1.55; color: var(--muted); }
+    .core-feedback b { color: var(--text-strong); }
+
     @media (max-width: 1100px) {
       .panel-zoom-button { min-width: 39px; }
     }
@@ -1879,7 +1889,7 @@
       const MAX_IMPORT_BYTES = 8_000_000;
       const MAX_EXPORT_TEXT_LENGTH = 10_000_000;
       const MAX_STORAGE_BYTES = 4_500_000;
-      const ALLOWED_TYPES = ["overview", "calendar", "notes", "tasks", "projectboard", "stats", "quicktext", "editor", "code", "settings", "timer", "bookmarks", "activity", "modulebuilder", "custom"];
+      const ALLOWED_TYPES = ["overview", "calendar", "notes", "tasks", "projectboard", "stats", "quicktext", "editor", "code", "settings", "timer", "bookmarks", "activity", "modulebuilder", "mother", "registry", "debugging", "custom"];
       const MODULE_CREATION_TYPES = ["overview", "calendar", "notes", "tasks", "projectboard", "stats", "quicktext", "editor", "code", "timer", "bookmarks", "activity", "custom"];
       const CODE_LANGUAGES = {
         javascript: { label: "JavaScript", ext: "js", mime: "text/javascript" },
@@ -1969,6 +1979,21 @@
           content: { draftName: "", draftType: "notes", draftColor: "#38bdf8", draftDescription: "" }
         },
         {
+          id: newId(), name: "Muttermodul", type: "mother", color: "#38bdf8",
+          description: "Zentrale Vorgaben, Systemstatus, Nutzerinfos und sicherer lokaler Updatecheck", active: true,
+          content: { updateStatus: "Noch nicht geprüft", lastCheck: "" }
+        },
+        {
+          id: newId(), name: "Modul-Registry", type: "registry", color: "#22d3ee",
+          description: "Zentrale Übersicht aller Moduldefinitionen, Zustände und eigenen Konfigurationsbereiche", active: false,
+          content: { filter: "all" }
+        },
+        {
+          id: newId(), name: "Debugging & Logging", type: "debugging", color: "#fb7185",
+          description: "Detaillierte Ereignis-, Fehler- und Diagnoseausgaben mit Nutzerfeedback", active: false,
+          content: { limit: 120 }
+        },
+        {
           id: newId(), name: "Einstellungen", type: "settings", color: "#94a3b8",
           description: "Darstellung, Verhalten, Autosave, Backups und Sicherheit", active: false,
           content: {}
@@ -2019,6 +2044,7 @@
         codeWrap: false,
         toastDuration: 2800,
         activityLog: [],
+        debugLog: [],
         saveCount: 0,
         placementRepairVersion: 0,
         updatedAt: new Date().toISOString()
@@ -2061,6 +2087,7 @@
         repairLegacyActivePlacements();
         applyVisualSettings();
         bindGlobalEvents();
+        logDebugEvent("INFO", "Muttermodul", "App gestartet", "Initialisierung abgeschlossen", "Dashboard ist bereit.");
         renderAll();
         timerTickHandle = window.setInterval(updateRunningTimers, 1000);
       }
@@ -2101,9 +2128,14 @@
               createLocalBackup(false);
             }
           } catch (error) {
-            console.error(error);
+            handleAppError(error, {
+              area: "Speichern",
+              userMessage: "Lokales Speichern fehlgeschlagen.",
+              cause: "Der Browser-Speicher ist voll, gesperrt oder nicht verfügbar.",
+              solution: "Bitte exportieren Sie die Konfiguration und löschen Sie nicht benötigte lokale Daten.",
+              changed: "Nichts wurde überschrieben."
+            });
             saveStatus.textContent = "Speichern fehlgeschlagen";
-            toast("Lokales Speichern fehlgeschlagen. Bitte Konfiguration exportieren.");
           }
         }, delay);
       }
@@ -2334,7 +2366,13 @@
         try {
           renderModuleContent(container, module);
         } catch (error) {
-          console.error(`Modul konnte nicht gerendert werden: ${module?.name || "Unbekannt"}`, error);
+          handleAppError(error, {
+            area: `Modul: ${module?.name || "Unbekannt"}`,
+            userMessage: "Dieses Modul konnte nicht vollständig geladen werden.",
+            cause: "Beim Aufbau der Modulansicht ist ein unerwarteter Fehler aufgetreten.",
+            solution: "Laden Sie das Modul erneut oder sichern Sie die Konfiguration.",
+            changed: "Es wurden keine Moduldaten verändert."
+          });
           container.innerHTML = "";
           const errorBox = document.createElement("div");
           errorBox.className = "module-error-state";
@@ -2390,6 +2428,21 @@
 
         if (module.type === "code") {
           renderCodeProject(container, module);
+          return;
+        }
+
+        if (module.type === "mother") {
+          renderMotherModule(container, module);
+          return;
+        }
+
+        if (module.type === "registry") {
+          renderRegistryModule(container, module);
+          return;
+        }
+
+        if (module.type === "debugging") {
+          renderDebuggingModule(container, module);
           return;
         }
 
@@ -2452,6 +2505,60 @@
         placeholder.className = "module-placeholder";
         placeholder.innerHTML = `<div><strong>${escapeHtml(module.name)}</strong><br>${escapeHtml(module.description || "Freies, erweiterbares Modul")}</div>`;
         container.appendChild(placeholder);
+      }
+
+
+      function renderMotherModule(container, module) {
+        module.content ||= { updateStatus: "Noch nicht geprüft", lastCheck: "" };
+        const registry = buildModuleRegistry();
+        const visible = Object.values(activeWorkspace().layout || {}).filter(item => state.modules.some(m => m.id === item.moduleId && m.active)).length;
+        const shell = document.createElement("div");
+        shell.className = "core-grid";
+        shell.innerHTML = `
+          <section class="core-card"><strong>Muttermodul aktiv</strong><div class="core-feedback">Dieses Hauptfenster gibt sichere Grundregeln vor: lokale Speicherung, Modultrennung, Fehlerfeedback, Registry und manuelle Updateprüfung.</div></section>
+          <section class="core-card"><strong>Nutzerinfo</strong><div class="core-feedback"><b>${visible}</b> sichtbare Module · <b>${registry.enabled}</b> aktive Module · letzte Speicherung: ${escapeHtml(state.updatedAt ? new Date(state.updatedAt).toLocaleString("de-DE") : "noch offen")}</div></section>
+          <section class="core-card"><strong>Update</strong><div class="core-feedback">Status: ${escapeHtml(module.content.updateStatus || "Noch nicht geprüft")}<br><small>${escapeHtml(module.content.lastCheck || "Keine Prüfung in dieser Sitzung.")}</small></div><div class="pro-actions"><button class="small-button" data-core="update">Lokal prüfen</button><button class="small-button" data-core="registry">Registry öffnen</button><button class="small-button" data-core="debug">Debugging öffnen</button></div></section>
+        `;
+        shell.querySelector('[data-core="update"]').addEventListener("click", () => runLocalUpdateCheck(module));
+        shell.querySelector('[data-core="registry"]').addEventListener("click", () => openModuleType("registry"));
+        shell.querySelector('[data-core="debug"]').addEventListener("click", () => openModuleType("debugging"));
+        container.appendChild(shell);
+      }
+
+      function renderRegistryModule(container, module) {
+        module.content ||= { filter: "all" };
+        const registry = buildModuleRegistry();
+        const shell = document.createElement("div");
+        shell.className = "core-grid";
+        shell.innerHTML = `<section class="core-card"><strong>Registry</strong><div class="core-feedback">${registry.total} Module registriert · ${registry.enabled} aktiv · ${registry.placed} platziert. Jedes Modul behält Konfiguration und Inhalt in seinem eigenen Modulobjekt.</div></section><div class="core-list"></div>`;
+        const list = shell.querySelector(".core-list");
+        registry.items.forEach(item => {
+          const row = document.createElement("div");
+          row.className = "core-row";
+          row.innerHTML = `<div><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.type)} · ${item.active ? "aktiv" : "inaktiv"} · ${item.placed ? "platziert" : "nicht platziert"}</small></div><button class="small-button">Öffnen</button>`;
+          row.querySelector("button").addEventListener("click", () => { if (!item.active) setModuleActive(item.id, true); else placeModuleInFirstFreeCell(item.id); });
+          list.appendChild(row);
+        });
+        container.appendChild(shell);
+      }
+
+      function renderDebuggingModule(container, module) {
+        module.content ||= { limit: 120 };
+        const shell = document.createElement("div");
+        shell.className = "core-grid";
+        shell.innerHTML = `<section class="core-card"><strong>Debugging & Logging</strong><div class="core-feedback">Detaillierte Ereignisse mit Bereich, Ursache, Lösung und Änderungsstatus.</div><div class="pro-actions"><button class="small-button" data-debug="export">TXT exportieren</button><button class="danger-button small-button" data-debug="clear">Leeren</button></div></section><div class="core-list"></div>`;
+        const list = shell.querySelector(".core-list");
+        const items = (state.debugLog || []).slice(0, clamp(Number(module.content.limit) || 120, 20, 300));
+        if (!items.length) list.innerHTML = '<div class="module-placeholder">Noch keine Debug-Ereignisse.</div>';
+        items.forEach(item => {
+          const row = document.createElement("div");
+          row.className = "core-row";
+          row.innerHTML = `<div><strong>${escapeHtml(item.level)} · ${escapeHtml(item.area)}</strong><small>${escapeHtml(new Date(item.time).toLocaleString("de-DE"))}<br>${escapeHtml(item.message)} | Ursache: ${escapeHtml(item.cause)} | Lösung: ${escapeHtml(item.solution)} | Status: ${escapeHtml(item.changed)}</small></div>`;
+          list.appendChild(row);
+        });
+        shell.querySelector('[data-debug="export"]').addEventListener("click", exportDebugLog);
+        shell.querySelector('[data-debug="clear"]').addEventListener("click", () => { if (state.confirmDestructive && !confirm("Debug-Protokoll wirklich leeren?")) return; state.debugLog = []; saveState(); renderWorkspace(); toast("Debug-Protokoll geleert"); });
+        container.appendChild(shell);
       }
 
       function renderOverview(container, module) {
@@ -4300,6 +4407,49 @@
         }
       }
 
+
+      function buildModuleRegistry() {
+        const placedIds = new Set(Object.values(activeWorkspace().layout || {}).map(item => item?.moduleId).filter(Boolean));
+        const items = state.modules.map(module => ({
+          id: module.id,
+          name: module.name,
+          type: module.type,
+          active: Boolean(module.active),
+          placed: placedIds.has(module.id),
+          hasConfig: Boolean(module.content && Object.keys(module.content).length)
+        }));
+        return { items, total: items.length, enabled: items.filter(item => item.active).length, placed: items.filter(item => item.placed).length };
+      }
+
+      function logDebugEvent(level, area, message, cause = "Nicht angegeben", solution = "Keine Aktion erforderlich", changed = "Nichts verändert") {
+        state.debugLog ||= [];
+        state.debugLog.unshift({ id: newId(), time: new Date().toISOString(), level, area: cleanText(area, 80), message: cleanText(message, 500), cause: cleanText(cause, 500), solution: cleanText(solution, 500), changed: cleanText(changed, 160) });
+        state.debugLog = state.debugLog.slice(0, 300);
+      }
+
+      function handleAppError(error, details) {
+        const message = cleanText(details.userMessage || error?.message || "Unbekannter Fehler", 500);
+        console.error(message, error);
+        logDebugEvent("ERROR", details.area || "System", message, details.cause || cleanText(error?.message, 500), details.solution || "Bitte Konfiguration sichern und Vorgang erneut versuchen.", details.changed || "Nichts verändert");
+        toast(`${message} ${details.solution || "Bitte erneut versuchen."}`);
+      }
+
+      function runLocalUpdateCheck(module) {
+        const manifestVersion = "3.1.0";
+        const ok = manifestVersion === APP_VERSION;
+        module.content.updateStatus = ok ? `Aktuell: v${APP_VERSION}` : `Abweichung: App v${APP_VERSION}, Manifest v${manifestVersion}`;
+        module.content.lastCheck = `Geprüft am ${new Date().toLocaleString("de-DE")}. Lokale Datei-App: keine automatische Internet-Installation, dadurch keine stillen Überschreibungen.`;
+        logDebugEvent("INFO", "Update", module.content.updateStatus, "Lokaler Versionsvergleich", "Bei Abweichung neue HTML-Datei bewusst ersetzen und vorher Backup exportieren.", "Nichts verändert");
+        saveState("Update geprüft");
+        renderWorkspace();
+        toast(module.content.updateStatus);
+      }
+
+      function exportDebugLog() {
+        const lines = (state.debugLog || []).map(item => `[${new Date(item.time).toLocaleString("de-DE")}] ${item.level}: ${item.area} – ${item.message} | Ursache: ${item.cause} | Lösung: ${item.solution} | ${item.changed}`);
+        saveTextFile(lines.join("\n") || "Keine Debug-Einträge", `debug-log-${toDateTimeKey(new Date())}.txt`, "text/plain");
+      }
+
       function toast(message) {
         const stack = document.getElementById("toastStack");
         const item = document.createElement("div");
@@ -4335,6 +4485,7 @@
         output.backupEvery = clamp(Number(input.backupEvery) || base.backupEvery, 1, 100);
         output.toastDuration = clamp(Number(input.toastDuration) || base.toastDuration, 1200, 8000);
         output.activityLog = Array.isArray(input.activityLog) ? input.activityLog.slice(0, 300).map(item => ({ id: cleanText(item?.id, 120) || newId(), time: cleanText(item?.time, 60) || new Date().toISOString(), category: cleanText(item?.category, 40) || "System", message: cleanText(item?.message, 300) })).filter(item => item.message) : [];
+        output.debugLog = Array.isArray(input.debugLog) ? input.debugLog.slice(0, 300).map(item => ({ id: cleanText(item?.id, 120) || newId(), time: cleanText(item?.time, 60) || new Date().toISOString(), level: cleanText(item?.level, 20) || "INFO", area: cleanText(item?.area, 80) || "System", message: cleanText(item?.message, 500), cause: cleanText(item?.cause, 500), solution: cleanText(item?.solution, 500), changed: cleanText(item?.changed, 160) || "Nichts verändert" })).filter(item => item.message) : [];
         output.saveCount = clamp(Number(input.saveCount) || 0, 0, Number.MAX_SAFE_INTEGER);
         output.placementRepairVersion = clamp(Number(input.placementRepairVersion) || 0, 0, 99);
         output.schemaVersion = SCHEMA_VERSION;
@@ -4802,6 +4953,9 @@
           { label: "Workflow-Zentrale öffnen", category: "Modul", keywords: "übersicht start dashboard", action: () => openModuleType("overview") },
           { label: "Projektboard öffnen", category: "Modul", keywords: "kanban projekt planung", action: () => openModuleType("projectboard") },
           { label: "Aktivitätsprotokoll öffnen", category: "Modul", keywords: "log historie", action: () => openModuleType("activity") },
+          { label: "Muttermodul öffnen", category: "System", keywords: "hauptfenster vorgaben update nutzerinfo", action: () => openModuleType("mother") },
+          { label: "Registry öffnen", category: "System", keywords: "module manifest konfiguration", action: () => openModuleType("registry") },
+          { label: "Debugging öffnen", category: "System", keywords: "fehler logging diagnose", action: () => openModuleType("debugging") },
           { label: "Neuen Arbeitsbereich erstellen", category: "Arbeitsbereich", keywords: "tab dashboard", action: createWorkspace },
           { label: "Einstellungen öffnen", category: "Workflow", keywords: "optionen", action: openSettingsModule },
           { label: "Fenster automatisch anordnen", category: "Arbeitsbereich", keywords: "layout raster", action: arrangeWindows },
