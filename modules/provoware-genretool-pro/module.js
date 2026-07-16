@@ -6,7 +6,8 @@
 
   const STORAGE_KEY = "multimodultool2026.provoware-genretool-pro.v2";
   const BACKUP_KEY = `${STORAGE_KEY}.backup`;
-  const SEED_URL = "genres_db.json";
+  const moduleBase = document.currentScript?.dataset.moduleBase || globalThis.location.href;
+  const SEED_URL = new URL("genres_db.json", moduleBase).href;
   const MAX_ITEMS = 5000;
   const MAX_IMPORT_BYTES = 8_000_000;
   const PAGE_SIZE = 40;
