@@ -1,13 +1,16 @@
 # TODO
 
-Fortschritt gesamt: 83 %
+Fortschritt gesamt: 85 %
 
 ## Offen
 - [ ] Kontraständerungen auf einer echten Chromium- und Firefox-Installation visuell nachprüfen; die Container-Prüfung am 2026-07-16 war durch Snap-/Download-Sperren blockiert.
-- [ ] Speicher-/Importpfad im Browser anhand der Release-Checkliste manuell prüfen: Standardstart, kaputte localStorage-Daten, Backup-Wiederherstellung und JSON-Import.
+- [ ] Echte Browser-Freigabe anhand der Release-Checkliste manuell prüfen: Standardstart, Backup-Wiederherstellung, JSON-Import und Exportdatei-Download.
+- [ ] Speicherprüfung zusätzlich in Chromium und Firefox ausführen und Ergebnis mit Screenshot oder kurzem Prüfprotokoll dokumentieren.
 - [ ] Schnell-Text-Speicher-CSS später visuell im echten Loader prüfen, sobald HTML und CSS gemeinsam geladen werden.
 
 ## Erledigt
+- [x] Einstellungen haben am 2026-07-16 eine laientaugliche Speicherprüfung erhalten: kurzer Schreibtest, Speicher-Schätzung, Backup-Lesetest und klare Meldung ohne Nutzdatenänderung.
+- [x] Beschädigte gespeicherte Startdaten werden am 2026-07-16 verständlich gemeldet; ein lesbares lokales Backup wird bevorzugt geladen, sonst startet ein Standardstand ohne alte Daten zu löschen.
 - [x] Doppelte Root-Startdaten `genres_db.json` wurden am 2026-07-16 entfernt; die geprüfte kanonische Kopie liegt weiter unter `modules/provoware-genretool-pro/`, und der GenreTool-Test verhindert neue Root-Duplikate.
 - [x] Systemmodule-Bündel hat am 2026-07-16 echte, lesende `module.html`- und `module.css`-Dateien erhalten; die Single-File-App bleibt als Rückbaupfad maßgeblich.
 - [x] HTML-Auslagerung wurde am 2026-07-16 in `docs/HTML_AUSLAGERUNGSPLAN.md` in prüfbare Schnittschritte zerlegt: Styles, Standarddaten, Speicherlogik, Modul-Renderer und Hilfsfunktionen.
