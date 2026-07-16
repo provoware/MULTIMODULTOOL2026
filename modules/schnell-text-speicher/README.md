@@ -20,6 +20,8 @@ Dokumentiere nach jeder kleinen Änderung genau eine Begründung: Welches Risiko
 
 Erstelle eine Platzhalter-Inventur: Suche nach TODO, FIXME, Dummy, Stub, Beispieltexten und leeren Zuständen. Bearbeite nichts sofort, sondern schreibe zuerst eine nummerierte Liste mit Risiko und Prüfschritt.
 
+Prüfe gekoppelte Statusangaben automatisch: Lies beide Quellen, validiere Wertebereich und Format und brich mit einer klaren Meldung ab, sobald die Angaben voneinander abweichen.
+
 ### Prompting
 
 Ermittle Platzhalter nicht nur nach dem Wort „TODO“, sondern auch nach Beispielen, leeren Zuständen, Dummy-Daten und Stubs. Gib je Fundstelle Datei, Zweck, Risiko und nächsten Schritt an.
@@ -35,6 +37,8 @@ Formuliere eine Fehlermeldung in einfacher Sprache. Nutze die Reihenfolge: Ereig
 Bitte gleiche diese Meldung an vorhandene gute Beispiele an, ohne Funktion oder Datenformat zu ändern. Nenne danach kurz, welche Information vorher gefehlt hat.
 
 Bitte erstelle eine knappe Änderungsanweisung mit Ziel, betroffenen Dateien, Nicht-Zielen und Abnahmekriterium. Halte sie so klein, dass ein Mini-Patch genügt.
+
+Vergleiche alle Stellen, die denselben Kennwert nennen. Liefere Fundorte, abweichende Werte, maßgebliche Quelle und eine minimale Regel, die künftige Abweichungen automatisch verhindert.
 
 ### Vibecoding
 
@@ -52,6 +56,8 @@ Wenn eine manuelle Prüfung in der Umgebung nicht möglich ist, dokumentiere ehr
 
 Halte die kreative Energie gezielt: Sammle drei Ideen, wähle eine risikoarme Idee aus und setze nur den kleinsten sichtbaren Teil davon um.
 
+Suche zuerst nach einer kleinen Inkonsistenz, die Vertrauen kostet. Korrigiere sie an der Quelle und ergänze genau einen einfachen Test, der denselben Fehler künftig sichtbar macht.
+
 ### KI-Bildgenerierung
 
 Erstelle eine klare Platzhalter-Grafik für einen leeren Modulzustand: freundliche Karte, dezentes Plus-Symbol, kurze visuelle Anleitung, hoher Kontrast, kein echter Text und keine Warnstimmung.
@@ -67,6 +73,8 @@ Gestalte eine freundliche Hinweisgrafik für eine lokale Backup-Funktion: sicher
 Erzeuge eine kleine Import-Hinweisgrafik: geöffnete Datei, prüfendes Häkchen, dezenter Sicherheitsschild, klare helle Akzente, keine Warnpanik und keine schwer lesbaren Details.
 
 Gestalte eine ruhige Modul-Vorschau: sechs Karten in sauberem Raster, leichte Tiefe, klare Überschriften als Formen angedeutet, freundliche Akzente und kein echter Produktname.
+
+Visualisiere Datenkonsistenz als zwei Dokumentkarten mit identischer Prozentanzeige, verbunden durch ein geprüftes Häkchen; klare Kontraste, sachliche technische Optik, keine Warnsymbole und kein Kleinsttext.
 
 ### KI-Musikgenerierung
 
@@ -84,6 +92,8 @@ Beschreibe einen kurzen Bestätigungs-Sound für erfolgreichen Import: 8 Sekunde
 
 Erzeuge einen fokussierten Review-Loop: 70 Sekunden, leiser Puls, weiche E-Piano-Akkorde, kaum Höhen, keine Stimme und gut geeignet für ruhiges Lesen von Prüflisten.
 
+Erzeuge einen 12-sekündigen Prüfklang: zwei synchrone Pulse, kurzer heller Bestätigungston, ruhiger Ausklang, keine Stimme, keine Alarmwirkung und geeignet für erfolgreich abgeglichene Projektwerte.
+
 ### KI-Contentcreation
 
 Erstelle aus einer Platzhalter-Liste eine umsetzbare Aufgabenübersicht: zuerst Risiko, dann Nutzerwirkung, dann kleinster nächster Schritt und zuletzt ein klares Abnahmekriterium.
@@ -99,3 +109,5 @@ Erstelle eine Nutzerinfo für verbesserte Meldungen: Beschreibe kurz, dass Hinwe
 Schreibe ein kompaktes Prüfprotokoll: Was wurde im Browser geprüft, was war wegen Umgebung offen, welche Daten wurden nicht verändert und welcher nächste Schritt ist empfohlen.
 
 Erstelle eine kurze Fortschrittsmeldung: ein Satz zum Nutzen, ein Satz zur geprüften Grenze und ein Satz mit dem nächsten sinnvollen Schritt ohne Werbesprache.
+
+Schreibe eine knappe Änderungsnotiz zur Datenkonsistenz: vorherige Abweichung, festgelegter gemeinsamer Wert, neue automatische Prüfung und ausdrücklich unveränderte Laufzeitfunktion.
