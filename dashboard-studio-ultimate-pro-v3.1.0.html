@@ -340,6 +340,44 @@
       gap: 9px;
     }
 
+    .module-category {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.025);
+      overflow: hidden;
+    }
+
+    .module-category summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 10px 11px;
+      color: var(--text-strong);
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-weight: 850;
+      list-style: none;
+    }
+
+    .module-category summary::-webkit-details-marker { display: none; }
+
+    .module-category summary::after {
+      content: "▾";
+      color: var(--muted);
+      transition: transform 160ms ease;
+    }
+
+    .module-category:not([open]) summary::after { transform: rotate(-90deg); }
+
+    .module-category-count { color: var(--muted); font-size: 0.72rem; font-weight: 750; }
+
+    .module-category-items {
+      display: grid;
+      gap: 8px;
+      padding: 0 8px 9px;
+    }
+
     .module-card {
       position: relative;
       display: grid;
@@ -1909,6 +1947,15 @@
       const MAX_STORAGE_BYTES = 4_500_000;
       const ALLOWED_TYPES = ["overview", "calendar", "notes", "tasks", "projectboard", "stats", "quicktext", "editor", "code", "settings", "timer", "bookmarks", "activity", "modulebuilder", "mother", "registry", "debugging", "custom"];
       const MODULE_CREATION_TYPES = ["overview", "calendar", "notes", "tasks", "projectboard", "stats", "quicktext", "editor", "code", "timer", "bookmarks", "activity", "custom"];
+      const MODULE_CATEGORIES = [
+        { id: "system", label: "Systemmodule", types: ["mother", "registry", "debugging", "settings", "modulebuilder", "activity"] },
+        { id: "songs", label: "Songs", match: ["song", "songs", "lied", "lieder", "musik"] },
+        { id: "hoerspiele", label: "Hörspiele", match: ["hörspiel", "hoerspiel", "audio", "sprecher"] },
+        { id: "arbeiten", label: "Arbeiten", types: ["overview", "calendar", "tasks", "projectboard", "timer", "bookmarks"], match: ["arbeit", "projekt", "workflow", "termin", "aufgabe"] },
+        { id: "ideen", label: "Ideen", types: ["notes", "quicktext", "custom", "stats"], match: ["idee", "ideen", "notiz", "konzept"] },
+        { id: "code", label: "Code", types: ["code", "editor"], match: ["code", "entwicklung", "script", "programm"] }
+      ];
+
       const CODE_LANGUAGES = {
         javascript: { label: "JavaScript", ext: "js", mime: "text/javascript" },
         typescript: { label: "TypeScript", ext: "ts", mime: "text/plain" },
@@ -1954,81 +2001,97 @@
         {
           id: newId(), name: "Workflow-Zentrale", type: "overview", color: "#0ea5e9",
           description: "Live-Übersicht, Kennzahlen, nächste Termine und Schnellaktionen", active: false,
+          category: "arbeiten",
           content: { showCompleted: false }
         },
         {
           id: newId(), name: "Monatskalender", type: "calendar", color: "#38bdf8",
           description: "Dynamische Monatsansicht mit lokal gespeicherten Terminen", active: false,
+          category: "arbeiten",
           content: { year: new Date().getFullYear(), month: new Date().getMonth(), selectedDate: toDateKey(new Date()), events: [] }
         },
         {
           id: newId(), name: "Todo-Liste", type: "tasks", color: "#22c55e",
           description: "Aufgaben, Prioritäten, Fälligkeiten, Filter und TXT-Export", active: false,
+          category: "arbeiten",
           content: { items: [], filter: "all", sort: "manual" }
         },
         {
           id: newId(), name: "Projektboard", type: "projectboard", color: "#14b8a6",
           description: "Kanban-Board für Vorhaben, Prioritäten, Fälligkeiten und Status", active: false,
+          category: "arbeiten",
           content: { cards: [], filter: "all" }
         },
         {
           id: newId(), name: "Schnell-Text-Speicher", type: "quicktext", color: "#f59e0b",
           description: "Schnelle Texteingabe mit validiertem TXT-Dateiexport", active: false,
+          category: "ideen",
           content: { title: "Schnelltext", filename: "schnelltext.txt", text: "", addTimestamp: false }
         },
         {
           id: newId(), name: "Editor", type: "editor", color: "#8b5cf6",
           description: "Dokumenteditor mit Titel, Markdown-Vorschau und Datei-Export", active: false,
+          category: "code",
           content: { title: "Neues Dokument", filename: "neues-dokument.md", format: "md", text: "", preview: false }
         },
         {
           id: newId(), name: "Code & Entwicklung", type: "code", color: "#f43f5e",
           description: "Code, Projekttitel, Status, Dateiexport und Entwicklungsnotizen", active: false,
+          category: "code",
           content: { title: "Neues Entwicklungsvorhaben", filename: "projekt.js", language: "javascript", status: "idee", description: "", code: "", notes: "", validation: null }
         },
         {
           id: newId(), name: "Aktivitätsprotokoll", type: "activity", color: "#eab308",
           description: "Nachvollziehbares lokales Protokoll wichtiger Struktur- und Workflow-Aktionen", active: false,
+          category: "system",
           content: { filter: "all", limit: 80 }
         },
         {
           id: newId(), name: "Modul-Werkstatt", type: "modulebuilder", color: "#06b6d4",
           description: "Module direkt im Dashboard erstellen, aktivieren, öffnen und bearbeiten", active: false,
+          category: "system",
           content: { draftName: "", draftType: "notes", draftColor: "#38bdf8", draftDescription: "" }
         },
         {
           id: newId(), name: "Muttermodul", type: "mother", color: "#38bdf8",
           description: "Zentrale Vorgaben, Systemstatus, Nutzerinfos und sicherer lokaler Updatecheck", active: true,
+          category: "system",
           content: { updateStatus: "Noch nicht geprüft", lastCheck: "" }
         },
         {
           id: newId(), name: "Modul-Registry", type: "registry", color: "#22d3ee",
           description: "Zentrale Übersicht aller Moduldefinitionen, Zustände und eigenen Konfigurationsbereiche", active: false,
+          category: "system",
           content: { filter: "all" }
         },
         {
           id: newId(), name: "Debugging & Logging", type: "debugging", color: "#fb7185",
           description: "Detaillierte Ereignis-, Fehler- und Diagnoseausgaben mit Nutzerfeedback", active: false,
+          category: "system",
           content: { limit: 120 }
         },
         {
           id: newId(), name: "Einstellungen", type: "settings", color: "#94a3b8",
           description: "Darstellung, Verhalten, Autosave, Backups und Sicherheit", active: false,
+          category: "system",
           content: {}
         },
         {
           id: newId(), name: "Fokus-Timer", type: "timer", color: "#d946ef",
           description: "Pomodoro-Timer für konzentrierte Arbeit", active: false,
+          category: "arbeiten",
           content: { minutes: 25, remaining: 1500, running: false, endAt: null, sessions: 0 }
         },
         {
           id: newId(), name: "Schnelllinks", type: "bookmarks", color: "#60a5fa",
           description: "Validierte http- und https-Links für den Workflow", active: false,
+          category: "arbeiten",
           content: { items: [] }
         },
         {
           id: newId(), name: "Notizen", type: "notes", color: "#a78bfa",
           description: "Einfache lokale Arbeitsnotizen", active: false,
+          category: "ideen",
           content: { text: "" }
         }
       ];
@@ -2206,56 +2269,85 @@
       function renderSidebar() {
         const query = moduleSearch.value.trim().toLowerCase();
         const filtered = state.modules.filter(module => {
-          return !query || [module.name, module.type, module.description].join(" ").toLowerCase().includes(query);
+          return !query || [module.name, module.type, module.description, moduleCategoryLabel(module)].join(" ").toLowerCase().includes(query);
         });
+        const groups = groupModulesByCategory(filtered);
 
         moduleList.innerHTML = "";
         moduleCount.textContent = `${state.modules.filter(m => m.active).length}/${state.modules.length}`;
 
-        filtered.forEach(module => {
-          const card = document.createElement("div");
-          card.className = `module-card ${module.active ? "active" : "inactive"}`;
-          card.style.setProperty("--module-color", module.color);
-          card.draggable = module.active;
-          card.dataset.moduleId = module.id;
-          card.innerHTML = `
-            <span class="module-color"></span>
-            <div class="module-text">
-              <div class="module-name">${escapeHtml(module.name)}</div>
-              <div class="module-meta">${escapeHtml(typeLabel(module.type))} · ${module.active ? "Aktiv" : "Inaktiv"}</div>
-            </div>
-            <button class="toggle ${module.active ? "on" : ""}" aria-label="Modul ${module.active ? "deaktivieren" : "aktivieren"}" title="${module.active ? "Aktiv" : "Inaktiv"}"></button>
-          `;
-
-          card.querySelector(".toggle").addEventListener("click", event => {
-            event.stopPropagation();
-            setModuleActive(module.id, !module.active);
-          });
-
-          card.addEventListener("dblclick", () => {
-            if (!module.active) setModuleActive(module.id, true);
-            else placeModuleInFirstFreeCell(module.id);
-          });
-
-          card.addEventListener("dragstart", event => {
-            if (!module.active) {
-              event.preventDefault();
-              return;
-            }
-            draggedModuleId = module.id;
-            event.dataTransfer.effectAllowed = "copyMove";
-            event.dataTransfer.setData("text/plain", module.id);
-          });
-
-          card.addEventListener("dragend", () => { draggedModuleId = null; });
-
-          card.addEventListener("contextmenu", event => {
-            event.preventDefault();
-            openModuleContextMenu(event.clientX, event.clientY, module.id);
-          });
-
-          moduleList.appendChild(card);
+        MODULE_CATEGORIES.forEach(category => {
+          const modules = groups.get(category.id) || [];
+          const section = document.createElement("details");
+          section.className = "module-category";
+          section.open = query || modules.length > 0;
+          section.innerHTML = `<summary><span>${escapeHtml(category.label)}</span><span class="module-category-count">${modules.length}</span></summary><div class="module-category-items"></div>`;
+          const items = section.querySelector(".module-category-items");
+          modules.forEach(module => items.appendChild(createModuleCard(module)));
+          moduleList.appendChild(section);
         });
+      }
+
+      function groupModulesByCategory(modules) {
+        const groups = new Map(MODULE_CATEGORIES.map(category => [category.id, []]));
+        modules.forEach(module => groups.get(moduleCategoryId(module)).push(module));
+        return groups;
+      }
+
+      function moduleCategoryId(module) {
+        const explicit = cleanText(module.category, 40);
+        if (MODULE_CATEGORIES.some(category => category.id === explicit)) return explicit;
+        const haystack = [module.name, module.type, module.description].join(" ").toLowerCase();
+        return MODULE_CATEGORIES.find(category => category.types?.includes(module.type) || category.match?.some(term => haystack.includes(term)))?.id || "ideen";
+      }
+
+      function moduleCategoryLabel(module) {
+        return MODULE_CATEGORIES.find(category => category.id === moduleCategoryId(module))?.label || "Ideen";
+      }
+
+      function createModuleCard(module) {
+        const card = document.createElement("div");
+        card.className = `module-card ${module.active ? "active" : "inactive"}`;
+        card.style.setProperty("--module-color", module.color);
+        card.draggable = module.active;
+        card.dataset.moduleId = module.id;
+        card.innerHTML = `
+          <span class="module-color"></span>
+          <div class="module-text">
+            <div class="module-name">${escapeHtml(module.name)}</div>
+            <div class="module-meta">${escapeHtml(typeLabel(module.type))} · ${module.active ? "Aktiv" : "Inaktiv"}</div>
+          </div>
+          <button class="toggle ${module.active ? "on" : ""}" aria-label="Modul ${module.active ? "deaktivieren" : "aktivieren"}" title="${module.active ? "Aktiv" : "Inaktiv"}"></button>
+        `;
+
+        card.querySelector(".toggle").addEventListener("click", event => {
+          event.stopPropagation();
+          setModuleActive(module.id, !module.active);
+        });
+
+        card.addEventListener("dblclick", () => {
+          if (!module.active) setModuleActive(module.id, true);
+          else placeModuleInFirstFreeCell(module.id);
+        });
+
+        card.addEventListener("dragstart", event => {
+          if (!module.active) {
+            event.preventDefault();
+            return;
+          }
+          draggedModuleId = module.id;
+          event.dataTransfer.effectAllowed = "copyMove";
+          event.dataTransfer.setData("text/plain", module.id);
+        });
+
+        card.addEventListener("dragend", () => { draggedModuleId = null; });
+
+        card.addEventListener("contextmenu", event => {
+          event.preventDefault();
+          openModuleContextMenu(event.clientX, event.clientY, module.id);
+        });
+
+        return card;
       }
 
       function setModuleActive(moduleId, active) {
@@ -4559,6 +4651,7 @@
             type,
             color: validColor(raw.color) ? raw.color : "#38bdf8",
             description: cleanText(raw.description, 300),
+            category: moduleCategoryId(raw),
             active: Boolean(raw.active),
             content: normalizeContent(type, raw.content)
           };
