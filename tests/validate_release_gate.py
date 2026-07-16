@@ -12,6 +12,7 @@ README = ROOT / "README.md"
 TODO = ROOT / "todo.txt"
 RELEASE_STATUS = ROOT / "docs" / "RELEASE_STATUS_2026-07-16.md"
 RELEASE_CHECKLIST = ROOT / "docs" / "RELEASE_CHECKLIST.md"
+BROWSER_PROTOCOL = ROOT / "docs" / "BROWSER_RELEASE_PROTOCOL_2026-07-16.md"
 RELEASE_WORKFLOW = ROOT / ".github" / "workflows" / "release-gate.yml"
 
 REQUIRED_STATUS_PHRASES = (
@@ -23,6 +24,14 @@ REQUIRED_STATUS_PHRASES = (
 REQUIRED_TODO_ITEMS = (
     "Echte Browser-Freigabe anhand von `docs/RELEASE_STATUS_2026-07-16.md` manuell prüfen",
     "Speicherprüfung zusätzlich in Chromium und Firefox ausführen",
+)
+
+REQUIRED_PROTOCOL_PHRASES = (
+    "Dieses Protokoll ist die ausfüllbare Vorlage für die echte Freigabeprüfung",
+    "| Chromium-Start | offen | Noch nicht geprüft. |",
+    "| Firefox-Start | offen | Noch nicht geprüft. |",
+    "| Speicherprüfung | offen | Noch nicht geprüft. |",
+    "Die Freigabe bleibt offen, solange ein Prüfschritt den Status `offen` oder `fehlgeschlagen` hat.",
 )
 
 REQUIRED_CHECK_COMMANDS = (
@@ -111,6 +120,7 @@ def main() -> int:
         todo_text = read_text(TODO)
         status_text = read_text(RELEASE_STATUS)
         checklist_text = read_text(RELEASE_CHECKLIST)
+        browser_protocol_text = read_text(BROWSER_PROTOCOL)
         workflow_text = read_text(RELEASE_WORKFLOW)
 
         for phrase in REQUIRED_STATUS_PHRASES:
@@ -118,6 +128,11 @@ def main() -> int:
 
         for item in REQUIRED_TODO_ITEMS:
             require_contains(todo_text, item, "todo.txt")
+
+        for phrase in REQUIRED_PROTOCOL_PHRASES:
+            require_contains(browser_protocol_text, phrase, "Browser-Freigabeprotokoll")
+
+        require_contains(status_text, "docs/BROWSER_RELEASE_PROTOCOL_2026-07-16.md", "Release-Status")
 
         for command in REQUIRED_CHECK_COMMANDS:
             require_contains(status_text, command, "Release-Status")
