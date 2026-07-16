@@ -1008,10 +1008,12 @@
       line-height: 1.45;
     }
 
-    .toast.success { border-left-color: var(--active); }
-    .toast.warning { border-left-color: var(--warning); }
-    .toast.error { border-left-color: var(--danger); }
-    .toast-title { font-weight: 850; }
+    .toast.info { background: linear-gradient(90deg, rgba(56,189,248,.16), rgba(12,25,43,.96) 42%); }
+    .toast.success { border-left-color: var(--active); background: linear-gradient(90deg, rgba(34,197,94,.18), rgba(12,25,43,.96) 42%); }
+    .toast.warning { border-left-color: var(--warning); background: linear-gradient(90deg, rgba(245,158,11,.2), rgba(12,25,43,.96) 42%); }
+    .toast.error { border-left-color: var(--danger); background: linear-gradient(90deg, rgba(239,68,68,.2), rgba(12,25,43,.96) 42%); }
+    .toast-title { display: flex; align-items: flex-start; gap: 8px; font-weight: 850; }
+    .toast-icon { flex: 0 0 auto; line-height: 1.25; }
     .toast-detail { margin-top: 5px; color: var(--muted); font-size: .82rem; }
     .help-list { display: grid; gap: 8px; }
     .help-row { padding: 9px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-card, rgba(255,255,255,.035)); line-height: 1.45; }
@@ -3671,7 +3673,7 @@
 
         panel.querySelector("[data-action='close']").addEventListener("click", event => {
           event.stopPropagation();
-          if (placement.locked || state.lockLayout) return toast("Fenster ist gesperrt");
+          if (placement.locked || state.lockLayout) return showLockedLayoutNotice();
           removeModuleFromWorkspace(module.id);
         });
 
@@ -3686,7 +3688,7 @@
         const resizeHandle = panel.querySelector(".resize-handle");
         resizeHandle.addEventListener("pointerdown", event => {
           event.stopPropagation();
-          if (placement.locked || state.lockLayout) return toast("Fenster ist gesperrt");
+          if (placement.locked || state.lockLayout) return showLockedLayoutNotice();
           startPanelResize(event, panel, placement);
         });
 
@@ -3887,13 +3889,23 @@
         if (event.target.closest("button,input,select,textarea,a")) return;
         const moves = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -3, ArrowDown: 3, Home: -99, End: 99 };
         if (!(event.key in moves)) return;
-        if (placement.locked || state.lockLayout) return toast("Fenster ist gesperrt");
+        if (placement.locked || state.lockLayout) return showLockedLayoutNotice();
         const current = Number(document.querySelector(`.panel-window[data-module-id="${CSS.escape(moduleId)}"]`)?.dataset.cell);
         if (!Number.isInteger(current)) return;
         const target = targetCellFromKey(current, event.key);
         if (target === current) return;
         event.preventDefault();
         placeModule(moduleId, target, { message: `Modul auf Rasterfeld ${target + 1} verschoben`, keepFocus: true });
+      }
+
+      function showLockedLayoutNotice() {
+        toast(feedbackText({
+          title: "Fenster ist gesperrt.",
+          cause: "Das Modul oder das gesamte Layout ist gegen Verschieben geschützt.",
+          solution: "Bitte zuerst die Sperre lösen und die Aktion erneut starten.",
+          changed: "Nichts verschoben; aktuelles Layout bleibt unverändert.",
+          level: "warning"
+        }));
       }
 
       function targetCellFromKey(current, key) {
@@ -4624,9 +4636,14 @@
         if (message === lastRuntimeIssue && now - lastRuntimeIssueAt < 4000) return;
         lastRuntimeIssue = message;
         lastRuntimeIssueAt = now;
-        console.error("Dashboard-Laufzeitfehler:", reason);
+        handleAppError(reason instanceof Error ? reason : new Error(message), {
+          area: "Laufzeit",
+          userMessage: "Ein Fehler wurde abgefangen.",
+          cause: message,
+          solution: "Bitte die Konfiguration exportieren, falls die Anzeige unerwartet wirkt, und den letzten Schritt erneut versuchen.",
+          changed: "Daten bleiben lokal erhalten; es wurde nichts automatisch überschrieben."
+        });
         saveStatus.textContent = "Fehler erkannt · Daten bleiben lokal erhalten";
-        toast("Ein Fehler wurde abgefangen. Exportieren Sie bei Bedarf die Konfiguration.");
       }
 
       function executeCommand(command) {
@@ -4951,14 +4968,16 @@
       }
 
       function feedbackText(input) {
-        if (typeof input === "string") return { title: cleanText(input, 500), detail: "", level: "info" };
+        if (typeof input === "string") return { title: cleanText(input, 500), detail: "", level: "info", icon: "ℹ️" };
         const title = cleanText(input?.title || input?.message || "Hinweis", 500);
         const details = [
           input?.cause ? `Grund: ${cleanText(input.cause, 180)}` : "",
           input?.solution ? `Lösung: ${cleanText(input.solution, 180)}` : "",
           input?.changed ? `Status: ${cleanText(input.changed, 120)}` : ""
         ].filter(Boolean).join(" · ");
-        return { title, detail: details, level: ["success", "warning", "error"].includes(input?.level) ? input.level : "info" };
+        const level = ["success", "warning", "error"].includes(input?.level) ? input.level : "info";
+        const icon = { info: "ℹ️", success: "✅", warning: "⚠️", error: "❌" }[level];
+        return { title, detail: details, level, icon };
       }
 
       function toast(message) {
@@ -4966,7 +4985,8 @@
         const feedback = feedbackText(message);
         const item = document.createElement("div");
         item.className = `toast ${feedback.level}`;
-        item.innerHTML = `<div class="toast-title">${escapeHtml(feedback.title)}</div>${feedback.detail ? `<div class="toast-detail">${escapeHtml(feedback.detail)}</div>` : ""}`;
+        item.setAttribute("role", feedback.level === "error" ? "alert" : "status");
+        item.innerHTML = `<div class="toast-title"><span class="toast-icon" aria-hidden="true">${feedback.icon}</span><span>${escapeHtml(feedback.title)}</span></div>${feedback.detail ? `<div class="toast-detail">${escapeHtml(feedback.detail)}</div>` : ""}`;
         stack.appendChild(item);
         const liveRegion = document.getElementById("liveRegion");
         if (liveRegion) liveRegion.textContent = [feedback.title, feedback.detail].filter(Boolean).join(". ");
