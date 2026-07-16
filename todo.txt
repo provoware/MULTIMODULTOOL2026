@@ -3,7 +3,7 @@ Stand: 2026-07-16
 Aktueller Startpunkt: dashboard-studio-ultimate-pro-v3.1.0.html
 Arbeitsweise: lokal im Browser, ohne Build-Schritt, ohne externe Laufzeit-Abhängigkeiten.
 
-Fortschritt gesamt: 57 %
+Fortschritt gesamt: 58 %
 Berechnung: erledigte Grundlagen und Standards zählen 40 %, laufende Qualitäts- und UX-Arbeit 35 %, Modul-Auslagerung und Tests 25 %.
 Aktualisierungsregel: Bei jeder Iteration Stand, Prozentwert, erledigte Punkte, offene Punkte und bekannte Grenzen prüfen und anpassen.
 
@@ -26,11 +26,14 @@ Erledigt
 - Schnell-Text-Speicher wurde für die aktuelle Iteration erneut um je einen Textbaustein pro Kategorie erweitert.
 - Export- und Backup-Meldungen wurden strukturierter formuliert: Ereignis, Grund, Lösung und Speicherstatus werden nun bei den direkt betroffenen Hinweisen angezeigt.
 - Platzhalter-Fundstellen wurden am 2026-07-16 per gezielter Textsuche ermittelt und als nummerierte Abarbeitungsliste aufgenommen.
+- Manifestprüfung kontrolliert nun bei Modulmanifesten zusätzlich, ob die Manifest-ID zum Modulordner passt und deklarierte Einstiegspunkt-Dateien vorhanden sind.
+- Schnell-Text-Speicher wurde in dieser Iteration um je einen weiteren Textbaustein pro Kategorie ergänzt.
 
 In Arbeit
 - README als schnelle Einstiegs- und Orientierungshilfe aktuell halten.
 - Release-Checkliste bei Freigabekandidaten gegen die tatsächlich geprüften Schritte abgleichen.
 - TODO-Datei als Fortschrittsübersicht mit offenen, erledigten und bekannten Punkten pflegen.
+- Manifestprüfungen schrittweise an das Loader-Konzept angleichen, ohne die HTML-App umzubauen.
 - Kontraste gezielt verbessern, ohne das bestehende Design komplett umzubauen.
 - Offene Entwicklung in Phasen planen, damit jede Iteration klein, prüfbar und rückbaubar bleibt.
 
@@ -149,13 +152,14 @@ Schritteplan für die nächsten Iterationen
 1. Erledigt am 2026-07-16: Import-Meldungen mit Export-/Backup-Meldungen verglichen und nur fehlende Angaben zu Grund, Lösung oder Speicherstatus ergänzt.
 2. Erledigt am 2026-07-16: Platzhalter-Fundstellen per `rg` ermittelt und als nummerierte Abarbeitungsliste in Priorität 1 aufgenommen.
 3. Offen: Speicher-/Importpfad in einem echten interaktiven Browser anhand `docs/RELEASE_CHECKLIST.md` vollständig manuell prüfen; diese Agent-Umgebung hatte keine verfügbare Browser-GUI.
-4. Iteration: Loader-Konzept gegen erste Prüffunktion planen, ohne die HTML-App umzubauen.
+4. Erledigt am 2026-07-16: Loader-Konzept gegen erste Prüffunktion abgeglichen; Modulordner-ID und vorhandene Einstiegspunkt-Dateien werden jetzt geprüft, ohne die HTML-App umzubauen.
 5. Iteration: Einen kleinen Modul-Kandidaten auswählen und Auslagerung mit Rückbauhinweis vorbereiten.
 6. Iteration: Weitere reine Hilfslogik nur bei konkretem Nutzen ergänzen und erst danach mögliche Extraktion prüfen.
 7. Iteration: Performance-Hotspots prüfen und nur belegte Engstellen optimieren.
 
 Bekannte Grenzen
 - Die App ist noch eine große HTML-Datei; Änderungen sollen deshalb klein und gezielt bleiben.
+- Die neue Entry-Dateiprüfung gilt nur für echte Modulordner unter `modules/`; das Beispielmanifest unter `manifests/` bleibt ein abstraktes Schema-Beispiel.
 - Browser-Speicher ist je nach Browser und Gerät begrenzt.
 - Prozentwert ist eine gepflegte Projektschätzung, keine automatisch berechnete Kennzahl.
 - Schnell-Text-Speicher enthält aktuell mehrere dokumentierte Startbausteine, aber noch keine eigene Moduloberfläche außerhalb der Single-File-App.
@@ -171,6 +175,7 @@ Bewusste Nicht-Änderungen dieser Iteration
 - Kein Build-System.
 - Keine Änderung an Import-Datenformat, Speicherformat oder Modulstruktur.
 - Keine direkte Entfernung von Platzhalter-Ausgaben; sie wurden nur erfasst und priorisiert.
+- Kein Einbau eines dynamischen Manifest-Loaders in die HTML-App; ergänzt wurde nur die vorhandene Prüffunktion.
 - Keine vollständige Browserfreigabe, weil diese Umgebung keine interaktive Browser-GUI bereitgestellt hat.
 - Keine neue Laufzeitlogik für den Schnell-Text-Speicher; ergänzt wurden nur weitere dokumentierte Textbausteine.
 
