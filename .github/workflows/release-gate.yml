@@ -1,0 +1,53 @@
+name: Release Gate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - work
+      - main
+
+jobs:
+  local-release-checks:
+    name: Local release checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Check progress consistency
+        run: python3 tests/validate_progress_consistency.py
+
+      - name: Validate module manifests
+        run: python3 tests/validate_module_manifests.py
+
+      - name: Check HTML helper expectations
+        run: python3 tests/test_html_helpers.py
+
+      - name: Validate GenreTool module
+        run: python3 tests/validate_genres_module.py
+
+      - name: Validate module previews
+        run: python3 tests/validate_module_previews.py
+
+      - name: Scan performance hotspots
+        run: python3 tests/scan_performance_hotspots.py
+
+      - name: Validate release documentation gate
+        run: python3 tests/validate_release_gate.py
+
+      - name: Compile validation scripts
+        run: >-
+          python3 -m py_compile
+          tests/validate_progress_consistency.py
+          tests/validate_module_manifests.py
+          tests/test_html_helpers.py
+          tests/validate_genres_module.py
+          tests/validate_module_previews.py
+          tests/scan_performance_hotspots.py
+          tests/validate_release_gate.py

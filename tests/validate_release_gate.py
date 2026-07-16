@@ -12,6 +12,7 @@ README = ROOT / "README.md"
 TODO = ROOT / "todo.txt"
 RELEASE_STATUS = ROOT / "docs" / "RELEASE_STATUS_2026-07-16.md"
 RELEASE_CHECKLIST = ROOT / "docs" / "RELEASE_CHECKLIST.md"
+RELEASE_WORKFLOW = ROOT / ".github" / "workflows" / "release-gate.yml"
 
 REQUIRED_STATUS_PHRASES = (
     "Release-Kandidat mit offener manueller Browserfreigabe",
@@ -83,6 +84,7 @@ def main() -> int:
         todo_text = read_text(TODO)
         status_text = read_text(RELEASE_STATUS)
         checklist_text = read_text(RELEASE_CHECKLIST)
+        workflow_text = read_text(RELEASE_WORKFLOW)
 
         for phrase in REQUIRED_STATUS_PHRASES:
             require_contains(status_text, phrase, "Release-Status")
@@ -92,10 +94,12 @@ def main() -> int:
 
         for command in REQUIRED_CHECK_COMMANDS:
             require_contains(status_text, command, "Release-Status")
+            require_contains(workflow_text, command, "Release-Workflow")
             require_file_reference(command)
 
         require_matching_progress(readme_text, todo_text)
         require_contains(checklist_text, "Wenn einer dieser Punkte offen ist, wird keine Freigabe markiert", "Release-Checkliste")
+        require_contains(status_text, ".github/workflows/release-gate.yml", "Release-Status")
 
         if not BROWSER_OPEN_PATTERN.search(todo_text):
             raise RuntimeError("todo.txt hält keine offene Browser- oder Speicherfreigabe mehr fest.")
