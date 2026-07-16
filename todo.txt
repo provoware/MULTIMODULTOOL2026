@@ -3,7 +3,7 @@ Stand: 2026-07-16
 Aktueller Startpunkt: dashboard-studio-ultimate-pro-v3.1.0.html
 Arbeitsweise: lokal im Browser, ohne Build-Schritt, ohne externe Laufzeit-Abhängigkeiten.
 
-Fortschritt gesamt: 45 %
+Fortschritt gesamt: 47 %
 Berechnung: erledigte Grundlagen und Standards zählen 40 %, laufende Qualitäts- und UX-Arbeit 35 %, Modul-Auslagerung und Tests 25 %.
 Aktualisierungsregel: Bei jeder Iteration Stand, Prozentwert, erledigte Punkte, offene Punkte und bekannte Grenzen prüfen und anpassen.
 
@@ -16,6 +16,8 @@ Erledigt
 - Entwicklerhinweise liegen in docs/DEVELOPER_GUIDE.md.
 - Kontrastbasis der Oberfläche wurde verbessert: hellere Standardtexte, stärkere Linien und klarere Eingabeflächen.
 - Manifest-Loader-Konzept ist als vorbereitende Dokumentation in docs/MANIFEST_LOADER_KONZEPT.md ergänzt.
+- Manifestprüfung wurde am 2026-07-16 mit `python3 tests/validate_module_manifests.py` erfolgreich ausgeführt: 16 Modulmanifeste geprüft.
+- Manifestprüfer wurde an die im Schema erlaubten Modultypen `mother`, `registry` und `debugging` angeglichen.
 
 In Arbeit
 - README als schnelle Einstiegs- und Orientierungshilfe aktuell halten.
@@ -31,7 +33,7 @@ Priorität 1 – Notwendige Korrekturen
 
 Priorität 2 – Qualitätsverbesserungen
 - Systemmodule-Bündel später aus der HTML-Datei in echte Moduldateien überführen, sobald der Loader existiert.
-- Manifest-Prüfung mit `python3 tests/validate_module_manifests.py` bei Moduländerungen ausführen.
+- Manifest-Prüfung mit `python3 tests/validate_module_manifests.py` bei künftigen Moduländerungen erneut ausführen.
 - Die große HTML-Datei schrittweise in kleine Bereiche zerlegen: Styles, Standarddaten, Speicherlogik, Modul-Renderer und Hilfsfunktionen.
 - Kleine Testdatei für reine Hilfsfunktionen ergänzen: Datumsprüfung, Dateinamen-Bereinigung, URL-Normalisierung, Textbegrenzung und Zustandsnormalisierung.
 - README bei jeder echten Struktur-, Bedien- oder Speicheränderung kurz aktualisieren.
@@ -78,7 +80,7 @@ Phase 3 – Manifest-Loader vorbereiten
 Ziel: Modul-Auslagerung erst konzeptionell sichern, dann klein umsetzen.
 Schritte:
 1. Loader-Konzept in `docs/MANIFEST_LOADER_KONZEPT.md` ist erstellt: Manifest lesen, Pflichtfelder prüfen, Fehler melden, Modul ablehnen.
-2. Bestehendes Manifest-Schema gegen Beispielmanifest prüfen.
+2. Bestehendes Manifest-Schema gegen Beispielmanifest prüfen. Erledigt am 2026-07-16 über die vorhandene Manifestprüfung.
 3. Minimalen Loader-Prototyp planen, ohne die bestehende HTML-Datei umzubenennen oder ein Build-System einzuführen.
 4. Fehlermeldungen für ungültige Module nach dem Projektstandard formulieren.
 Akzeptanzkriterien:
@@ -127,11 +129,10 @@ Akzeptanzkriterien:
 Schritteplan für die nächsten Iterationen
 1. Iteration: Manuelle Browserprüfung für Speicher, Import und Backup durchführen; Ergebnis in `todo.txt` eintragen.
 2. Iteration: Einheitliche Meldungstexte für Export und Backup definieren und minimal in der HTML-Datei anwenden.
-3. Iteration: Manifestprüfung auf bestehende Modulmanifeste ausführen und Befunde dokumentieren.
-4. Iteration: Loader-Konzept gegen erste Prüffunktion planen, ohne die HTML-App umzubauen.
-5. Iteration: Einen kleinen Modul-Kandidaten auswählen und Auslagerung mit Rückbauhinweis vorbereiten.
-6. Iteration: Erste reine Hilfsfunktion mit kleinem Test extrahieren.
-7. Iteration: Performance-Hotspots prüfen und nur belegte Engstellen optimieren.
+3. Iteration: Loader-Konzept gegen erste Prüffunktion planen, ohne die HTML-App umzubauen.
+4. Iteration: Einen kleinen Modul-Kandidaten auswählen und Auslagerung mit Rückbauhinweis vorbereiten.
+5. Iteration: Erste reine Hilfsfunktion mit kleinem Test extrahieren.
+6. Iteration: Performance-Hotspots prüfen und nur belegte Engstellen optimieren.
 
 Bekannte Grenzen
 - Die App ist noch eine große HTML-Datei; Änderungen sollen deshalb klein und gezielt bleiben.
@@ -147,7 +148,8 @@ Bewusste Nicht-Änderungen dieser Iteration
 - Keine Umbenennung der bestehenden HTML-Datei.
 - Kein Build-System.
 - Keine Codeänderung an der bestehenden HTML-App.
+- Keine Browserprüfung, weil diese Iteration nur Manifestprüfung und Prüfer-Abgleich betrifft.
 
 Empfohlene nächste Schritte
 1. Speicher-/Importpfad manuell im Browser prüfen und Ergebnis hier dokumentieren.
-2. Manifestprüfung auf bestehende Modulmanifeste ausführen und Befunde in `todo.txt` dokumentieren.
+2. Loader-Konzept gegen eine erste kleine Prüffunktion planen, ohne die bestehende HTML-App umzubauen.
