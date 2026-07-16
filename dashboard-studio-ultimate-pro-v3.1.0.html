@@ -2042,12 +2042,15 @@
         try {
           const raw = localStorage.getItem(STORAGE_KEY) || LEGACY_STORAGE_KEYS.map(key => localStorage.getItem(key)).find(Boolean);
           if (!raw) return defaultState();
-          return normalizeState(JSON.parse(raw));
+          return normalizeState(parseJsonConfig(raw, "Gespeicherte Konfiguration"));
         } catch (error) {
           console.warn("Gespeicherte Konfiguration konnte nicht geladen werden:", error);
           try {
             const backup = localStorage.getItem(BACKUP_KEY) || LEGACY_BACKUP_KEYS.map(key => localStorage.getItem(key)).find(Boolean);
-            if (backup) return normalizeState(JSON.parse(backup).state || JSON.parse(backup));
+            if (backup) {
+              const parsedBackup = parseJsonConfig(backup, "Lokales Backup");
+              return normalizeState(parsedBackup.state || parsedBackup);
+            }
           } catch (_) {}
           return defaultState();
         }
@@ -4156,7 +4159,7 @@
         if (!value) return toast("Keine JSON-Daten eingegeben");
         if (new Blob([value]).size > MAX_IMPORT_BYTES) return toast("Import ist größer als 8 MB");
         try {
-          const parsed = JSON.parse(value);
+          const parsed = parseJsonConfig(value, "Importdaten");
           applyImportedState(parsed);
           closeModal("importModal");
           document.getElementById("importData").value = "";
@@ -4176,7 +4179,7 @@
         reader.onerror = () => toast("Datei konnte nicht gelesen werden");
         reader.onload = () => {
           try {
-            applyImportedState(JSON.parse(String(reader.result)));
+            applyImportedState(parseJsonConfig(reader.result, "Importdatei"));
           } catch (error) {
             console.error(error);
             toast(`Import abgelehnt: ${cleanText(error.message, 120) || "ungültiges Format"}`);
@@ -4188,7 +4191,10 @@
       function applyImportedState(parsed) {
         if (state.confirmDestructive && !confirm("Aktuelle Konfiguration durch den Import ersetzen? Vorher wird ein lokales Backup erstellt.")) return;
         pushHistory("Konfiguration importieren");
-        createLocalBackup(false);
+        if (!createLocalBackup(false)) {
+          toast("Import abgebrochen: Vorheriges Backup konnte nicht erstellt werden.");
+          return;
+        }
         state = normalizeState(parsed);
         logAction("Konfiguration geprüft und importiert", "Datei");
         applyVisualSettings();
@@ -4254,6 +4260,16 @@
         const liveRegion = document.getElementById("liveRegion");
         if (liveRegion) liveRegion.textContent = message;
         setTimeout(() => item.remove(), clamp(Number(state.toastDuration) || 2800, 1200, 8000));
+      }
+
+      function parseJsonConfig(raw, sourceLabel = "JSON") {
+        try {
+          const parsed = JSON.parse(String(raw || ""));
+          if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("Wurzel ist kein Objekt");
+          return parsed;
+        } catch (error) {
+          throw new Error(`${sourceLabel} ist ungültig: ${cleanText(error.message, 160)}`);
+        }
       }
 
       function normalizeState(input) {
