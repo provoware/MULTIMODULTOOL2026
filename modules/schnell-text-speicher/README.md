@@ -18,7 +18,11 @@ Vergleiche ähnliche Meldungen paarweise, bevor du Code änderst: Export, Import
 
 Dokumentiere nach jeder kleinen Änderung genau eine Begründung: Welches Risiko wurde gesenkt, welche Datei wurde berührt und welche Prüfung reicht dafür aus?
 
+Erstelle eine Platzhalter-Inventur: Suche nach TODO, FIXME, Dummy, Stub, Beispieltexten und leeren Zuständen. Bearbeite nichts sofort, sondern schreibe zuerst eine nummerierte Liste mit Risiko und Prüfschritt.
+
 ### Prompting
+
+Ermittle Platzhalter nicht nur nach dem Wort „TODO“, sondern auch nach Beispielen, leeren Zuständen, Dummy-Daten und Stubs. Gib je Fundstelle Datei, Zweck, Risiko und nächsten Schritt an.
 
 Beschreibe zuerst Ziel, gewünschtes Ausgabeformat, Eingabedaten und Ausschlüsse. Bitte danach um Rückfragen nur dann, wenn ohne Antwort ein falsches Ergebnis wahrscheinlich wäre.
 
@@ -34,6 +38,8 @@ Bitte erstelle eine knappe Änderungsanweisung mit Ziel, betroffenen Dateien, Ni
 
 ### Vibecoding
 
+Wenn du Platzhalter findest, widerstehe dem Reflex zum Sofortumbau. Sammle sie zuerst nummeriert, ordne sie nach Risiko und bearbeite danach nur den obersten kleinen Punkt.
+
 Arbeite im Rhythmus Plan → Mini-Patch → gezielte Prüfung → kurze Notiz. Wenn ein Patch größer wird als gedacht, stoppe und teile ihn in zwei verständliche Schritte.
 
 Baue zuerst den kleinsten sichtbaren Nutzen ein, beschreibe danach die nächste sinnvolle Ausbaustufe und lasse bewusst alles weg, was nur schön, aber nicht nötig ist.
@@ -47,6 +53,8 @@ Wenn eine manuelle Prüfung in der Umgebung nicht möglich ist, dokumentiere ehr
 Halte die kreative Energie gezielt: Sammle drei Ideen, wähle eine risikoarme Idee aus und setze nur den kleinsten sichtbaren Teil davon um.
 
 ### KI-Bildgenerierung
+
+Erstelle eine klare Platzhalter-Grafik für einen leeren Modulzustand: freundliche Karte, dezentes Plus-Symbol, kurze visuelle Anleitung, hoher Kontrast, kein echter Text und keine Warnstimmung.
 
 Erzeuge ein ruhiges, kontrastreiches Vorschaubild mit klar erkennbarem Hauptmotiv, einfacher Lichtführung und wenigen Ablenkungen. Nenne Stil, Kameraperspektive, Farbpalette und was ausdrücklich nicht im Bild erscheinen soll.
 
@@ -62,6 +70,8 @@ Gestalte eine ruhige Modul-Vorschau: sechs Karten in sauberem Raster, leichte Ti
 
 ### KI-Musikgenerierung
 
+Beschreibe einen kurzen Denkpausen-Loop für Aufräumarbeiten: 60 Sekunden, ruhiger Puls, helle leichte Akkorde, keine Stimme, nicht ablenkend und passend zum strukturierten Prüfen von Listen.
+
 Erstelle einen 90-Sekunden-Entwurf mit klarer Songstruktur: kurzes Intro, prägnante Strophe, wiedererkennbare Hook und weiches Outro. Halte Tempo, Stimmung, Instrumente und gewünschte Produktionsqualität eindeutig fest.
 
 Beschreibe einen konzentrierten Arbeits-Loop: 100 BPM, warme Synth-Flächen, leise Percussion, dezenter Bass, keine dominanten Vocals, nahtlos wiederholbar und geeignet für ruhige Schreibphasen.
@@ -75,6 +85,8 @@ Beschreibe einen kurzen Bestätigungs-Sound für erfolgreichen Import: 8 Sekunde
 Erzeuge einen fokussierten Review-Loop: 70 Sekunden, leiser Puls, weiche E-Piano-Akkorde, kaum Höhen, keine Stimme und gut geeignet für ruhiges Lesen von Prüflisten.
 
 ### KI-Contentcreation
+
+Erstelle aus einer Platzhalter-Liste eine umsetzbare Aufgabenübersicht: zuerst Risiko, dann Nutzerwirkung, dann kleinster nächster Schritt und zuletzt ein klares Abnahmekriterium.
 
 Schreibe den Inhalt zuerst als kurze Kernbotschaft, dann als Nutzenversprechen und zuletzt als klare Handlungsaufforderung. Halte Sprache einfach, konkret und ohne unnötige Fachbegriffe.
 
