@@ -3,7 +3,7 @@ Stand: 2026-07-16
 
 Priorität 1 – Notwendige Korrekturen
 - Speicher-/Importpfad im Browser manuell prüfen: Standardstart, kaputte localStorage-Daten, Backup-Wiederherstellung und JSON-Import.
-- Für Export/Import kurze Nutzermeldungen vereinheitlichen: Was ist passiert? Warum? Was kann der Nutzer tun?
+- Für Export kurze Nutzermeldungen vereinheitlichen: Was ist passiert? Warum? Was kann der Nutzer tun?
 - Vor großen Importen prüfen, ob Browser-Speicherplatz ausreicht, damit ein Import nicht erst beim späteren Speichern scheitert.
 
 Priorität 2 – Qualitätsverbesserungen
