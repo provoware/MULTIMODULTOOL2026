@@ -3,7 +3,7 @@ Stand: 2026-07-16
 Aktueller Startpunkt: dashboard-studio-ultimate-pro-v3.1.0.html
 Arbeitsweise: lokal im Browser, ohne Build-Schritt, ohne externe Laufzeit-Abhängigkeiten.
 
-Fortschritt gesamt: 42 %
+Fortschritt gesamt: 45 %
 Berechnung: erledigte Grundlagen und Standards zählen 40 %, laufende Qualitäts- und UX-Arbeit 35 %, Modul-Auslagerung und Tests 25 %.
 Aktualisierungsregel: Bei jeder Iteration Stand, Prozentwert, erledigte Punkte, offene Punkte und bekannte Grenzen prüfen und anpassen.
 
@@ -15,6 +15,7 @@ Erledigt
 - Startskript für lokales Öffnen ist dokumentiert.
 - Entwicklerhinweise liegen in docs/DEVELOPER_GUIDE.md.
 - Kontrastbasis der Oberfläche wurde verbessert: hellere Standardtexte, stärkere Linien und klarere Eingabeflächen.
+- Manifest-Loader-Konzept ist als vorbereitende Dokumentation in docs/MANIFEST_LOADER_KONZEPT.md ergänzt.
 
 In Arbeit
 - README als schnelle Einstiegs- und Orientierungshilfe aktuell halten.
@@ -29,7 +30,6 @@ Priorität 1 – Notwendige Korrekturen
 - Kontraständerungen in mindestens einem Chromium- und einem Firefox-basierten Browser visuell prüfen.
 
 Priorität 2 – Qualitätsverbesserungen
-- Manifest-basierten Modul-Loader als Konzept dokumentieren: Manifest lesen, Pflichtfelder prüfen und ungültige Module verständlich ablehnen.
 - Systemmodule-Bündel später aus der HTML-Datei in echte Moduldateien überführen, sobald der Loader existiert.
 - Manifest-Prüfung mit `python3 tests/validate_module_manifests.py` bei Moduländerungen ausführen.
 - Die große HTML-Datei schrittweise in kleine Bereiche zerlegen: Styles, Standarddaten, Speicherlogik, Modul-Renderer und Hilfsfunktionen.
@@ -77,7 +77,7 @@ Akzeptanzkriterien:
 Phase 3 – Manifest-Loader vorbereiten
 Ziel: Modul-Auslagerung erst konzeptionell sichern, dann klein umsetzen.
 Schritte:
-1. Kurzes Loader-Konzept in `docs/` erstellen: Manifest lesen, Pflichtfelder prüfen, Fehler melden, Modul ablehnen.
+1. Loader-Konzept in `docs/MANIFEST_LOADER_KONZEPT.md` ist erstellt: Manifest lesen, Pflichtfelder prüfen, Fehler melden, Modul ablehnen.
 2. Bestehendes Manifest-Schema gegen Beispielmanifest prüfen.
 3. Minimalen Loader-Prototyp planen, ohne die bestehende HTML-Datei umzubenennen oder ein Build-System einzuführen.
 4. Fehlermeldungen für ungültige Module nach dem Projektstandard formulieren.
@@ -127,8 +127,8 @@ Akzeptanzkriterien:
 Schritteplan für die nächsten Iterationen
 1. Iteration: Manuelle Browserprüfung für Speicher, Import und Backup durchführen; Ergebnis in `todo.txt` eintragen.
 2. Iteration: Einheitliche Meldungstexte für Export und Backup definieren und minimal in der HTML-Datei anwenden.
-3. Iteration: Loader-Konzept in `docs/` schreiben und gegen Manifeststandard abgleichen.
-4. Iteration: Manifestprüfung auf bestehende Modulmanifeste ausführen und Befunde dokumentieren.
+3. Iteration: Manifestprüfung auf bestehende Modulmanifeste ausführen und Befunde dokumentieren.
+4. Iteration: Loader-Konzept gegen erste Prüffunktion planen, ohne die HTML-App umzubauen.
 5. Iteration: Einen kleinen Modul-Kandidaten auswählen und Auslagerung mit Rückbauhinweis vorbereiten.
 6. Iteration: Erste reine Hilfsfunktion mit kleinem Test extrahieren.
 7. Iteration: Performance-Hotspots prüfen und nur belegte Engstellen optimieren.
@@ -150,4 +150,4 @@ Bewusste Nicht-Änderungen dieser Iteration
 
 Empfohlene nächste Schritte
 1. Speicher-/Importpfad manuell im Browser prüfen und Ergebnis hier dokumentieren.
-2. Einen kleinen Konzeptentwurf für den Manifest-Loader in docs/ ergänzen.
+2. Manifestprüfung auf bestehende Modulmanifeste ausführen und Befunde in `todo.txt` dokumentieren.
