@@ -1,0 +1,33 @@
+{
+  "appId": "multimodultool2026",
+  "name": "Dashboard Studio Ultimate Pro",
+  "version": "3.1.0",
+  "schemaVersion": 5,
+  "moduleManifestSchema": "./MULTIMODULTOOL2026_01_ModuleManifest.schema.json",
+  "moduleDirectory": "modules",
+  "currentRuntime": "single-file-html",
+  "plannedRuntime": "manifest-based-modules",
+  "allowedModuleTypes": [
+    "overview",
+    "calendar",
+    "notes",
+    "tasks",
+    "projectboard",
+    "stats",
+    "quicktext",
+    "editor",
+    "code",
+    "settings",
+    "timer",
+    "bookmarks",
+    "activity",
+    "modulebuilder",
+    "custom"
+  ],
+  "safetyRules": {
+    "overwriteProtection": true,
+    "backupBeforeRiskyImport": true,
+    "validateBeforeSave": true,
+    "plainLanguageErrors": true
+  }
+}

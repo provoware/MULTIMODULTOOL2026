@@ -1,0 +1,21 @@
+{
+  "id": "example-notes",
+  "name": "Beispiel-Notizen",
+  "version": "1.0.0",
+  "type": "notes",
+  "description": "Beispielmanifest für ein separates Notizmodul mit eigenem Speicherbereich.",
+  "entry": {
+    "html": "module.html",
+    "css": "module.css",
+    "js": "module.js"
+  },
+  "permissions": ["local-storage", "file-export"],
+  "storage": {
+    "scope": "module",
+    "backupRequired": true
+  },
+  "validation": {
+    "maxInputBytes": 2000000,
+    "allowedFileExtensions": [".txt", ".md"]
+  }
+}
