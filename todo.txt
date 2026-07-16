@@ -1,6 +1,6 @@
 # TODO
 
-Fortschritt gesamt: 92 %
+Fortschritt gesamt: 93 %
 
 ## Offen
 - [ ] Kontraständerungen auf einer echten Chromium- und Firefox-Installation visuell nachprüfen; die Container-Prüfung am 2026-07-16 war durch Snap-/Download-Sperren blockiert.
@@ -8,6 +8,7 @@ Fortschritt gesamt: 92 %
 - [ ] Speicherprüfung zusätzlich in Chromium und Firefox ausführen und Ergebnis mit Screenshot oder kurzem Prüfprotokoll dokumentieren.
 
 ## Erledigt
+- [x] Lokales Release-Gate wurde am 2026-07-16 ergänzt: `tests/validate_release_gate.py` prüft Release-Status, offene Browsergrenzen und vorhandene Prüfbefehle, ohne eine echte Browserfreigabe vorzutäuschen.
 - [x] Audit-Dokumentationsbereinigung wurde am 2026-07-16 abgeschlossen: `AGENTS.md` nennt den lokalen Serverstart, Qualitäts-Gates sind repariert und die Entwicklerdokumentation beschreibt die vorhandene Tastaturplatzierung korrekt.
 - [x] Darstellungsautomatik wurde am 2026-07-16 verbessert: Schriftgröße reicht jetzt bis 150 %, Bereichsgröße ist steuerbar und Module passen Abstände, Zeilenhöhe und Zoom lesbarer an.
 - [x] Arbeitsbereich-Gruppierung wurde am 2026-07-16 verbessert: Das 3×3-Raster skaliert flexibler, schwebende Fenster bleiben nach Größenänderungen sichtbar und Rasterfelder/Module haben verständlichere Bedienhinweise.

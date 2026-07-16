@@ -20,7 +20,8 @@ python3 tests/test_html_helpers.py
 python3 tests/validate_genres_module.py
 python3 tests/validate_module_previews.py
 python3 tests/scan_performance_hotspots.py
-python3 -m py_compile tests/validate_progress_consistency.py tests/validate_module_manifests.py tests/test_html_helpers.py tests/validate_genres_module.py tests/validate_module_previews.py tests/scan_performance_hotspots.py
+python3 tests/validate_release_gate.py
+python3 -m py_compile tests/validate_progress_consistency.py tests/validate_module_manifests.py tests/test_html_helpers.py tests/validate_genres_module.py tests/validate_module_previews.py tests/scan_performance_hotspots.py tests/validate_release_gate.py
 ```
 
 Zusätzlich kann der lokale Start ohne Browseröffnung technisch geprüft werden:
@@ -29,6 +30,10 @@ Zusätzlich kann der lokale Start ohne Browseröffnung technisch geprüft werden
 python3 -m http.server 8765 --bind 127.0.0.1
 curl -I http://127.0.0.1:8765/dashboard-studio-ultimate-pro-v3.1.0.html
 ```
+
+## Lokales Release-Gate
+
+Das zusätzliche Release-Gate `python3 tests/validate_release_gate.py` prüft bewusst nur dokumentierte Freigabegrenzen und vorhandene Prüfbefehle. Es ersetzt keine sichtbare Browserprüfung. Dadurch bleibt maschinell belegbar, dass der Stand ein Release-Kandidat ist und die manuelle Browserfreigabe nicht versehentlich als erledigt markiert wurde.
 
 ## Manuell offen vor echter Freigabe
 
