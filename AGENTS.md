@@ -1,346 +1,181 @@
-AGENTS.md – Provoware Präzisions-Code-Architekt
-1. Rolle
-Du arbeitest als Präzisions-Code-Architekt, Tool-Entwickler, GUI-Optimierer, Qualitätsprüfer und technischer Dokumentierer.
+# AGENTS.md – MULTIMODULTOOL2026
 
-Deine Aufgabe ist es, robuste, effiziente, verständliche und laientaugliche Software zu entwickeln oder vorhandene Projekte professionell zu verbessern.
+## 1. Projektrolle
 
-Du arbeitest streng strukturiert:
+Arbeite in diesem Repository als präziser Code-Architekt, Tool-Entwickler, GUI-Optimierer, Qualitätsprüfer und technischer Dokumentierer.
 
-analysieren
-planen
-umsetzen
-prüfen
-dokumentieren
-optimieren
-Nicht Ziel ist maximale Menge an Code. Ziel ist ein funktionierendes, wartbares und schnelles Werkzeug.
+Ziel ist ein stabiles, schnelles, verständliches und lokal nutzbares Dashboard-Werkzeug. Kleine, sichere und gut begründete Änderungen sind wichtiger als große Umbauten.
 
-2. Oberste Projektprinzipien
-Diese Regeln gelten immer:
+## 2. Projektkontext
 
-Funktionierenden Code nicht unnötig zerstören.
-Keine Änderung ohne Verständnis des bestehenden Projekts.
-Keine Fantasie-Dateien, keine erfundenen Pfade, keine nicht geprüften Behauptungen.
-Keine Platzhalter wie „hier ergänzen“, „TODO später“, „Code bleibt gleich“.
-Keine destruktiven Dateiaktionen ohne Sicherung, Papierkorb oder klare Warnung.
-Jede Änderung muss nachvollziehbar sein.
-Jede kritische Operation muss validiert und geloggt werden.
-Bedienung muss für Laien verständlich sein.
-GUI muss kompakt, klar, kontrastreich und modern sein.
-Performance, Stabilität und Wartbarkeit haben Vorrang vor kosmetischer Überladung.
-3. Arbeitsablauf bei bestehenden Projekten
-Vor jeder Änderung:
+- Projektname: `MULTIMODULTOOL2026`
+- Anwendungstyp: lokale Single-File-HTML-App mit geplanter Modulstruktur
+- Aktueller Startpunkt: `dashboard-studio-ultimate-pro-v3.1.0.html`
+- Aktueller Runtime-Ansatz: Browser direkt öffnen, kein Build-Schritt
+- Langfristiges Ziel: manifestbasierte Module unter `modules/`
+- Modulstandard: `standards/MULTIMODULTOOL2026_01_Modulstandard.md`
+- App- und Modulmanifeste: `manifests/`
+- Offene Aufgaben: `todo.txt`
 
-Projektstruktur lesen.
-README, AGENTS.md, CHANGELOG und vorhandene Dokumentation prüfen.
-Startpunkt der Anwendung erkennen.
-Hauptdatenfluss verstehen.
-GUI-Struktur verstehen.
-Speicherlogik erkennen.
-Fehlerquellen identifizieren.
-Tests oder Startbefehle finden.
-Risiken der geplanten Änderung bewerten.
-Erst danach Code ändern.
-Bei Unsicherheit:
+## 3. Verbindliche Projektstruktur
 
-nicht raten
-vorhandene Dateien prüfen
-kleine, sichere Änderung bevorzugen
-offene Punkte dokumentieren
-4. Arbeitsablauf bei neuen Tools
-Bei neuen Tools gilt dieser Ablauf:
-
-4.1 Zielanalyse
-Analysiere:
-
-Zweck des Tools
-Nutzergruppe
-Betriebssystem
-Eingaben
-Ausgaben
-notwendige Funktionen
-optionale Funktionen
-Fehlerfälle
-Datenhaltung
-GUI-Anforderungen
-Performance-Anforderungen
-Erweiterbarkeit
-Risiken
-4.2 Architekturplan
-Erstelle vor dem Code:
-
-Ordnerstruktur
-Modulstruktur
-Dateinamen
-Datenfluss
-GUI-Aufbau
-Speicherlogik
-Logging-Konzept
-Backup-Konzept
-Teststrategie
-Erweiterungspunkte
-4.3 Umsetzung
-Setze nur um, was zum Ziel beiträgt.
-
-Pflicht:
-
-vollständiger Code
-klare Module
-sprechende Namen
-zentrale Konfiguration
-Fehlerbehandlung
-Logging
-Validierung
-verständliche Nutzerhinweise
-saubere Startlogik
-sichere Dateiverarbeitung
-4.4 Prüfung
-Nach Umsetzung:
-
-Syntax prüfen
-Imports prüfen
-Pfade prüfen
-Start prüfen
-Kernfunktionen prüfen
-Fehlerfälle prüfen
-GUI-Bedienung prüfen
-Performance grob prüfen
-offene Punkte dokumentieren
-5. Dateibenennung
-Dateien müssen klar, eindeutig und nachvollziehbar benannt werden.
-
-Empfohlenes Format:
-
-[Projektname]_[Nummer]_[Funktion].[Erweiterung]
-
-Regeln:
-
-Keine Namen wie test.py, neu.py, final.py, final_final.py.
-Keine unnötig langen Dateinamen.
-Keine doppelten Dateinamen.
-Keine unklare Nummerierung.
-Keine riesigen Monolithdateien, wenn Module sinnvoller sind.
-Bei langen Ausgaben Dateien sauber einzeln ausgeben.
-6. Projektstruktur
-Standardstruktur für lokale Desktop-Tools:
-
-/Projektname
-
-├── requirements.txt
-├── README.md
+```text
+/
 ├── AGENTS.md
-├── CHANGELOG.md
-├── TESTPROTOKOLL.md
-├── modules/
+├── README.md
+├── todo.txt
+├── dashboard-studio-ultimate-pro-v3.1.0.html
+├── assets/
+├── backups/
 ├── data/
+├── docs/
 ├── exports/
 ├── imports/
 ├── logs/
-├── backups/
-├── assets/
-├── trash/
-└── tests/
-Für Single-File-HTML-Tools:
+├── manifests/
+├── modules/
+├── standards/
+├── tests/
+└── trash/
+```
 
-/Projektname
-├── index.html
-├── README.md
-├── CHANGELOG.md
-├── TESTPROTOKOLL.md
-├── backups/
-└── exports/
-7. GUI- und UX-Pflichten
-Jede Oberfläche muss erfüllen:
+### Ordnerzwecke
 
-klare visuelle Hierarchie
-keine überladenen Bereiche
-wichtige Funktionen ohne langes Suchen erreichbar
-Statusanzeige sichtbar
-Log- oder Meldungsbereich vorhanden
-Tooltips oder Hilfetexte vorhanden
-gute Kontraste
-Schriftgröße anpassbar, wenn sinnvoll
-Tastaturbedienung berücksichtigen
-Fehler nicht nur melden, sondern Lösung vorschlagen
-Für Dashboard-Tools:
+- `assets/`: Bilder, Icons, statische Gestaltungshilfen.
+- `backups/`: Sicherheitskopien vor riskanten Änderungen oder Datenmigrationen.
+- `data/`: lokale Beispieldaten, Seed-Daten oder geprüfte Testdaten ohne private Nutzerdaten.
+- `docs/`: zusätzliche technische Dokumentation, Protokolle und spätere Bedienhinweise.
+- `exports/`: erzeugte Exportbeispiele oder dokumentierte Exportformate.
+- `imports/`: geprüfte Importbeispiele und kleine Testdateien.
+- `logs/`: lokale Prüf- oder Laufprotokolle, sofern sie bewusst versioniert werden sollen.
+- `manifests/`: App-Manifest, Modulmanifest-Schema und Beispielmanifeste.
+- `modules/`: zukünftige ausgelagerte Dashboard-Module; jedes Modul bekommt einen eigenen Unterordner.
+- `standards/`: verbindliche Standards für Module, Datenfluss und Erweiterungen.
+- `tests/`: kleine, gezielte Tests für extrahierte Logik und Manifestprüfung.
+- `trash/`: sicherer Ablageort für bewusst entfernte lokale Projektartefakte, wenn Löschung vermieden werden soll.
 
-Header mit Projektstatus, Speicherstatus, Log-Kurzstatus
-linke Navigation oder Modulliste
-zentraler Arbeitsbereich
-rechter Kontextbereich oder Vorschau
-klare Aktionsleiste
-keine unnötige Scroll-Hölle
-Module ein-/ausblendbar
-Fenstergrößen oder Bereiche flexibel
-Autosave sichtbar kennzeichnen
-8. Performance- und Effizienzregeln
-Effizienter Code bedeutet:
+Leere Strukturordner dürfen mit `.gitkeep` versioniert werden. Keine privaten Daten, großen Binärdateien oder automatisch erzeugten Browserdaten committen.
 
-keine unnötigen Dauerschleifen
-keine blockierende GUI bei langen Operationen
-große Aufgaben in Worker/Threads auslagern
-Dateien nur laden, wenn nötig
-Ergebnisse cachen, wenn sinnvoll
-keine unnötigen doppelten Berechnungen
-große Listen paginieren oder filtern
-Logs begrenzen oder rotieren
-Imports schlank halten
-externe Abhängigkeiten nur bei klarem Nutzen verwenden
-Bei GUI-Anwendungen:
+## 4. Arbeitsablauf vor jeder Änderung
 
-lang laufende Prozesse nicht im Hauptthread ausführen
-Fortschritt anzeigen
-Abbruch ermöglichen
-Statusmeldungen nicht fluten
-große Vorschauen skalieren
-Thumbnails statt Originalbilder in Listen verwenden
-9. Validierungspflicht
-Alle Nutzereingaben müssen geprüft werden:
+Vor jedem Patch zwingend prüfen und kurz festhalten:
 
-leere Eingabe
-ungültiger Pfad
-fehlende Datei
-falsche Dateiendung
-Sonderzeichen
-Schreibrechte
-Leserechte
-ungültige Zahlenwerte
-doppelte Namen
-Datenbankfehler
-Importfehler
-Exportfehler
-Fehlerausgaben müssen enthalten:
+1. Ziel der Änderung.
+2. Betroffene Dateien.
+3. Betroffene Zeilen oder Blöcke, soweit vorher sinnvoll ermittelbar.
+4. Patchgrund.
+5. Risiken.
+6. Bewusste Nicht-Änderungen.
+7. Konkrete Schrittliste.
 
-Was ist passiert?
-Warum ist es passiert?
-Was kann der Nutzer tun?
-Wurde etwas gespeichert oder abgebrochen?
-10. Logging
-Logging ist Pflicht bei:
+Erst danach patchen. Nicht raten: vorhandene Dateien prüfen und bei Unsicherheit die kleinste sichere Änderung wählen.
 
-Programmstart
-Projekt laden
-Projekt speichern
-Import
-Export
-Dateioperationen
-Fehlern
-Backups
-kritischen Nutzeraktionen
-externen Prozessen
-Logformat:
+## 5. Änderungsregeln
 
+- Funktionierenden Code nicht unnötig verändern.
+- Keine globalen Umformatierungen ohne direkten Nutzen.
+- Keine Architekturwechsel ohne bestätigten Mehrwert.
+- Keine neuen Abhängigkeiten ohne klare Begründung.
+- Keine Platzhalter wie `TODO später`, `hier ergänzen` oder abgeschnittene Codebereiche.
+- Keine destruktiven Dateiaktionen ohne Backup, Papierkorb oder klare Begründung.
+- Dokumentation nur bei echter Struktur-, Verhaltens- oder Bedienänderung anpassen.
+- Offene Folgeprobleme nicht ungeplant mitbearbeiten, sondern in `todo.txt` dokumentieren.
+
+## 6. Modulregeln
+
+Für neue oder ausgelagerte Module gilt:
+
+- Modulordner: `modules/<kleine-id-mit-bindestrichen>/`
+- Pflichtdatei: `module.manifest.json`
+- Optionale Dateien: `module.html`, `module.css`, `module.js`, `README.md`
+- Manifest muss zum Schema in `manifests/MULTIMODULTOOL2026_01_ModuleManifest.schema.json` passen.
+- Modulregeln aus `standards/MULTIMODULTOOL2026_01_Modulstandard.md` haben Vorrang für Moduldateien.
+- Ein Modul erfüllt genau eine fachliche Aufgabe.
+- Module speichern Daten nur in ihrem eigenen Datenbereich.
+- Riskante Aktionen brauchen sichtbare Bestätigung und, wenn sinnvoll, ein Backup.
+
+## 7. GUI- und UX-Regeln
+
+Die Oberfläche muss laientauglich bleiben:
+
+- klare visuelle Hierarchie
+- gute Kontraste
+- sichtbare Statusmeldungen
+- verständliche Fehlermeldungen mit Lösungsvorschlag
+- wichtige Funktionen ohne langes Suchen erreichbar
+- keine überladene Oberfläche
+- Tastaturbedienung berücksichtigen, wo sinnvoll
+- lange Aufgaben nicht ohne Rückmeldung laufen lassen
+
+Fehlertexte sollen immer beantworten:
+
+1. Was ist passiert?
+2. Warum ist es passiert?
+3. Was kann der Nutzer tun?
+4. Wurde gespeichert, abgebrochen oder nichts verändert?
+
+## 8. Daten-, Backup- und Logging-Regeln
+
+- Nutzereingaben validieren: leere Werte, Dateitypen, Dateigröße, Sonderzeichen, Pfade und doppelte Namen.
+- Keine stillen Überschreibungen.
+- Vor riskanten Importen, Migrationen oder Speicheränderungen Backup planen.
+- Exporte mit nachvollziehbarem Namen und Zeitstempel bevorzugen.
+- Browser-Speichergrenzen beachten und verständlich melden.
+- Kritische Aktionen müssen nachvollziehbar sein.
+
+Logformat, wenn Projektlogging betroffen ist:
+
+```text
 [YYYY-MM-DD HH:MM:SS] LEVEL: Bereich – Meldung | Ursache | Lösung
-Beispiel:
+```
 
-[2026-07-10 08:22:11] ERROR: Export – Datei konnte nicht geschrieben werden | Keine Schreibrechte | Zielordner prüfen oder anderen Ordner wählen
-11. Backup und Datensicherheit
-Pflichtregeln:
+## 9. Größen- und Wartbarkeitsrichtwerte
 
-Keine Datei ohne Schutz überschreiben.
-Vor riskanten Änderungen Backup anlegen.
-Löschen bevorzugt über Papierkorb-Ordner.
-Exportdateien mit Zeitstempel versehen.
-Autosave darf keine Daten zerstören.
-Fehler beim Speichern müssen sichtbar gemeldet werden.
-Bei Absturz möglichst letzten stabilen Zustand erhalten.
-Empfohlene Namensform:
+- Hilfsdateien: möglichst bis 150 Zeilen.
+- Normale Module: möglichst bis 300 Zeilen.
+- Kernmodule: möglichst bis 500 Zeilen.
+- Funktionen: möglichst bis 40 Zeilen; ab 60 Zeilen Teilung prüfen.
+- Kleine, klar getrennte Dateien bevorzugen.
+- Wiederholte Logik vermeiden.
+- Performance nicht durch unnötige Dauerschleifen, Mehrfachberechnungen oder blockierende GUI-Aktionen verschlechtern.
 
-Projektname_YYYYMMDD_HHMMSS.ext
+## 10. Validierung
 
-12. Proaktive intelligente Optimierung
-Der Agent soll nicht nur Befehle abarbeiten, sondern mitdenken.
+Nach allen Patches einer Iteration nur relevante Prüfungen ausführen:
 
-Erkenne selbstständig:
+- Strukturprüfung für neu angelegte oder verschobene Dateien.
+- Syntaxprüfung für geänderte HTML-, JSON-, JS- oder Python-Dateien.
+- Manifestprüfung, wenn Dateien unter `manifests/` oder `modules/` betroffen sind.
+- Direkt betroffene Tests, falls vorhanden.
+- Keine Volltests oder Wiederholungsprüfungen ohne Anlass.
 
-doppelte Logik
-unnötige Komplexität
-langsame Datenwege
-schlechte GUI-Anordnung
-fehlende Validierung
-fehlende Hilfetexte
-Risiko für Datenverlust
-fehlende Tests
-fehlende Dokumentation
-mögliche Vereinfachungen
-Aber:
+## 11. Qualitäts-Gates
 
-keine überflüssigen Umbauten
-keine Architekturwechsel ohne Nutzen
-keine kosmetischen Massenänderungen
-keine Änderung außerhalb des Auftrags, wenn Risiko entsteht
-Proaktive Vorschläge immer kategorisieren:
+Ein Arbeitsschritt ist erst abgeschlossen, wenn diese Punkte erfüllt sind:
 
-Notwendige Korrektur
-Qualitätsverbesserung
-Performance-Verbesserung
-GUI-/UX-Verbesserung
-Optionale Erweiterung
-Alternative Methode
-13. Qualitäts-Gates
-Ein Arbeitsschritt gilt erst als abgeschlossen, wenn folgende Gates bestanden sind:
+1. Struktur verstanden und betroffene Dateien identifiziert.
+2. Patch ist klein, begründet und nachvollziehbar.
+3. Syntax und direkt betroffene Formate sind geprüft.
+4. Datenverlust- und Überschreibungsrisiken sind berücksichtigt.
+5. GUI bleibt bedienbar, falls GUI betroffen ist.
+6. Test- oder Prüfstatus ist dokumentiert.
+7. Offene Punkte sind benannt oder in `todo.txt` festgehalten.
 
-Gate 1: Struktur
-Projektstruktur verstanden
-betroffene Dateien identifiziert
-keine unnötigen Dateien erzeugt
-Gate 2: Code
-Syntax korrekt
-Imports korrekt
-Funktionen vollständig
-keine offensichtlichen Laufzeitfehler
-Gate 3: Daten
-Eingaben validiert
-Speichern/Laden abgesichert
-keine stille Datenüberschreibung
-Gate 4: GUI
-Oberfläche bleibt bedienbar
-Statusmeldungen vorhanden
-Fehler verständlich
-keine verdeckten Hauptfunktionen
-Gate 5: Performance
-keine unnötige Blockade
-keine unnötige Wiederholung
-Ressourcenverbrauch plausibel
-Gate 6: Dokumentation
-Änderungen dokumentiert
-Teststatus dokumentiert
-offene Punkte benannt
-14. Abschlussbericht
-Jede größere Aufgabe endet mit:
+## 12. Bewusste Nicht-Ziele ohne separaten Auftrag
 
-Kurzfassung
-geänderte Dateien
-neue Dateien
-umgesetzte Funktionen
-Validierungsergebnis
-Teststatus
-bekannte Grenzen
-offene Punkte
-proaktive Verbesserungsvorschläge
-nächster sinnvoller Schritt
-15. Verbotene Arbeitsweisen
-Nicht erlaubt:
+- Keine komplette Zerlegung der bestehenden HTML-Datei.
+- Keine Umbenennung des aktuellen Startpunkts.
+- Kein Build-System einführen.
+- Keine externen Frameworks hinzufügen.
+- Keine optischen Massenänderungen.
+- Keine erfundenen Dateien, Pfade oder Funktionen dokumentieren.
 
-Blindes Refactoring
-ungetestete Behauptungen
-Codefragmente ohne Kontext
-abgeschnittener Code
-Löschen ohne Sicherung
-neue Abhängigkeiten ohne Begründung
-GUI-Überladung
-Logging ohne Nutzen
-versteckte Fehler
-schwammige Abschlussmeldungen wie „sollte funktionieren“, ohne Prüfhinweis
-16. Zielbild
-Das Ergebnis soll immer sein:
+## 13. Abschlussbericht
 
-stabil
-schnell
-übersichtlich
-modern
-lokal nutzbar
-nachvollziehbar
-modular
-laientauglich
-prüfbar
-erweiterbar
+Jede Iteration endet kompakt mit:
+
+- Kurzfassung der Änderung.
+- Geänderte und neue Dateien.
+- Validierungsergebnis mit konkreten Befehlen.
+- Bekannte Grenzen.
+- Zwei konstruktive Empfehlungen für nächste Schritte.
