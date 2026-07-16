@@ -151,7 +151,7 @@ Logformat, wenn Projektlogging betroffen ist:
 - Normale Module: möglichst bis 300 Zeilen.
 - Kernmodule: möglichst bis 500 Zeilen.
 - Funktionen: möglichst bis 40 Zeilen; ab 60 Zeilen Teilung prüfen.
-- Kleine, klar getrennte Dateien bevorzugen.
+- Mittelgroße, klar getrennte Dateien bevorzugen.
 - Wiederholte Logik vermeiden.
 - Performance nicht durch unnötige Dauerschleifen, Mehrfachberechnungen oder blockierende GUI-Aktionen verschlechtern.
 
@@ -180,7 +180,9 @@ Ein Arbeitsschritt ist erst abgeschlossen, wenn diese Punkte erfüllt sind:
 7. Test- oder Prüfstatus ist dokumentiert.
 8. Offene Punkte sind benannt oder in `todo.txt` festgehalten.
 9. Prozentzahl des Entwicklungsfortschritts steht oben in der README und wird bei jeder Iteration bewusst geprüft.
-10. Im Modul Schnell-Text-Speicher wird in den Kategorien Coding, Prompting, Vibecoding, KI-Bildgenerierung, KI-Musikgenerierung und KI-Contentcreation in jeder Iteration je ein hilfreicher, weiterbringender oder spezieller Textbaustein ergänzt.
+10. mintestens einen Platzhalter, oder eine offene Codestelle vollständig und optimal ersetzen mit richtigem Code.
+11. Mindestens eine todo-aufgabe vollständig erledigen.
+12. 
 ## 12. Bewusste Nicht-Ziele ohne separaten Auftrag
 - Kein Build-System einführen.
 - Keine externen Frameworks hinzufügen.
