@@ -21,6 +21,7 @@ Dokumentiere nach jeder kleinen Änderung genau eine Begründung: Welches Risiko
 Prüfe gekoppelte Statusangaben automatisch: Lies beide Quellen, validiere Wertebereich und Format und brich mit einer klaren Meldung ab, sobald die Angaben voneinander abweichen.
 Erstelle eine Platzhalter-Inventur: Suche nach TODO, FIXME, Dummy, Stub, Beispieltexten und leeren Zuständen. Bearbeite nichts sofort, sondern schreibe zuerst eine nummerierte Liste mit Risiko und Prüfschritt.
 
+Prüfe gekoppelte Statusangaben automatisch: Lies beide Quellen, validiere Wertebereich und Format und brich mit einer klaren Meldung ab, sobald die Angaben voneinander abweichen.
 Prüfe ein Manifest wie einen Türsteher: Stimmen Pflichtfelder, Ordnername, erlaubte Einstiegspunkte und vorhandene Dateien? Lehne nur klar falsche Angaben ab und melde verständlich, was fehlt.
 
 ### Prompting
