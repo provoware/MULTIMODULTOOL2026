@@ -35,6 +35,8 @@ REQUIRED_CHECK_COMMANDS = (
 )
 
 BROWSER_OPEN_PATTERN = re.compile(r"^- \[ \].*(Browser|Chromium|Firefox|Speicherprüfung)", re.MULTILINE)
+README_PROGRESS_PATTERN = re.compile(r"Entwicklungsfortschritt: (\d+) %")
+TODO_PROGRESS_PATTERN = re.compile(r"Fortschritt gesamt: (\d+) %")
 
 
 def read_text(path: Path) -> str:
@@ -47,6 +49,23 @@ def read_text(path: Path) -> str:
 def require_contains(text: str, needle: str, label: str) -> None:
     if needle not in text:
         raise RuntimeError(f"{label} enthält nicht den erwarteten Hinweis: {needle}")
+
+
+def extract_progress(text: str, pattern: re.Pattern[str], label: str) -> int:
+    match = pattern.search(text)
+    if not match:
+        raise RuntimeError(f"{label} enthält keine Fortschrittsangabe.")
+    return int(match.group(1))
+
+
+def require_matching_progress(readme_text: str, todo_text: str) -> None:
+    readme_progress = extract_progress(readme_text, README_PROGRESS_PATTERN, "README.md")
+    todo_progress = extract_progress(todo_text, TODO_PROGRESS_PATTERN, "todo.txt")
+    if readme_progress != todo_progress:
+        raise RuntimeError(
+            "README.md und todo.txt nennen unterschiedliche Fortschrittswerte: "
+            f"{readme_progress} % / {todo_progress} %."
+        )
 
 
 def require_file_reference(command: str) -> None:
@@ -75,8 +94,7 @@ def main() -> int:
             require_contains(status_text, command, "Release-Status")
             require_file_reference(command)
 
-        require_contains(readme_text, "Entwicklungsfortschritt: 93 %", "README.md")
-        require_contains(todo_text, "Fortschritt gesamt: 93 %", "todo.txt")
+        require_matching_progress(readme_text, todo_text)
         require_contains(checklist_text, "Wenn einer dieser Punkte offen ist, wird keine Freigabe markiert", "Release-Checkliste")
 
         if not BROWSER_OPEN_PATTERN.search(todo_text):
