@@ -19,9 +19,10 @@ Ein Modul wird erst akzeptiert, wenn sein `module.manifest.json` vollständig un
 3. Pflichtfelder gegen `manifests/MULTIMODULTOOL2026_01_ModuleManifest.schema.json` prüfen.
 4. Einstiegspunkte aus `entry` nur akzeptieren, wenn sie auf erlaubte Moduldateien zeigen.
 5. Berechtigungen aus `permissions` mit der tatsächlichen Nutzung abgleichen.
-6. Speicherregeln aus `storage` vor Import, Export oder lokaler Speicherung beachten.
-7. Modul nur registrieren, wenn alle Prüfungen erfolgreich sind.
-8. Fehler gesammelt und laientauglich anzeigen.
+6. Sicherheitsstufe festlegen: Module mit `module.js` gelten vorerst als vertrauensintern und dürfen nicht als Drittmodule freigegeben werden.
+7. Speicherregeln aus `storage` vor Import, Export oder lokaler Speicherung beachten.
+8. Modul nur registrieren, wenn alle Prüfungen erfolgreich sind.
+9. Fehler gesammelt und laientauglich anzeigen.
 
 ## Mindestprüfung je Manifest
 
@@ -58,6 +59,17 @@ Modul wurde nicht geladen. Das Manifest von "notizen" enthält eine unbekannte B
 - Riskante Aktionen brauchen eine sichtbare Bestätigung.
 - Fehlerhafte Module blockieren nicht die gesamte App, sondern werden übersprungen.
 
+### Vertrauensregel für JavaScript-Module
+
+`module.js` läuft im selben Browser-Kontext wie die Haupt-App. Das bedeutet: Ein solches Modul kann auf App-Zustand, Browser-Speicher und sichtbare Bedienflächen zugreifen. Bis eine isolierte Laufzeit oder eine Hash-Prüfung umgesetzt ist, gilt deshalb diese Grenze:
+
+1. Module mit `module.html` und `module.css` dürfen als lesende Vorschau geprüft werden.
+2. Module mit `module.js` dürfen nur als interne, im Repository geprüfte Module geladen werden.
+3. Drittmodule mit `module.js` werden nicht freigegeben und müssen eine eigene Vertrauensprüfung erhalten.
+4. Fehlermeldungen sollen klar sagen, dass nichts geladen und nichts gespeichert wurde, wenn die Vertrauensstufe nicht reicht.
+
+Diese Regel schließt die Audit-Lücke zur unklaren JavaScript-Ausführung, ohne jetzt einen riskanten iframe- oder Hash-Umbau einzuführen.
+
 ## Erste Umsetzungsidee
 
 Die erste technische Umsetzung sollte klein bleiben:
@@ -66,6 +78,7 @@ Die erste technische Umsetzung sollte klein bleiben:
 2. Prüffunktion mit bestehenden Manifesten testen.
 3. Erst danach eine einfache Registrierungsliste für gültige Module vorbereiten.
 4. Noch keine automatische Ausführung von fremdem Modul-JavaScript einbauen.
+5. Für vorhandene `module.js`-Einträge nur interne Repository-Module akzeptieren und Drittmodule ablehnen.
 
 ## Phasenplan für kleine sichere Schritte
 
@@ -83,7 +96,8 @@ Die weitere Arbeit bleibt in drei getrennte Pfade aufgeteilt. Eine Phase gilt er
 1. Ein fachlich kleines Modul auswählen.
 2. `module.html` und, falls nötig, `module.css` über das Manifest prüfen.
 3. Die Anzeige zuerst nur lesend einbinden.
-4. Speichern, Import und riskante Aktionen erst nach separater Prüfung ergänzen.
+4. JavaScript nur aktivieren, wenn das Modul intern geprüft ist und keine Drittmodul-Freigabe behauptet wird.
+5. Speichern, Import und riskante Aktionen erst nach separater Prüfung ergänzen.
 
 ### Phase 3: Rückbaupfad absichern
 

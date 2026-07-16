@@ -6,7 +6,7 @@ Lokales Dashboard-Werkzeug als Single-File-HTML-App. Die Anwendung soll ohne Ins
 
 - Startdatei: `dashboard-studio-ultimate-pro-v3.1.0.html`
 - Arbeitsmodell: empfohlenes Startskript mit lokalem Server; direkter Datei-Start nur als eingeschränkter Rückfall
-- Entwicklungsfortschritt: 96 % (Details siehe `todo.txt`)
+- Entwicklungsfortschritt: 97 % (Details siehe `todo.txt`)
 - Modulziel: spätere manifestbasierte Module unter `modules/`
 - Wichtige Regel: mittelgroße, sichere Änderungen vor großen Umbauten
 
@@ -54,7 +54,7 @@ Neue oder ausgelagerte Module sollen nach dem Modulstandard beschrieben werden:
 
 ## Warum zuerst Standards?
 
-Ein direkter Umbau der großen HTML-Datei in viele Dateien kann funktionierende Bereiche beschädigen. Die Standards legen deshalb zuerst fest, wie Module sicher benannt, beschrieben, geprüft und später geladen werden. Die Aufteilung der Hauptdatei ist möglich, soll aber nur bereichsweise erfolgen: zuerst Styles, danach Standarddaten, dann geprüfte Hilfsfunktionen und zuletzt Modul-Renderer.
+Ein direkter Umbau der großen HTML-Datei in viele Dateien kann funktionierende Bereiche beschädigen. Die Standards legen deshalb zuerst fest, wie Module sicher benannt, beschrieben, geprüft und später geladen werden. Die Aufteilung der Hauptdatei ist möglich, soll aber nur bereichsweise erfolgen: zuerst Styles, danach Standarddaten, dann geprüfte Hilfsfunktionen und zuletzt Modul-Renderer. JavaScript-Module gelten bis zu einer eigenen Vertrauensprüfung nur als interne Repository-Module; Drittmodule mit eigener `module.js` werden nicht freigegeben.
 
 ## Bedienbarkeit und Kontraste
 

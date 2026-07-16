@@ -10,7 +10,7 @@
 6. **Fehlende automatisierbare Startprüfung – behoben.** `MULTIMODULTOOL_NO_BROWSER=1` erlaubt Tests ohne grafische Browseröffnung. `tests/test_start_local.py` prüft den vollständigen Startweg über HTTP.
 7. **Serverprozess bei Abbruch – verbessert.** Signal- und Exit-Behandlung räumt den gestarteten Serverprozess kontrolliert auf.
 8. **Monolithische Hauptdatei – offen, hohes Wartungsrisiko.** Die HTML-Datei umfasst rund 5.856 Zeilen mit Oberfläche, Zustand, Speicherung, Modullader und Fachlogik. Weitere Auslagerung sollte schnittstellenweise erfolgen; kein riskanter Komplettumbau.
-9. **Manifest-Modul lädt JavaScript per `script.textContent` – offen, hohes Vertrauensrisiko.** Lokale Moduldateien erhalten vollen Zugriff auf App und Browser-Kontext. Vor weiteren Drittmodulen braucht es Vertrauensstufen, Hash-Prüfung oder eine isolierte iframe-Laufzeit.
+9. **Vertrauensgrenze für JavaScript-Module – dokumentiert.** `docs/MANIFEST_LOADER_KONZEPT.md` legt fest, dass `module.js` im selben Browser-Kontext läuft, vorerst nur für interne Repository-Module akzeptiert wird und Drittmodule ohne eigene Vertrauensprüfung nicht freigegeben werden.
 10. **Hilfslogik-Test dupliziert Produktionslogik – offen.** `tests/test_html_helpers.py` führt nachgebildete Funktionen aus und prüft nur zusätzlich, ob Funktionsnamen in der HTML-Datei vorkommen. Dadurch kann Produktionscode abweichen, während der Test weiterhin besteht. Nächster Schritt: echte Funktionsblöcke extrahieren oder testbare Kernlogik in eine gemeinsame Datei auslagern.
 11. **Dokumentationsinkonsistenz in `AGENTS.md` – behoben.** Der Runtime-Ansatz nennt jetzt das empfohlene Startskript mit lokalem Server und den direkten Datei-Start nur noch als eingeschränkten Rückfall.
 12. **Beschädigtes Qualitäts-Gate in `AGENTS.md` – behoben.** Tippfehler, unklare Pflichtpunkte und der leere Punkt 12 wurden durch prüfbare Abschlusskriterien ersetzt.
@@ -41,6 +41,5 @@ python3 tests/scan_performance_hotspots.py
 ## Nächste Priorität
 
 1. Produktionsnahe Tests statt kopierter Hilfsfunktionen.
-2. Vertrauensgrenze für manifestbasierte JavaScript-Module.
+2. Technische Durchsetzung der dokumentierten JavaScript-Vertrauensregel im Manifest-Loader.
 3. Manuelle Browserfreigabe getrennt dokumentieren, weil automatisierte Prüfungen sie nicht ersetzen.
-4. Vertrauensgrenze für manifestbasierte JavaScript-Module vor Drittmodulen konkretisieren.
