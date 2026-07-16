@@ -1,6 +1,6 @@
 # TODO
 
-Fortschritt gesamt: 98 %
+Fortschritt gesamt: 99 %
 
 ## Offen
 - [ ] Kontraständerungen auf einer echten Chromium- und Firefox-Installation visuell nachprüfen; die Container-Prüfung am 2026-07-16 war durch Snap-/Download-Sperren blockiert.
@@ -8,6 +8,7 @@ Fortschritt gesamt: 98 %
 - [ ] Speicherprüfung zusätzlich in Chromium und Firefox ausführen und Ergebnis mit Screenshot oder kurzem Prüfprotokoll dokumentieren.
 
 ## Erledigt
+- [x] Release-Kandidat wurde am 2026-07-16 lokal finalisiert: Manifestprüfung setzt die interne JavaScript-Grenze für `module.js` maschinell durch, und das Release-Gate gleicht Einzelprüfungen sowie Sammel-Syntaxcheck zwischen Statusdokument und CI ab.
 - [x] Hilfslogik-Test wurde am 2026-07-16 produktionsnäher gemacht: `tests/test_html_helpers.py` extrahiert sieben echte Funktionsblöcke aus der HTML-App und reduziert damit kopierte Testlogik, ohne die Single-File-App umzubauen.
 - [x] Release-Vorprüfung wurde am 2026-07-16 vervollständigt: Schnelltext-Prüfung und Startskript-Test sind jetzt im lokalen Release-Status, im CI-Gate und im Release-Gate-Validator enthalten, ohne die offene Browserfreigabe als erledigt zu markieren.
 - [x] Vertrauensgrenze für manifestbasierte JavaScript-Module wurde am 2026-07-16 dokumentiert: `module.js` gilt vorerst nur für interne Repository-Module; Drittmodule brauchen eine eigene Vertrauensprüfung.

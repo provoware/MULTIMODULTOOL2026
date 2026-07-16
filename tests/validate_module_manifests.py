@@ -52,6 +52,7 @@ ENTRY_VALUES = {
     "js": {"module.js", None},
 }
 ENTRY_FILENAMES = {"module.html", "module.css", "module.js"}
+INTERNAL_JS_ENTRY = "module.js"
 ID_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 VERSION_PATTERN = re.compile(r"^\d+\.\d+\.\d+$")
 EXT_PATTERN = re.compile(r"^\.[a-z0-9]+$")
@@ -74,6 +75,8 @@ def validate_entry_file(key: str, entry_file: object, module_dir: Path | None, e
     if not isinstance(entry_file, str):
         return
     require(entry_file in ENTRY_FILENAMES and "/" not in entry_file and "\\" not in entry_file, errors, f"entry.{key} darf nur eine erlaubte Moduldatei sein")
+    if key == "js":
+        require(entry_file == INTERNAL_JS_ENTRY, errors, "entry.js darf nur auf interne module.js zeigen")
     if module_dir is not None:
         require((module_dir / entry_file).is_file(), errors, f"entry.{key} verweist auf fehlende Datei")
 

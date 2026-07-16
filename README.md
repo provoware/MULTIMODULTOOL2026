@@ -6,7 +6,7 @@ Lokales Dashboard-Werkzeug als Single-File-HTML-App. Die Anwendung soll ohne Ins
 
 - Startdatei: `dashboard-studio-ultimate-pro-v3.1.0.html`
 - Arbeitsmodell: empfohlenes Startskript mit lokalem Server; direkter Datei-Start nur als eingeschränkter Rückfall
-- Entwicklungsfortschritt: 98 % (Details siehe `todo.txt`)
+- Entwicklungsfortschritt: 99 % (Details siehe `todo.txt`)
 - Modulziel: spätere manifestbasierte Module unter `modules/`
 - Wichtige Regel: mittelgroße, sichere Änderungen vor großen Umbauten
 
@@ -91,4 +91,4 @@ Relevante Prüfungen nach Änderungen:
 
 ## Nächster sinnvoller Schritt
 
-Als nächste Iteration sollte das Release-Kandidaten-Protokoll in `docs/RELEASE_STATUS_2026-07-16.md` in einer echten Browserumgebung abgearbeitet werden: Chromium-Start, Firefox-Start, Speicherprüfung, Backup-Wiederherstellung, kleiner JSON-Import und Exportdownload. Die lokale Code-Vorprüfung ist getrennt dokumentiert, damit Freigabeprüfungen nicht mit Layoutänderungen vermischt werden.
+Als nächste Iteration nach der lokal finalisierten Release-Kandidatenprüfung sollte das Release-Kandidaten-Protokoll in `docs/RELEASE_STATUS_2026-07-16.md` in einer echten Browserumgebung abgearbeitet werden: Chromium-Start, Firefox-Start, Speicherprüfung, Backup-Wiederherstellung, kleiner JSON-Import und Exportdownload. Die lokale Code-Vorprüfung ist getrennt dokumentiert, damit Freigabeprüfungen nicht mit Layoutänderungen vermischt werden.
