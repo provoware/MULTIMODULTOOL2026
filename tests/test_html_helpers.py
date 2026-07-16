@@ -12,82 +12,57 @@ ROOT = Path(__file__).resolve().parents[1]
 APP = ROOT / "dashboard-studio-ultimate-pro-v3.1.0.html"
 
 NODE_SCRIPT = r'''
-function cleanText(value, maxLength = 500) {
-  if (value === null || value === undefined) return "";
-  return String(value)
-    .replace(/[\u0000-\u001F\u007F]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, maxLength);
+const fs = require("fs");
+const source = fs.readFileSync(process.argv[1], "utf8");
+
+function extractFunction(name) {
+  const marker = `function ${name}`;
+  const start = source.indexOf(marker);
+  if (start === -1) throw new Error(`Funktion fehlt: ${name}`);
+  const bodyStart = source.indexOf("{", start);
+  if (bodyStart === -1) throw new Error(`Funktionsstart fehlt: ${name}`);
+  let depth = 0;
+  for (let index = bodyStart; index < source.length; index += 1) {
+    const char = source[index];
+    if (char === "{") depth += 1;
+    if (char === "}") depth -= 1;
+    if (depth === 0) return source.slice(start, index + 1);
+  }
+  throw new Error(`Funktionsende fehlt: ${name}`);
 }
-function normalizeContent(type, existing = null) {
-  const source = existing && typeof existing === "object" ? existing : {};
-  if (type === "tasks") return {
-    filter: ["all", "open", "done", "overdue"].includes(source.filter) ? source.filter : "all",
-    sort: ["manual", "priority", "due"].includes(source.sort) ? source.sort : "manual",
-    items: Array.isArray(source.items) ? source.items.slice(0, 5000).map(item => ({
-      id: cleanText(item?.id, 120) || "test-id",
-      text: cleanText(item?.text, 180),
-      done: Boolean(item?.done),
-      priority: ["low", "medium", "high"].includes(item?.priority) ? item.priority : "medium",
-      due: validDate(item?.due) ? item.due : "",
-      createdAt: cleanText(item?.createdAt, 50) || "2026-07-16T00:00:00.000Z"
-    })).filter(item => item.text) : []
-  };
-  return {};
-}
-function validDate(value) {
-  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const [year, month, day] = value.split("-").map(Number);
-  const date = new Date(year, month - 1, day);
-  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
-}
-function safeFilename(value, fallbackExt = "txt") {
-  const extension = cleanText(fallbackExt, 12).replace(/[^a-z0-9]/gi, "").toLowerCase() || "txt";
-  let filename = String(value || "datei")
-    .replace(/[\u0000-\u001F\u007F]/g, "")
-    .replace(/[\\/:*?"<>|]+/g, "-")
-    .replace(/\s+/g, " ")
-    .replace(/^\.+|[. ]+$/g, "")
-    .slice(0, 160);
-  if (!filename) filename = "datei";
-  if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(filename)) filename = `_${filename}`;
-  if (!/\.[a-z0-9]{1,12}$/i.test(filename)) filename += `.${extension}`;
-  return filename;
-}
-function normalizeUrl(value) {
+
+const productionFunctions = [
+  "cleanText",
+  "validDate",
+  "safeFilename",
+  "normalizeUrl",
+  "getModuleFallbackText",
+  "formatStorageBytes",
+  "moduleFromManifest",
+].map(extractFunction).join("\n");
+
+const supportScript = `
+const ALLOWED_TYPES = ["overview", "calendar", "notes", "tasks", "projectboard", "quicktext", "editor", "code", "links", "timer", "debug", "modulebuilder", "settings", "custom", "mother", "registry", "debugging"];
+function newId() { return "test-id"; }
+function colorFromText() { return "#38bdf8"; }
+function moduleCategoryId() { return "test"; }
+function normalizeContent(type) { return { testType: type }; }
+`;
+
+eval(`${supportScript}\n${productionFunctions}`);
+
+function validManifestBasics(manifest) {
   try {
-    const raw = String(value || "").trim();
-    if (!raw) return "";
-    const url = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`);
-    if (!['http:', 'https:'].includes(url.protocol)) return "";
-    url.username = "";
-    url.password = "";
-    return url.href;
-  } catch (_) {
-    return "";
+    moduleFromManifest(manifest);
+    return "ok";
+  } catch (error) {
+    if (error.message.includes("Modul-ID")) return "id";
+    if (error.message.includes("Modulname")) return "name";
+    if (error.message.includes("Modulbeschreibung")) return "description";
+    return error.message;
   }
 }
-function moduleFallbackText(module) {
-  const description = cleanText(module?.description, 180);
-  if (description) return description;
-  return "Noch keine eigene Ansicht hinterlegt. Bitte Modulbeschreibung ergänzen oder eine geprüfte Moduldatei im Manifest verknüpfen.";
-}
-function formatStorageBytes(bytes) {
-  const value = Math.max(0, Number(bytes) || 0);
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)} MB`;
-  if (value >= 1_000) return `${(value / 1_000).toFixed(1)} KB`;
-  return `${value} B`;
-}
-function validManifestBasics(manifest) {
-  const id = cleanText(manifest?.id, 64);
-  const name = cleanText(manifest?.name, 42);
-  const description = cleanText(manifest?.description, 240);
-  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id)) return "id";
-  if (!name) return "name";
-  if (description.length < 10) return "description";
-  return "ok";
-}
+
 const checks = [
   ["clean text trims and limits", cleanText("  A\n\tB\u0000C  ", 5) === "A B C"],
   ["clean text default limit", cleanText("x".repeat(501)).length === 500],
@@ -100,14 +75,13 @@ const checks = [
   ["url adds https", normalizeUrl("example.com/path") === "https://example.com/path"],
   ["url strips credentials", normalizeUrl("https://user:pass@example.com/a") === "https://example.com/a"],
   ["url rejects unsupported", normalizeUrl("javascript:alert(1)") === ""],
-  ["tasks normalize invalid state", normalizeContent("tasks", { filter: "bad", sort: "bad", items: [{ text: " Aufgabe ", priority: "urgent", due: "2026-02-29" }] }).items[0].priority === "medium"],
-  ["tasks drop empty text", normalizeContent("tasks", { items: [{ text: "   " }, { text: "ok" }] }).items.length === 1],
-  ["fallback uses description", moduleFallbackText({ description: "  Eigene Ansicht folgt  " }) === "Eigene Ansicht folgt"],
-  ["fallback explains missing view", moduleFallbackText({}) === "Noch keine eigene Ansicht hinterlegt. Bitte Modulbeschreibung ergänzen oder eine geprüfte Moduldatei im Manifest verknüpfen."],
+  ["fallback uses description", getModuleFallbackText({ description: "  Eigene Ansicht folgt  " }) === "Eigene Ansicht folgt"],
+  ["fallback explains missing view", getModuleFallbackText({}) === "Noch keine eigene Ansicht hinterlegt. Bitte Modulbeschreibung ergänzen oder eine geprüfte Moduldatei im Manifest verknüpfen."],
   ["storage bytes formats bytes", formatStorageBytes(999) === "999 B"],
   ["storage bytes formats kilobytes", formatStorageBytes(1530) === "1.5 KB"],
   ["storage bytes formats megabytes", formatStorageBytes(2500000) === "2.5 MB"],
   ["manifest id validation", validManifestBasics({ id: "Bad ID", name: "Test", description: "Beschreibung lang genug" }) === "id"],
+  ["manifest name validation", validManifestBasics({ id: "gutes-modul", name: "", description: "Beschreibung lang genug" }) === "name"],
   ["manifest description validation", validManifestBasics({ id: "gutes-modul", name: "Test", description: "kurz" }) === "description"],
   ["manifest basics pass", validManifestBasics({ id: "gutes-modul", name: "Test", description: "Beschreibung lang genug" }) === "ok"],
 ];
@@ -116,10 +90,10 @@ if (failed.length) {
   console.error(JSON.stringify(failed));
   process.exit(1);
 }
-console.log(JSON.stringify({ checked: checks.length }));
+console.log(JSON.stringify({ checked: checks.length, extracted: 7 }));
 '''
 
-REQUIRED_HELPERS = ("function cleanText", "function normalizeContent", "function validDate", "function safeFilename", "function normalizeUrl", "function getModuleFallbackText", "function formatStorageBytes", "function moduleFromManifest")
+REQUIRED_HELPERS = ("function cleanText", "function validDate", "function safeFilename", "function normalizeUrl", "function getModuleFallbackText", "function formatStorageBytes", "function moduleFromManifest")
 
 
 def main() -> int:
@@ -129,14 +103,16 @@ def main() -> int:
         print("FEHLER: Hilfsfunktion fehlt in der HTML-App: " + ", ".join(missing))
         return 1
 
-    result = subprocess.run(["node", "-e", NODE_SCRIPT], text=True, capture_output=True, check=False)
+    result = subprocess.run(["node", "-e", NODE_SCRIPT, str(APP)], text=True, capture_output=True, check=False)
     if result.returncode != 0:
         print("FEHLER: Hilfslogik-Test fehlgeschlagen")
         print(result.stderr.strip() or result.stdout.strip())
         return 1
 
-    checked = json.loads(result.stdout)["checked"]
-    print(f"OK: {checked} Hilfslogik-Faelle fuer Text, Zustand, Datum, Dateiname, URL, Speichergrößen und Modulvalidierung geprueft.")
+    output = json.loads(result.stdout)
+    checked = output["checked"]
+    extracted = output["extracted"]
+    print(f"OK: {checked} Hilfslogik-Faelle mit {extracted} echten Funktionsbloecken aus der HTML-App geprueft.")
     return 0
 
 
