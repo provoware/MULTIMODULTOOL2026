@@ -6,7 +6,7 @@ Lokales Dashboard-Werkzeug als Single-File-HTML-App. Die Anwendung soll ohne Ins
 
 - Startdatei: `dashboard-studio-ultimate-pro-v3.1.0.html`
 - Arbeitsmodell: Browser direkt öffnen oder Startskript verwenden
-- Entwicklungsfortschritt: 74 % (Details siehe `todo.txt`)
+- Entwicklungsfortschritt: 77 % (Details siehe `todo.txt`)
 - Modulziel: spätere manifestbasierte Module unter `modules/`
 - Wichtige Regel: mittelgroße, sichere Änderungen vor großen Umbauten
 
@@ -55,7 +55,7 @@ Ein direkter Umbau der großen HTML-Datei in viele Dateien kann funktionierende 
 
 ## Bedienbarkeit und Kontraste
 
-Die Oberfläche nutzt ein dunkles Standarddesign mit optionalen Darstellungsmodi. Text-, Linien-, Statuschip- und Eingabekontraste sollen gut lesbar bleiben. Änderungen am Design sollen gezielt erfolgen und die bestehende Bedienung nicht unnötig verändern.
+Die Oberfläche nutzt ein dunkles Standarddesign mit optionalen Darstellungsmodi. Text-, Linien-, Statuschip- und Eingabekontraste sollen gut lesbar bleiben. Die Kontrast- und Fokuszustände wurden am 2026-07-16 gezielt nachgeschärft; die echte Chromium-/Firefox-Sichtprüfung muss auf einer Browserinstallation nachgeholt werden, weil Snap- und Playwright-Browserdownloads im Container blockiert waren. Änderungen am Design sollen weiter gezielt erfolgen und die bestehende Bedienung nicht unnötig verändern.
 
 Bei GUI-Änderungen bitte prüfen:
 
@@ -63,6 +63,7 @@ Bei GUI-Änderungen bitte prüfen:
 - Sind Eingabefelder, Schaltflächen und aktive Elemente klar erkennbar?
 - Bleibt die Oberfläche ohne lange Suche bedienbar?
 - Sind Fehlermeldungen einfach formuliert und handlungsorientiert?
+- Lassen sich aktive Module per Tastatur einblenden und platzierte Module mit Pfeiltasten im Raster verschieben?
 
 ## Entwicklung
 
@@ -83,4 +84,4 @@ Relevante Prüfungen nach Änderungen:
 
 ## Nächster sinnvoller Schritt
 
-Als nächste Iteration sollte zuerst eine echte Browser-Sichtprüfung erfolgen: Standardstart, kaputte localStorage-Daten, Backup-Wiederherstellung, JSON-Import sowie Kontrastprüfung in Chromium und Firefox. Das Ergebnis gehört danach mit Datum in `todo.txt`, weil diese Punkte in der nicht-interaktiven Codeprüfung nicht vollständig belegbar sind.
+Als nächste Iteration sollte der Speicher-/Importpfad anhand der Release-Checkliste manuell geprüft werden: Standardstart, kaputte localStorage-Daten, Backup-Wiederherstellung und kleiner JSON-Import. Die echte Chromium-/Firefox-Sichtprüfung und der Importpfad bleiben bewusst getrennt offen, damit Freigabeprüfungen nicht mit Layoutänderungen vermischt werden.

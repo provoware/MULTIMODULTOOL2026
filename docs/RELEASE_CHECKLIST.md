@@ -16,6 +16,8 @@ Diese Checkliste beschreibt die kleinste sichere Freigabeprüfung für die lokal
 
 ## 3. Kernfunktionen
 
+- Ein aktives Modul per Tastatur öffnen: Modulkarte fokussieren, Eingabe oder Leertaste drücken.
+- Ein platziertes Modul per Tastatur verschieben: Panel fokussieren, Pfeiltasten für Nachbarfelder oder Pos1/Ende für erstes/letztes Rasterfeld nutzen.
 - Ein kleines Textelement anlegen, ändern und wieder entfernen.
 - Eine Testnotiz oder Aufgabe speichern und nach dem Neuladen wiederfinden.
 - Export mit Testdaten ausführen und prüfen, ob eine verständliche Erfolgsmeldung erscheint.
@@ -33,7 +35,11 @@ Diese Checkliste beschreibt die kleinste sichere Freigabeprüfung für die lokal
 - Ungültige Module dürfen nicht still übernommen werden.
 - Fehlermeldungen sollen einfach sagen, welches Modul betroffen ist und wie weiter geprüft werden kann.
 
-## 6. Freigabeentscheidung
+## 6. Sicht- und Kontrastprüfung
+
+Stand 2026-07-16: Die App wurde für Tastaturplatzierung und sichtbare Fokuszustände vorbereitet. Eine echte Chromium-/Firefox-Sichtprüfung muss auf einer Browserinstallation nachgeholt werden; im Container waren Snap-Browser und Playwright-Browserdownloads blockiert. Die vollständige Speicher-/Importprüfung bleibt ein eigener Freigabeschritt und darf nicht durch diese Sichtprüfung ersetzt werden.
+
+## 7. Freigabeentscheidung
 
 Eine lokale Freigabe ist möglich, wenn:
 

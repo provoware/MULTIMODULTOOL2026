@@ -1,22 +1,22 @@
 # TODO
 
-Fortschritt gesamt: 74 %
+Fortschritt gesamt: 77 %
 
 ## Offen
-- [ ] Kontraste gezielt verbessern, ohne das bestehende Design komplett umzubauen.
+- [ ] Kontraständerungen auf einer echten Chromium- und Firefox-Installation visuell nachprüfen; die Container-Prüfung am 2026-07-16 war durch Snap-/Download-Sperren blockiert.
 - [ ] Speicher-/Importpfad im Browser anhand der Release-Checkliste manuell prüfen: Standardstart, kaputte localStorage-Daten, Backup-Wiederherstellung und JSON-Import.
-- [ ] Kontraständerungen in mindestens einem Chromium- und einem Firefox-basierten Browser visuell prüfen.
 - [ ] Systemmodule-Bündel später aus der HTML-Datei in echte Moduldateien überführen, sobald der Loader existiert.
 - [ ] Die große HTML-Datei schrittweise in kleine Bereiche zerlegen: Styles, Standarddaten, Speicherlogik, Modul-Renderer und Hilfsfunktionen.
-- [ ] README bei jeder echten Struktur-, Bedien- oder Speicheränderung kurz aktualisieren.
-- [ ] Release-Checkliste nach der ersten vollständigen manuellen Browserprüfung mit Datum und Ergebnis verfeinern.
 - [ ] Bei weiterem Wachstum des Schnell-Text-Speichers eine kleine Moduldatei statt README-Erweiterung planen.
 - [ ] Schnell-Text-Speicher-CSS später visuell im echten Loader prüfen, sobald HTML und CSS gemeinsam geladen werden.
-- [ ] Tastaturbedienung für Modulplatzierung ergänzen und Fokusverhalten in Browsern manuell prüfen.
 - [ ] Performance-Hotspots prüfen und nur belegte Engstellen optimieren.
 - [ ] Schnell-Text-Speicher im späteren Loader mit `module.html` und `module.css` gemeinsam anzeigen und Kontrast sowie Abstände visuell prüfen.
 
 ## Erledigt
+- [x] Kontrast-Fokuszustände für Raster und Panels wurden am 2026-07-16 gezielt nachgeschärft, ohne das bestehende Design umzubauen.
+- [x] Tastaturbedienung für Modulplatzierung wurde am 2026-07-16 ergänzt: aktive Module lassen sich per Eingabe/Leertaste einblenden und platzierte Module per Pfeiltasten, Pos1 und Ende im Raster verschieben.
+- [x] Release-Checkliste wurde am 2026-07-16 für Tastaturplatzierung und getrennte Sicht-/Kontrastprüfung ergänzt; die Container-Browserprüfung ist als nicht freigabefähige Umgebungslimitierung benannt.
+- [x] README wurde am 2026-07-16 wegen echter Bedienänderung aktualisiert: Tastaturplatzierung, verbleibender Import-/Speicherpfad und blockierte echte Browser-Sichtprüfung sind getrennt beschrieben.
 - [x] Hilfslogik-Tests wurden am 2026-07-16 um Modul-Fallbacktexte und Manifest-Basisvalidierung erweitert.
 - [x] Schnell-Text-Speicher wurde am 2026-07-16 gezielt um sechs kurze Bausteine für Listenbegrenzung, Meldungen, TODO-Abschluss und Statusdarstellung ergänzt.
 - [x] Schriftkontraste für Statuschips, deaktivierte Modulkarten und kleine Modul-Metatexte wurden am 2026-07-16 gezielt nachgeschärft, ohne das Design umzubauen.
