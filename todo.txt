@@ -1,10 +1,31 @@
-Dashboard Studio Ultimate Pro – TODO
+Dashboard Studio Ultimate Pro – TODO und Fortschritt
 Stand: 2026-07-16
+Aktueller Startpunkt: dashboard-studio-ultimate-pro-v3.1.0.html
+Arbeitsweise: lokal im Browser, ohne Build-Schritt, ohne externe Laufzeit-Abhängigkeiten.
+
+Fortschritt gesamt: 42 %
+Berechnung: erledigte Grundlagen und Standards zählen 40 %, laufende Qualitäts- und UX-Arbeit 35 %, Modul-Auslagerung und Tests 25 %.
+Aktualisierungsregel: Bei jeder Iteration Stand, Prozentwert, erledigte Punkte, offene Punkte und bekannte Grenzen prüfen und anpassen.
+
+Erledigt
+- Projektstruktur und Ordnerzwecke sind in AGENTS.md festgelegt.
+- Single-File-HTML-App ist weiterhin der stabile Startpunkt.
+- App-Manifest, Modulmanifest-Schema und Beispielmanifest sind vorhanden.
+- Systemmodule-Bündel ist als künftiger Modul-Kandidat beschrieben.
+- Startskript für lokales Öffnen ist dokumentiert.
+- Entwicklerhinweise liegen in docs/DEVELOPER_GUIDE.md.
+- Kontrastbasis der Oberfläche wurde verbessert: hellere Standardtexte, stärkere Linien und klarere Eingabeflächen.
+
+In Arbeit
+- README als schnelle Einstiegs- und Orientierungshilfe aktuell halten.
+- TODO-Datei als Fortschrittsübersicht mit offenen, erledigten und bekannten Punkten pflegen.
+- Kontraste gezielt verbessern, ohne das bestehende Design komplett umzubauen.
 
 Priorität 1 – Notwendige Korrekturen
 - Speicher-/Importpfad im Browser manuell prüfen: Standardstart, kaputte localStorage-Daten, Backup-Wiederherstellung und JSON-Import.
-- Für Export kurze Nutzermeldungen vereinheitlichen: Was ist passiert? Warum? Was kann der Nutzer tun?
+- Für Export kurze Nutzermeldungen vereinheitlichen: Was ist passiert? Warum? Was kann der Nutzer tun? Wurde etwas gespeichert?
 - Vor großen Importen prüfen, ob Browser-Speicherplatz ausreicht, damit ein Import nicht erst beim späteren Speichern scheitert.
+- Kontraständerungen in mindestens einem Chromium- und einem Firefox-basierten Browser visuell prüfen.
 
 Priorität 2 – Qualitätsverbesserungen
 - Manifest-basierten Modul-Loader als Konzept dokumentieren: Manifest lesen, Pflichtfelder prüfen und ungültige Module verständlich ablehnen.
@@ -12,21 +33,33 @@ Priorität 2 – Qualitätsverbesserungen
 - Manifest-Prüfung mit `python3 tests/validate_module_manifests.py` bei Moduländerungen ausführen.
 - Die große HTML-Datei schrittweise in kleine Bereiche zerlegen: Styles, Standarddaten, Speicherlogik, Modul-Renderer und Hilfsfunktionen.
 - Kleine Testdatei für reine Hilfsfunktionen ergänzen: Datumsprüfung, Dateinamen-Bereinigung, URL-Normalisierung, Textbegrenzung und Zustandsnormalisierung.
-- README mit Datenspeicherung, Backup-Verhalten und bekannten Browser-Grenzen ergänzen.
+- README bei jeder echten Struktur-, Bedien- oder Speicheränderung kurz aktualisieren.
 
 Priorität 3 – GUI-/UX-Verbesserungen
 - Import-Dialog um eine kurze Checkliste ergänzen: JSON einfügen, Größe prüfen, Backup wird erstellt, danach importieren.
 - Statusbereich deutlicher machen, wenn ein Backup erstellt, wiederhergestellt oder abgelehnt wurde.
 - Für gefährliche Aktionen einheitliche Bestätigungstexte verwenden.
 - Barrierefreiheit verbessern: Tastaturbedienung für Modulplatzierung ergänzen und Fokusverhalten in Browsern manuell prüfen.
+- Schriftkontraste für Statuschips, deaktivierte Module und kleine Metatexte nach visueller Prüfung weiter feinjustieren.
 
 Priorität 4 – Performance-Verbesserungen
 - Häufig wiederholte Modul-Suchen in Render-Pfaden prüfen und bei Bedarf über eine Map zwischenspeichern.
 - Aktivitätsprotokoll und große Textmodule bei sehr vielen Einträgen begrenzen oder seitenweise anzeigen.
 - Timer-Speicherung drosseln, damit laufende Timer den lokalen Speicher nicht unnötig oft schreiben.
 
+Bekannte Grenzen
+- Die App ist noch eine große HTML-Datei; Änderungen sollen deshalb klein und gezielt bleiben.
+- Browser-Speicher ist je nach Browser und Gerät begrenzt.
+- Prozentwert ist eine gepflegte Projektschätzung, keine automatisch berechnete Kennzahl.
+- Visuelle Prüfungen ersetzen keine vollständige Barrierefreiheitsprüfung.
+
 Bewusste Nicht-Änderungen dieser Iteration
 - Keine komplette Architektur-Umstellung.
 - Keine neuen externen Abhängigkeiten.
 - Keine optischen Massenänderungen.
 - Keine Umbenennung der bestehenden HTML-Datei.
+- Kein Build-System.
+
+Empfohlene nächste Schritte
+1. Speicher-/Importpfad manuell im Browser prüfen und Ergebnis hier dokumentieren.
+2. Einen kleinen Konzeptentwurf für den Manifest-Loader in docs/ ergänzen.
