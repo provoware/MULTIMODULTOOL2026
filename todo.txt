@@ -1,6 +1,6 @@
 # TODO
 
-Fortschritt gesamt: 90 %
+Fortschritt gesamt: 91 %
 
 ## Offen
 - [ ] Kontraständerungen auf einer echten Chromium- und Firefox-Installation visuell nachprüfen; die Container-Prüfung am 2026-07-16 war durch Snap-/Download-Sperren blockiert.
@@ -8,6 +8,7 @@ Fortschritt gesamt: 90 %
 - [ ] Speicherprüfung zusätzlich in Chromium und Firefox ausführen und Ergebnis mit Screenshot oder kurzem Prüfprotokoll dokumentieren.
 
 ## Erledigt
+- [x] Arbeitsbereich-Gruppierung wurde am 2026-07-16 verbessert: Das 3×3-Raster skaliert flexibler, schwebende Fenster bleiben nach Größenänderungen sichtbar und Rasterfelder/Module haben verständlichere Bedienhinweise.
 - [x] Nutzerfeedback wurde am 2026-07-16 weiter vereinheitlicht: Toast-Meldungen zeigen jetzt intuitive Statussymbole und Laufzeitfehler nennen Grund, Lösung und Speicherstatus im Debug-Protokoll.
 - [x] Schnell-Text-Speicher-Bausteine wurden am 2026-07-16 aus der Modul-README in `data/schnell-text-speicher-bausteine.json` ausgelagert; exakte Dubletten werden jetzt per gezieltem Validator verhindert.
 - [x] Schnell-Text-Speicher-Preview wird am 2026-07-16 statisch gegen die Manifest-Einstiegspunkte geprüft; HTML und CSS müssen gemeinsam geladen werden, ohne eine echte Browser-Sichtfreigabe vorzutäuschen.
