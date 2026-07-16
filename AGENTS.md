@@ -70,6 +70,15 @@ Vor jedem Patch zwingend prüfen und kurz festhalten:
 
 Erst danach patchen. Nicht raten: vorhandene Dateien prüfen und bei Unsicherheit die kleinste sichere Änderung wählen.
 
+### Effizienz- und Iterationsrahmen
+
+- Entwicklungsarbeit erfolgt strikt planungsbasiert, patchbasiert, codesparsam und traffic-sparsam.
+- Jede Iteration darf bis zum doppelten bisherigen fachlichen Umfang bearbeiten, wenn alle betroffenen Dateien und Risiken vorher klar eingegrenzt sind.
+- Die Verdopplung des Iterationsumfangs bedeutet mehr zusammenhängende, begründete Teilaufgaben pro Iteration, nicht größere riskante Einzelpatches.
+- Größere Iterationen bleiben in kleine, prüfbare Patches mit klarer Reihenfolge aufgeteilt.
+- Datei- und Internetzugriffe auf das notwendige Minimum beschränken; bereits geprüfte unveränderte Bereiche nicht ohne neuen Anlass erneut analysieren.
+- Bei Konflikt zwischen Geschwindigkeit und Sicherheit hat die kleinste sichere Änderung Vorrang.
+
 ## 5. Änderungsregeln
 
 - Funktionierenden Code nicht unnötig verändern.
@@ -80,6 +89,8 @@ Erst danach patchen. Nicht raten: vorhandene Dateien prüfen und bei Unsicherhei
 - Keine destruktiven Dateiaktionen ohne Backup, Papierkorb oder klare Begründung.
 - Dokumentation nur bei echter Struktur-, Verhaltens- oder Bedienänderung anpassen.
 - Offene Folgeprobleme nicht ungeplant mitbearbeiten, sondern in `todo.txt` dokumentieren.
+- Stabil laufende Bereiche weder kosmetisch anpassen noch erneut prüfen, wenn sie von der Änderung nicht betroffen sind.
+- Fachbegriffe in Ausgaben möglichst vermeiden oder kurz in einfacher Sprache erklären.
 
 ## 6. Modulregeln
 
@@ -148,6 +159,7 @@ Nach allen Patches einer Iteration nur relevante Prüfungen ausführen:
 - Manifestprüfung, wenn Dateien unter `manifests/` oder `modules/` betroffen sind.
 - Direkt betroffene Tests, falls vorhanden.
 - Keine Volltests oder Wiederholungsprüfungen ohne Anlass.
+- Validierung grundsätzlich erst am Ende aller Patches einer Iteration durchführen, außer ein Zwischentest verhindert klar erkennbaren Folgeschaden.
 
 ## 11. Qualitäts-Gates
 
@@ -179,3 +191,4 @@ Jede Iteration endet kompakt mit:
 - Validierungsergebnis mit konkreten Befehlen.
 - Bekannte Grenzen.
 - Zwei konstruktive Empfehlungen für nächste Schritte.
+- Bei erweitertem Iterationsumfang zusätzlich kurz nennen, welche Teilaufgaben bewusst gebündelt wurden und welche Grenzen eingehalten wurden.
