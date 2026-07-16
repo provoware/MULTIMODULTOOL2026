@@ -3,7 +3,7 @@ Stand: 2026-07-16
 Aktueller Startpunkt: dashboard-studio-ultimate-pro-v3.1.0.html
 Arbeitsweise: lokal im Browser, ohne Build-Schritt, ohne externe Laufzeit-Abhängigkeiten.
 
-Fortschritt gesamt: 59 %
+Fortschritt gesamt: 60 %
 Berechnung: erledigte Grundlagen und Standards zählen 40 %, laufende Qualitäts- und UX-Arbeit 35 %, Modul-Auslagerung und Tests 25 %.
 Aktualisierungsregel: Bei jeder Iteration Stand, Prozentwert, erledigte Punkte, offene Punkte und bekannte Grenzen prüfen und anpassen.
 
@@ -31,6 +31,9 @@ Erledigt
 - AGENTS.md legt nun mittelgroße, sicher begrenzte Iterationen als bevorzugten Arbeitsumfang fest und fordert einen benannten Effizienzgewinn pro Iteration.
 - README-Fortschritt wurde auf 59 % angehoben, weil Arbeitsumfang, Effizienzregeln und Iterationsabschluss klarer geregelt sind.
 - Schnell-Text-Speicher wurde für die aktuelle Iteration erneut um je einen Textbaustein pro Kategorie ergänzt.
+- Schnell-Text-Speicher wurde als kleiner Modul-Kandidat ausgewählt; eine erste `module.html` ist vorhanden und im Manifest verknüpft.
+- README-Fortschritt wurde auf 60 % angehoben, weil ein konkreter Modulbaustein nun per Manifestprüfung absicherbar ist.
+- Schnell-Text-Speicher wurde in dieser Iteration erneut um je einen Textbaustein pro Kategorie ergänzt.
 
 In Arbeit
 - README als schnelle Einstiegs- und Orientierungshilfe aktuell halten.
@@ -156,8 +159,8 @@ Schritteplan für die nächsten Iterationen
 2. Erledigt am 2026-07-16: Platzhalter-Fundstellen per `rg` ermittelt und als nummerierte Abarbeitungsliste in Priorität 1 aufgenommen.
 3. Offen: Speicher-/Importpfad in einem echten interaktiven Browser anhand `docs/RELEASE_CHECKLIST.md` vollständig manuell prüfen; diese Agent-Umgebung hatte keine verfügbare Browser-GUI.
 4. Erledigt am 2026-07-16: Loader-Konzept gegen erste Prüffunktion abgeglichen; Modulordner-ID und vorhandene Einstiegspunkt-Dateien werden jetzt geprüft, ohne die HTML-App umzubauen.
-5. Iteration: Einen kleinen Modul-Kandidaten auswählen und Auslagerung mit Rückbauhinweis vorbereiten.
-6. Iteration: Weitere reine Hilfslogik nur bei konkretem Nutzen ergänzen und erst danach mögliche Extraktion prüfen.
+5. Erledigt am 2026-07-16: Schnell-Text-Speicher als kleinen Modul-Kandidaten ausgewählt, `module.html` ergänzt und über das Manifest verknüpft; Rückbau wäre das Entfernen der Datei und das Zurücksetzen von `entry.html` auf `null`.
+6. Iteration: Für Schnell-Text-Speicher bei Bedarf kleine `module.css` und `module.js` planen, aber erst nach einer konkreten Loader-Anforderung umsetzen.
 7. Iteration: Performance-Hotspots prüfen und nur belegte Engstellen optimieren.
 
 Bekannte Grenzen
@@ -165,7 +168,7 @@ Bekannte Grenzen
 - Die neue Entry-Dateiprüfung gilt nur für echte Modulordner unter `modules/`; das Beispielmanifest unter `manifests/` bleibt ein abstraktes Schema-Beispiel.
 - Browser-Speicher ist je nach Browser und Gerät begrenzt.
 - Prozentwert ist eine gepflegte Projektschätzung, keine automatisch berechnete Kennzahl.
-- Schnell-Text-Speicher enthält aktuell mehrere dokumentierte Startbausteine, aber noch keine eigene Moduloberfläche außerhalb der Single-File-App.
+- Schnell-Text-Speicher enthält aktuell mehrere dokumentierte Startbausteine und eine erste statische Modul-HTML-Datei, ist aber noch nicht als eigenständige Laufzeitoberfläche verdrahtet.
 - Manuelle Browserprüfung vom 2026-07-16: Release-Checkliste gelesen, Speicher-/Importpfad in dieser Umgebung aber nicht vollständig interaktiv ausführbar, weil keine Browser-GUI verfügbar war. Nicht als Freigabeprüfung gewertet.
 - Visuelle Prüfungen ersetzen keine vollständige Barrierefreiheitsprüfung.
 - Der Phasenplan ist eine Arbeitsreihenfolge und ersetzt keine technische Spezifikation für einzelne Patches.
@@ -176,11 +179,11 @@ Bewusste Nicht-Änderungen dieser Iteration
 - Keine optischen Massenänderungen.
 - Keine Umbenennung der bestehenden HTML-Datei.
 - Kein Build-System.
-- Keine Änderung an Import-Datenformat, Speicherformat oder Modulstruktur.
+- Keine Änderung an Import-Datenformat oder Speicherformat.
 - Keine direkte Entfernung von Platzhalter-Ausgaben; sie wurden nur erfasst und priorisiert.
 - Kein Einbau eines dynamischen Manifest-Loaders in die HTML-App; ergänzt wurde nur die vorhandene Prüffunktion.
 - Keine vollständige Browserfreigabe, weil diese Umgebung keine interaktive Browser-GUI bereitgestellt hat.
-- Keine neue Laufzeitlogik für den Schnell-Text-Speicher; ergänzt wurden nur weitere dokumentierte Textbausteine.
+- Keine neue Laufzeitlogik für den Schnell-Text-Speicher; ergänzt wurden eine statische Modul-HTML-Datei und weitere dokumentierte Textbausteine.
 - Keine Abschwächung der Sicherheitsregeln zugunsten größerer Patches; mittelgroß bleibt planungs-, risiko- und prüfpflichtig.
 
 Empfohlene nächste Schritte
