@@ -80,4 +80,4 @@ Relevante Prüfungen nach Änderungen:
 
 ## Nächster sinnvoller Schritt
 
-Als nächste Iteration kann der Modul-Loader um eine Detailansicht für Manifestfehler und um das optionale Laden von `module.html`, `module.css` und `module.js` erweitert werden.
+Als nächste Iteration sollte zuerst der Speicher-/Importpfad im Browser manuell geprüft werden: Standardstart, kaputte localStorage-Daten, Backup-Wiederherstellung und JSON-Import. Das Ergebnis gehört danach mit Datum in `todo.txt`, damit die Datensicherheit vor weiteren Loader-Erweiterungen geklärt ist.
