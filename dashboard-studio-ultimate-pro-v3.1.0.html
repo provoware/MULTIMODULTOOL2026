@@ -4165,16 +4165,19 @@
         }
       }
 
-      function exportConfig() {
+      async function exportConfig() {
         try {
           const exportState = normalizeState(structuredClone(state));
           exportState.exportedAt = new Date().toISOString();
           const payload = JSON.stringify(exportState, null, 2);
-          saveTextFile(payload, `dashboard-studio-ultimate-pro-v${APP_VERSION}-${toDateKey(new Date())}.json`, "application/json");
-          toast("Konfiguration exportiert");
+          const filename = `dashboard-studio-ultimate-pro-v${APP_VERSION}-${toDateTimeKey(new Date())}.json`;
+          const saved = await saveTextFile(payload, filename, "application/json");
+          if (!saved) return;
+          logAction(`Konfiguration exportiert: ${filename}`, "Datei");
+          saveState("Export protokolliert");
         } catch (error) {
           console.error(error);
-          toast("Export konnte nicht erstellt werden");
+          toast("Export konnte nicht erstellt werden. Bitte Speicherort oder Browser-Rechte prüfen.");
         }
       }
 
@@ -4204,6 +4207,8 @@
         reader.onload = () => {
           try {
             applyImportedState(parseJsonConfig(reader.result, "Importdatei"));
+            closeModal("importModal");
+            document.getElementById("importData").value = "";
           } catch (error) {
             console.error(error);
             toast(`Import abgelehnt: ${cleanText(error.message, 120) || "ungültiges Format"}`);
@@ -4425,6 +4430,12 @@
         return `${year}-${month}-${day}`;
       }
 
+      function toDateTimeKey(date) {
+        const value = date instanceof Date && !Number.isNaN(date.getTime()) ? date : new Date();
+        const time = [value.getHours(), value.getMinutes(), value.getSeconds()].map(part => String(part).padStart(2, "0")).join("");
+        return `${toDateKey(value)}_${time}`;
+      }
+
       function formatDate(value) {
         if (!validDate(value)) return "Kein Datum";
         const [year, month, day] = value.split("-").map(Number);
@@ -4524,12 +4535,13 @@
             downloadBlob(blob, safeName);
           }
           toast(`Datei gespeichert: ${safeName}`);
+          return true;
         } catch (error) {
-          if (error?.name !== "AbortError") {
-            console.error(error);
-            downloadBlob(blob, safeName);
-            toast("Browser-Dateidialog nicht verfügbar – Download gestartet");
-          }
+          if (error?.name === "AbortError") return false;
+          console.error(error);
+          downloadBlob(blob, safeName);
+          toast("Browser-Dateidialog nicht verfügbar – Download gestartet");
+          return true;
         }
       }
 
