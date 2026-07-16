@@ -2635,10 +2635,27 @@
 
         const placeholder = document.createElement("div");
         placeholder.className = "module-placeholder";
-        placeholder.innerHTML = `<div><strong>${escapeHtml(module.name)}</strong><br>${escapeHtml(module.description || "Freies, erweiterbares Modul")}</div>`;
+        placeholder.innerHTML = `<div><strong>${escapeHtml(module.name)}</strong><br>${escapeHtml(getModuleFallbackText(module))}</div>`;
         container.appendChild(placeholder);
       }
 
+      function getModuleFallbackText(module) {
+        const description = cleanText(module.description, 180);
+        if (description) return description;
+        return "Noch keine eigene Ansicht hinterlegt. Bitte Beschreibung ergänzen oder später eine Moduldatei verbinden.";
+      }
+
+      function confirmRiskyAction(message, cancelTitle) {
+        if (!state.confirmDestructive || confirm(message)) return true;
+        toast(feedbackText({
+          title: cancelTitle,
+          cause: "Die Sicherheitsabfrage wurde abgebrochen.",
+          solution: "Bei Bedarf erneut starten und die Abfrage bestätigen.",
+          changed: "Nichts verändert; aktuelle Konfiguration bleibt unverändert.",
+          level: "warning"
+        }));
+        return false;
+      }
 
       function renderMotherModule(container, module) {
         module.content ||= { updateStatus: "Noch nicht geprüft", lastCheck: "" };
@@ -4596,7 +4613,10 @@
       }
 
       async function applyImportedState(parsed, importSize = 0) {
-        if (state.confirmDestructive && !confirm("Aktuelle Konfiguration durch den Import ersetzen? Vorher wird ein lokales Backup erstellt.")) return false;
+        if (!confirmRiskyAction(
+          "Aktuelle Konfiguration durch den Import ersetzen? Vorher wird ein lokales Backup erstellt.",
+          "Import abgebrochen: Sicherheitsabfrage nicht bestätigt."
+        )) return false;
         if (!(await hasEnoughStorageForImport(importSize))) {
           toast(feedbackText({
             title: "Import abgebrochen: Browser-Speicher wirkt knapp.",
@@ -5268,7 +5288,10 @@
           }));
           const parsed = JSON.parse(raw);
           const restored = normalizeState(parsed.state || parsed);
-          if (state.confirmDestructive && !confirm(`Backup${parsed.createdAt ? ` vom ${new Date(parsed.createdAt).toLocaleString("de-DE")}` : ""} wiederherstellen?`)) return;
+          if (!confirmRiskyAction(
+            `Backup${parsed.createdAt ? ` vom ${new Date(parsed.createdAt).toLocaleString("de-DE")}` : ""} wiederherstellen? Aktuelle Daten werden ersetzt.`,
+            "Wiederherstellung abgebrochen: Sicherheitsabfrage nicht bestätigt."
+          )) return;
           pushHistory("Backup wiederherstellen");
           state = restored;
           logAction("Lokales Backup wiederhergestellt", "Sicherheit");

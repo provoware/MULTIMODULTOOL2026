@@ -1,8 +1,8 @@
 # TODO
 
+Fortschritt gesamt: 63 %
+
 ## Offen
-- [ ] README als schnelle Einstiegs- und Orientierungshilfe aktuell halten.
-- [ ] Release-Checkliste bei Freigabekandidaten gegen die tatsächlich geprüften Schritte abgleichen.
 - [ ] Manifestprüfungen schrittweise an das Loader-Konzept angleichen, ohne die HTML-App umzubauen.
 - [ ] Kontraste gezielt verbessern, ohne das bestehende Design komplett umzubauen.
 - [ ] Offene Entwicklung in Phasen planen, damit jede Iteration klein, prüfbar und rückbaubar bleibt.
@@ -10,7 +10,6 @@
 - [ ] Vor großen Importen prüfen, ob Browser-Speicherplatz ausreicht, damit ein Import nicht erst beim späteren Speichern scheitert.
 - [ ] Kontraständerungen in mindestens einem Chromium- und einem Firefox-basierten Browser visuell prüfen.
 - [ ] CSS-Klasse `.module-placeholder` in `dashboard-studio-ultimate-pro-v3.1.0.html` prüfen; entscheiden, welche Leerzustände echte Platzhalter bleiben dürfen und welche durch konkrete Modulansichten ersetzt werden sollen.
-- [ ] Dynamische Fallback-Ausgabe für freie Module in `dashboard-studio-ultimate-pro-v3.1.0.html` prüfen (`module.description || "Freies, erweiterbares Modul"`).
 - [ ] Leere Zustände in `dashboard-studio-ultimate-pro-v3.1.0.html` prüfen, zum Beispiel Debug-Ereignisse, Termine, Code- oder Entwicklungsvorhaben, Schnelllinks und Aufgaben.
 - [ ] Eingabe-Platzhalter in Formularen in `dashboard-studio-ultimate-pro-v3.1.0.html` prüfen; sicherstellen, dass sie nur Beispiele sind und keine notwendigen Feldbeschriftungen ersetzen.
 - [ ] Eingabe-Platzhalter für Begriffe und Suche in `modules/provoware-genretool-pro/module.html` prüfen; sicherstellen, dass Pflichtangaben auch ohne Platzhalter verständlich bleiben.
@@ -26,8 +25,6 @@
 - [ ] Bei weiterem Wachstum des Schnell-Text-Speichers eine kleine Moduldatei statt README-Erweiterung planen.
 - [ ] Schnell-Text-Speicher-CSS später visuell im echten Loader prüfen, sobald HTML und CSS gemeinsam geladen werden.
 - [ ] Import-Dialog um eine kurze Checkliste ergänzen: JSON einfügen, Größe prüfen, Backup wird erstellt, danach importieren.
-- [ ] Statusbereich deutlicher machen, wenn ein Backup erstellt, wiederhergestellt oder abgelehnt wurde.
-- [ ] Für gefährliche Aktionen einheitliche Bestätigungstexte verwenden.
 - [ ] Tastaturbedienung für Modulplatzierung ergänzen und Fokusverhalten in Browsern manuell prüfen.
 - [ ] Schriftkontraste für Statuschips, deaktivierte Module und kleine Metatexte nach visueller Prüfung weiter feinjustieren.
 - [ ] Häufig wiederholte Modul-Suchen in Render-Pfaden prüfen und bei Bedarf über eine Map zwischenspeichern.
@@ -41,6 +38,11 @@
 - [ ] Schnell-Text-Speicher im späteren Loader mit `module.html` und `module.css` gemeinsam anzeigen und Kontrast sowie Abstände visuell prüfen.
 
 ## Erledigt
+- [x] README wurde am 2026-07-16 als Einstiegshilfe aktualisiert: Fortschritt und nächster sinnvoller Schritt nennen jetzt die verbleibenden Browser-Sichtprüfungen klarer.
+- [x] Release-Checkliste wurde am 2026-07-16 gegen die tatsächlich mögliche Codeprüfung abgeglichen; nicht interaktiv belegbare Browser-Schritte bleiben bewusst offen.
+- [x] Dynamische Fallback-Ausgabe für freie Module wurde ersetzt: Module ohne Beschreibung zeigen nun einen konkreten Hinweis statt der generischen Aussage "Freies, erweiterbares Modul".
+- [x] Statusbereich meldet jetzt auch abgebrochene Import- und Backup-Wiederherstellungsabfragen mit Grund, Lösung und Speicherstatus.
+- [x] Gefährliche Import- und Backup-Wiederherstellungsaktionen nutzen jetzt eine gemeinsame Bestätigungsfunktion mit einheitlicher Abbruchmeldung.
 - [x] Projektstruktur und Ordnerzwecke sind in `AGENTS.md` festgelegt.
 - [x] Single-File-HTML-App ist weiterhin der stabile Startpunkt.
 - [x] App-Manifest, Modulmanifest-Schema und Beispielmanifest sind vorhanden.
