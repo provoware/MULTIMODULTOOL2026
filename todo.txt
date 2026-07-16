@@ -20,6 +20,7 @@ In Arbeit
 - README als schnelle Einstiegs- und Orientierungshilfe aktuell halten.
 - TODO-Datei als Fortschrittsübersicht mit offenen, erledigten und bekannten Punkten pflegen.
 - Kontraste gezielt verbessern, ohne das bestehende Design komplett umzubauen.
+- Offene Entwicklung in Phasen planen, damit jede Iteration klein, prüfbar und rückbaubar bleibt.
 
 Priorität 1 – Notwendige Korrekturen
 - Speicher-/Importpfad im Browser manuell prüfen: Standardstart, kaputte localStorage-Daten, Backup-Wiederherstellung und JSON-Import.
@@ -47,11 +48,97 @@ Priorität 4 – Performance-Verbesserungen
 - Aktivitätsprotokoll und große Textmodule bei sehr vielen Einträgen begrenzen oder seitenweise anzeigen.
 - Timer-Speicherung drosseln, damit laufende Timer den lokalen Speicher nicht unnötig oft schreiben.
 
+Phasenplan der offenen Entwicklung
+
+Phase 1 – Stabilität und Datensicherheit
+Ziel: Bestehende Single-File-App zuverlässig halten, bevor Module ausgelagert werden.
+Schritte:
+1. Speicher-/Importpfad im Browser prüfen und Ergebnis mit Datum dokumentieren.
+2. Fehler- und Erfolgsmeldungen für Import, Export, Backup und Wiederherstellung vereinheitlichen.
+3. Vor großen Importen eine Speicherplatz- und Größenprüfung entwerfen und danach minimal einbauen.
+4. Riskante Speicheraktionen mit klarer Bestätigung, Abbruchmöglichkeit und verständlicher Folgeinformation absichern.
+Akzeptanzkriterien:
+- Standardstart, defekter Speicherzustand, Backup-Wiederherstellung und JSON-Import sind manuell geprüft.
+- Nutzermeldungen nennen Ursache, Folge und nächste Handlung in einfacher Sprache.
+- Kein Import überschreibt Daten still oder scheitert erst unklar beim späteren Speichern.
+
+Phase 2 – Bedienbarkeit und Barrierearmut
+Ziel: Oberfläche klarer, besser lesbar und auch per Tastatur zuverlässiger machen.
+Schritte:
+1. Kontraständerungen in Chromium und Firefox visuell prüfen.
+2. Kleine Metatexte, Statuschips und deaktivierte Zustände nur nach Prüfung gezielt nachjustieren.
+3. Import-Dialog mit kurzer Checkliste ergänzen.
+4. Tastaturbedienung und Fokusverhalten für Modulplatzierung prüfen und kleine Lücken schließen.
+Akzeptanzkriterien:
+- Wichtige Zustände sind ohne Suchen erkennbar.
+- Dialoge erklären vor riskanten Aktionen, was passiert und was nicht verändert wird.
+- Bedienung bleibt ohne optischen Komplettumbau vertraut.
+
+Phase 3 – Manifest-Loader vorbereiten
+Ziel: Modul-Auslagerung erst konzeptionell sichern, dann klein umsetzen.
+Schritte:
+1. Kurzes Loader-Konzept in `docs/` erstellen: Manifest lesen, Pflichtfelder prüfen, Fehler melden, Modul ablehnen.
+2. Bestehendes Manifest-Schema gegen Beispielmanifest prüfen.
+3. Minimalen Loader-Prototyp planen, ohne die bestehende HTML-Datei umzubenennen oder ein Build-System einzuführen.
+4. Fehlermeldungen für ungültige Module nach dem Projektstandard formulieren.
+Akzeptanzkriterien:
+- Loader-Verhalten ist dokumentiert, bevor Code ausgelagert wird.
+- Ungültige Module können verständlich abgelehnt werden.
+- Bestehender Browser-Start bleibt unverändert nutzbar.
+
+Phase 4 – Erste kontrollierte Modul-Auslagerung
+Ziel: Ein kleines, fachlich klares Modul als Muster auslagern.
+Schritte:
+1. Geeigneten Modul-Kandidaten mit geringer Kopplung auswählen.
+2. Modulordner nach `modules/<kleine-id-mit-bindestrichen>/` anlegen.
+3. `module.manifest.json` und nur notwendige Moduldateien erstellen.
+4. Manifestprüfung ausführen und Ergebnis in dieser Liste dokumentieren.
+5. Rückbaupfad festhalten, falls die Auslagerung Probleme verursacht.
+Akzeptanzkriterien:
+- Modul erfüllt genau eine fachliche Aufgabe.
+- Manifest passt zum Schema.
+- App bleibt lokal ohne Build-Schritt startbar.
+
+Phase 5 – Testbare Hilfslogik extrahieren
+Ziel: Wiederverwendbare Logik sicherer machen, ohne große Architekturänderung.
+Schritte:
+1. Kleine reine Hilfsfunktionen identifizieren: Datum, Dateiname, URL, Textlänge, Zustand.
+2. Funktionen nur extrahieren, wenn dadurch Lesbarkeit oder Testbarkeit steigt.
+3. Kleine direkte Tests ergänzen.
+4. Keine GUI- oder Speicherlogik in Hilfstests vermischen.
+Akzeptanzkriterien:
+- Tests prüfen klare Eingaben und Ausgaben.
+- Funktionen bleiben klein und verständlich.
+- Keine neuen externen Abhängigkeiten entstehen.
+
+Phase 6 – Performance und Wartbarkeit
+Ziel: Spürbare Langsamkeit vermeiden und die große Datei schrittweise beherrschbarer machen.
+Schritte:
+1. Wiederholte Modul-Suchen in Render-Pfaden messen oder begründet prüfen.
+2. Bei Bedarf Map-Zwischenspeicher klein und lokal einführen.
+3. Aktivitätsprotokoll und große Textmodule auf Begrenzung oder Seitenanzeige vorbereiten.
+4. Timer-Speicherung drosseln, ohne Datenverlust zu riskieren.
+5. Styles, Standarddaten, Speicherlogik, Modul-Renderer und Hilfsfunktionen nur in kleinen Schritten trennen.
+Akzeptanzkriterien:
+- Keine unnötigen Dauerschleifen oder blockierenden GUI-Aktionen.
+- Große Datenmengen führen zu verständlichen Grenzen statt unklarem Verhalten.
+- Jede Trennung bleibt einzeln prüfbar und rückbaubar.
+
+Schritteplan für die nächsten Iterationen
+1. Iteration: Manuelle Browserprüfung für Speicher, Import und Backup durchführen; Ergebnis in `todo.txt` eintragen.
+2. Iteration: Einheitliche Meldungstexte für Export und Backup definieren und minimal in der HTML-Datei anwenden.
+3. Iteration: Loader-Konzept in `docs/` schreiben und gegen Manifeststandard abgleichen.
+4. Iteration: Manifestprüfung auf bestehende Modulmanifeste ausführen und Befunde dokumentieren.
+5. Iteration: Einen kleinen Modul-Kandidaten auswählen und Auslagerung mit Rückbauhinweis vorbereiten.
+6. Iteration: Erste reine Hilfsfunktion mit kleinem Test extrahieren.
+7. Iteration: Performance-Hotspots prüfen und nur belegte Engstellen optimieren.
+
 Bekannte Grenzen
 - Die App ist noch eine große HTML-Datei; Änderungen sollen deshalb klein und gezielt bleiben.
 - Browser-Speicher ist je nach Browser und Gerät begrenzt.
 - Prozentwert ist eine gepflegte Projektschätzung, keine automatisch berechnete Kennzahl.
 - Visuelle Prüfungen ersetzen keine vollständige Barrierefreiheitsprüfung.
+- Der Phasenplan ist eine Arbeitsreihenfolge und ersetzt keine technische Spezifikation für einzelne Patches.
 
 Bewusste Nicht-Änderungen dieser Iteration
 - Keine komplette Architektur-Umstellung.
@@ -59,6 +146,7 @@ Bewusste Nicht-Änderungen dieser Iteration
 - Keine optischen Massenänderungen.
 - Keine Umbenennung der bestehenden HTML-Datei.
 - Kein Build-System.
+- Keine Codeänderung an der bestehenden HTML-App.
 
 Empfohlene nächste Schritte
 1. Speicher-/Importpfad manuell im Browser prüfen und Ergebnis hier dokumentieren.
