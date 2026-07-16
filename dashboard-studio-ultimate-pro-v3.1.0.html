@@ -31,6 +31,8 @@
       --shadow: 0 24px 55px rgba(0, 0, 0, 0.34);
       --grid-gap: 14px;
       --font-scale: 1;
+      --workspace-density: 1;
+      --panel-padding: clamp(10px, 1.1vw, 14px);
       --font-ui: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       --font-mono: "JetBrains Mono", "Cascadia Code", Consolas, ui-monospace, SFMono-Regular, Menlo, monospace;
     }
@@ -566,8 +568,8 @@
       min-height: clamp(540px, calc(100vh - var(--menubar-h) - var(--tabbar-h) - 84px), 780px);
       height: max(100%, clamp(540px, calc(100vh - var(--menubar-h) - var(--tabbar-h) - 84px), 780px));
       display: grid;
-      grid-template-columns: repeat(3, minmax(clamp(150px, 24vw, 240px), 1fr));
-      grid-template-rows: repeat(3, minmax(clamp(132px, 18vh, 190px), 1fr));
+      grid-template-columns: repeat(3, minmax(clamp(150px, calc(24vw * var(--workspace-density)), 270px), 1fr));
+      grid-template-rows: repeat(3, minmax(clamp(132px, calc(18vh * var(--workspace-density)), 220px), 1fr));
       gap: clamp(8px, 1.4vw, var(--grid-gap));
       isolation: isolate;
     }
@@ -696,7 +698,7 @@
       flex: 1;
       min-height: 0;
       overflow: auto;
-      padding: 12px;
+      padding: var(--panel-padding);
     }
 
     .resize-handle {
@@ -1419,6 +1421,7 @@
       --surface-elevated: rgba(12, 27, 47, 0.985);
       --focus-ring: color-mix(in srgb, var(--accent) 36%, transparent);
       --module-zoom: 1;
+      --module-auto-font: 1rem;
     }
 
     body.theme-midnight {
@@ -1551,6 +1554,8 @@
       height: var(--module-zoom-inverse, 100%);
       zoom: var(--module-zoom);
       color: var(--text);
+      font-size: var(--module-auto-font);
+      line-height: 1.5;
     }
     @supports not (zoom: 1) {
       .panel-content {
@@ -1622,6 +1627,11 @@
       container-name: module-panel;
     }
 
+    @container module-panel (min-width: 760px) {
+      .panel-content { --module-auto-font: 1.06rem; }
+      .panel-body { --panel-padding: clamp(13px, 1.2vw, 18px); }
+    }
+
     @container module-panel (max-width: 520px) {
       .settings-pro-grid, .pro-row, .pro-row.three { grid-template-columns: 1fr; }
       .todo-pro-form { grid-template-columns: minmax(0, 1fr) auto; }
@@ -1631,6 +1641,7 @@
       .bookmark-pro-form { grid-template-columns: 1fr auto; }
       .bookmark-pro-form input:first-child { grid-column: 1 / -1; }
       .calendar-toolbar { align-items: flex-start; flex-wrap: wrap; }
+      .panel-body { --panel-padding: 10px; }
     }
 
     @container module-panel (max-width: 400px) {
@@ -2155,6 +2166,8 @@
         highContrast: false,
         reduceMotion: false,
         fontScale: 1,
+        workspaceDensity: 1,
+        autoModuleFit: true,
         gridVisible: true,
         theme: "dark",
         accentColor: "#38bdf8",
@@ -2539,8 +2552,7 @@
         panel.setAttribute("aria-describedby", "workspaceHelp");
         panel.style.setProperty("--module-color", module.color);
         placement.zoom = normalizeModuleZoom(placement.zoom);
-        panel.style.setProperty("--module-zoom", String(placement.zoom));
-        panel.style.setProperty("--module-zoom-inverse", `${100 / placement.zoom}%`);
+        applyPanelZoom(panel, placement.zoom);
 
         if (placement.minimized) panel.classList.add("minimized");
         if (placement.maximized) panel.classList.add("maximized");
@@ -3511,12 +3523,14 @@
           settingsCard("Darstellung", [
             settingSelect("Farbschema", "theme", state.theme, [["dark", "Dunkel"], ["light", "Hell"], ["midnight", "Midnight"]]),
             settingColor("Akzentfarbe", "accentColor", state.accentColor),
-            settingRange("Schriftgröße", "fontScale", state.fontScale, .8, 1.35, .01),
+            settingRange("Schriftgröße", "fontScale", state.fontScale, .9, 1.5, .01),
+            settingRange("Bereichsgröße", "workspaceDensity", state.workspaceDensity, .85, 1.25, .01),
             settingRange("Sidebar-Breite", "sidebarWidth", state.sidebarWidth, 250, 460, 1),
             settingToggle("Kompaktmodus", "compact", state.compact),
             settingToggle("Hoher Kontrast", "highContrast", state.highContrast)
           ]),
           settingsCard("Arbeitsbereich", [
+            settingToggle("Automatische Modul-Anpassung", "autoModuleFit", state.autoModuleFit),
             settingToggle("Raster anzeigen", "gridVisible", state.gridVisible),
             settingToggle("Rasterfelder nummerieren", "showGridNumbers", state.showGridNumbers),
             settingToggle("Fenster andocken", "snapEnabled", state.snapEnabled),
@@ -3553,7 +3567,7 @@
             const key = control.dataset.setting;
             state[key] = control.type === "checkbox" ? control.checked : control.type === "range" ? Number(control.value) : control.value;
             applyVisualSettings(); saveState();
-            if (["editorWrap", "codeWrap"].includes(key)) renderWorkspace();
+            if (["editorWrap", "codeWrap", "workspaceDensity", "autoModuleFit"].includes(key)) renderWorkspace();
           });
         });
       }
@@ -3617,8 +3631,7 @@
         const updateZoom = (value, announce = false) => {
           captureZoomHistory();
           placement.zoom = normalizeModuleZoom(value);
-          panel.style.setProperty("--module-zoom", String(placement.zoom));
-          panel.style.setProperty("--module-zoom-inverse", `${100 / placement.zoom}%`);
+          applyPanelZoom(panel, placement.zoom);
           zoomRange.value = String(placement.zoom);
           const label = formatZoom(placement.zoom);
           zoomButton.textContent = label;
@@ -3715,6 +3728,18 @@
       function formatZoom(value) {
         return `${Math.round(normalizeModuleZoom(value) * 100)}%`;
       }
+      function autoFitModuleZoom(manualZoom) {
+        const density = clamp(Number(state.workspaceDensity) || 1, .85, 1.25);
+        const readableBoost = density >= 1.12 ? 1.04 : density <= .92 ? .96 : 1;
+        return normalizeModuleZoom((Number(manualZoom) || 1) * readableBoost);
+      }
+
+      function applyPanelZoom(panel, manualZoom) {
+        const effectiveZoom = state.autoModuleFit ? autoFitModuleZoom(manualZoom) : normalizeModuleZoom(manualZoom);
+        panel.style.setProperty("--module-zoom", String(effectiveZoom));
+        panel.style.setProperty("--module-zoom-inverse", `${100 / effectiveZoom}%`);
+      }
+
 
       function closePanelZoomPopovers(exceptPanel = null) {
         document.querySelectorAll(".panel-window").forEach(panel => {
@@ -4522,7 +4547,8 @@
         document.body.classList.toggle("theme-light", state.theme === "light");
         document.body.classList.toggle("theme-midnight", state.theme === "midnight");
         document.body.classList.toggle("show-grid-numbers", !!state.showGridNumbers);
-        document.documentElement.style.setProperty("--font-scale", String(clamp(Number(state.fontScale) || 1, .8, 1.35)));
+        document.documentElement.style.setProperty("--font-scale", String(clamp(Number(state.fontScale) || 1, .9, 1.5)));
+        document.documentElement.style.setProperty("--workspace-density", String(clamp(Number(state.workspaceDensity) || 1, .85, 1.25)));
         document.documentElement.style.setProperty("--sidebar-w", `${clamp(Number(state.sidebarWidth) || 320, 250, 460)}px`);
         document.documentElement.style.setProperty("--accent", validColor(state.accentColor) ? state.accentColor : "#38bdf8");
         document.querySelectorAll(".grid-cell").forEach(cell => {
@@ -4728,7 +4754,7 @@
       }
 
       function changeFontScale(delta) {
-        state.fontScale = clamp((state.fontScale || 1) + delta, 0.8, 1.35);
+        state.fontScale = clamp((state.fontScale || 1) + delta, 0.9, 1.5);
         applyVisualSettings();
         saveState();
       }
@@ -5037,10 +5063,11 @@
         if (!input || typeof input !== "object" || Array.isArray(input)) throw new Error("Konfiguration ist kein gültiges Objekt");
         const base = defaultState();
         const output = { ...base };
-        const boolKeys = ["sidebarCollapsed", "snapEnabled", "lockLayout", "autoWorkspaceOnFull", "showGridNumbers", "compact", "highContrast", "reduceMotion", "gridVisible", "autoBackup", "confirmDestructive", "editorWrap", "codeWrap"];
+        const boolKeys = ["sidebarCollapsed", "snapEnabled", "lockLayout", "autoWorkspaceOnFull", "showGridNumbers", "compact", "highContrast", "reduceMotion", "autoModuleFit", "gridVisible", "autoBackup", "confirmDestructive", "editorWrap", "codeWrap"];
         boolKeys.forEach(key => { if (key in input) output[key] = Boolean(input[key]); });
         output.sidebarWidth = clamp(Number(input.sidebarWidth) || base.sidebarWidth, 250, 460);
-        output.fontScale = clamp(Number(input.fontScale) || base.fontScale, .8, 1.35);
+        output.fontScale = clamp(Number(input.fontScale) || base.fontScale, .9, 1.5);
+        output.workspaceDensity = clamp(Number(input.workspaceDensity) || base.workspaceDensity, .85, 1.25);
         output.theme = ["dark", "light", "midnight"].includes(input.theme) ? input.theme : base.theme;
         output.accentColor = validColor(input.accentColor) ? input.accentColor : base.accentColor;
         output.autosaveDelay = clamp(Number(input.autosaveDelay) || base.autosaveDelay, 100, 3000);
@@ -5468,7 +5495,7 @@
         control.min = String(min); control.max = String(max); control.step = String(step); control.value = String(value);
         control.dataset.setting = key;
         const output = document.createElement("output");
-        const showValue = () => { output.value = key === "fontScale" ? `${Math.round(Number(control.value) * 100)}%` : control.value; };
+        const showValue = () => { output.value = ["fontScale", "workspaceDensity"].includes(key) ? `${Math.round(Number(control.value) * 100)}%` : control.value; };
         control.addEventListener("input", showValue); showValue();
         wrap.append(control, output);
         return settingRow(label, wrap);
@@ -5489,7 +5516,7 @@
 
       function resetVisualSettings() {
         const defaults = defaultState();
-        ["sidebarWidth", "compact", "highContrast", "reduceMotion", "fontScale", "gridVisible", "theme", "accentColor", "editorWrap", "codeWrap"].forEach(key => state[key] = defaults[key]);
+        ["sidebarWidth", "compact", "highContrast", "reduceMotion", "fontScale", "workspaceDensity", "autoModuleFit", "gridVisible", "theme", "accentColor", "editorWrap", "codeWrap"].forEach(key => state[key] = defaults[key]);
         applyVisualSettings();
         saveState();
         renderWorkspace();
