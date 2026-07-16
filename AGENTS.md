@@ -166,17 +166,15 @@ Nach allen Patches einer Iteration nur relevante Prüfungen ausführen:
 Ein Arbeitsschritt ist erst abgeschlossen, wenn diese Punkte erfüllt sind:
 
 1. Struktur verstanden und betroffene Dateien identifiziert.
-2. Patch ist klein, begründet und nachvollziehbar.
+2. Patch ist mittelgroß, begründet und nachvollziehbar.
 3. Syntax und direkt betroffene Formate sind geprüft.
 4. Datenverlust- und Überschreibungsrisiken sind berücksichtigt.
 5. GUI bleibt bedienbar, falls GUI betroffen ist.
 6. Test- oder Prüfstatus ist dokumentiert.
 7. Offene Punkte sind benannt oder in `todo.txt` festgehalten.
-
+8. prozentzahl des entwicklungsfortschritt in prozent oben in der README
+9. im Modul Textbausteine in den Kategorien Coding/Prompting/Vibecoding/KI-Bildgenerierung/KI-Musikgenerierung/KI-Contentcreation in jeder Iteration ein hilfreichen, weiterbringenden, oder speziellen Tetxtbaustein hinzugefügt worden ist
 ## 12. Bewusste Nicht-Ziele ohne separaten Auftrag
-
-- Keine komplette Zerlegung der bestehenden HTML-Datei.
-- Keine Umbenennung des aktuellen Startpunkts.
 - Kein Build-System einführen.
 - Keine externen Frameworks hinzufügen.
 - Keine optischen Massenänderungen.
