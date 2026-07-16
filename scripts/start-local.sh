@@ -143,6 +143,9 @@ PORT=$(pick_port)
 APP_URL="http://$HOST:$PORT/$APP_FILE"
 
 printf '%s Prüfung abgeschlossen: Startdatei, Schema, Manifeste und GenreTool-Dateien sind vorhanden.\n' "$LOG_PREFIX"
+if [ "$PORT" != "$START_PORT" ]; then
+  printf '%s Hinweis: Port %s ist belegt. Es wird der freie Alternativport %s verwendet. Es wurde nichts überschrieben.\n' "$LOG_PREFIX" "$START_PORT" "$PORT"
+fi
 printf '%s Lokaler Server wird auf %s gestartet. Beenden mit Strg+C.\n' "$LOG_PREFIX" "$APP_URL"
 
 cd "$ROOT_DIR"
