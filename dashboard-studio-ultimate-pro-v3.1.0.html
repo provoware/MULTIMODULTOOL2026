@@ -25,6 +25,7 @@
       --danger: #ef4444;
       --warning: #f59e0b;
       --sidebar-w: 320px;
+      --quickbar-w: 280px;
       --menubar-h: 42px;
       --tabbar-h: 46px;
       --radius: 16px;
@@ -58,7 +59,7 @@
 
     .app {
       display: grid;
-      grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+      grid-template-columns: var(--sidebar-w) minmax(0, 1fr) var(--quickbar-w);
       grid-template-rows: var(--menubar-h) var(--tabbar-h) minmax(0, 1fr);
       width: 100vw;
       height: 100vh;
@@ -67,6 +68,10 @@
 
     .app.sidebar-collapsed {
       --sidebar-w: 76px;
+    }
+
+    .app.quickbar-collapsed {
+      --quickbar-w: 54px;
     }
 
     .menubar {
@@ -90,7 +95,8 @@
     .toolbar-group,
     .tab-actions,
     .module-actions,
-    .window-actions {
+    .window-actions,
+    .quickbar-actions {
       display: flex;
       align-items: center;
       gap: 8px;
@@ -249,6 +255,66 @@
       z-index: 60;
     }
 
+
+
+    .quickbar {
+      grid-column: 3;
+      grid-row: 2 / 4;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid var(--line);
+      background: rgba(7, 17, 31, 0.82);
+      backdrop-filter: blur(18px);
+      overflow: hidden;
+      z-index: 58;
+    }
+
+    .quickbar-header {
+      height: var(--tabbar-h);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 0 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .quickbar-title { font-weight: 800; min-width: 0; }
+
+    .quickbar-content {
+      display: grid;
+      gap: 10px;
+      padding: 14px;
+      overflow: auto;
+    }
+
+    .quickbar-text,
+    .quickbar-content { transition: opacity 160ms ease, transform 160ms ease; }
+
+    .app.quickbar-collapsed .quickbar-text,
+    .app.quickbar-collapsed .quickbar-content {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(10px);
+    }
+
+    .quick-action-card {
+      display: grid;
+      gap: 4px;
+      width: 100%;
+      padding: 10px 11px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: rgba(255, 255, 255, 0.04);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .quick-action-card:hover { border-color: var(--line-strong); background: rgba(255,255,255,.065); }
+    .quick-action-card strong { color: var(--text-strong); }
+    .quick-action-card span { color: var(--muted); font-size: .78rem; line-height: 1.35; }
+
     .sidebar-header {
       height: var(--tabbar-h);
       display: flex;
@@ -295,7 +361,8 @@
 
     .app.sidebar-collapsed .sidebar-title-text,
     .app.sidebar-collapsed .sidebar-content,
-    .app.sidebar-collapsed .sidebar-footer {
+    .app.sidebar-collapsed .sidebar-footer,
+    .app.sidebar-collapsed .developer-panel {
       opacity: 0;
       pointer-events: none;
       transform: translateX(-10px);
@@ -1047,7 +1114,7 @@
     }
 
     @media (max-width: 980px) {
-      .app { --sidebar-w: 270px; }
+      .app { --sidebar-w: 270px; --quickbar-w: 240px; }
       .workspace { min-width: 100%; }
       .menu-right .status-pill { display: none; }
     }
@@ -1057,7 +1124,8 @@
         grid-template-columns: 1fr;
       }
 
-      .sidebar {
+      .sidebar,
+      .quickbar {
         position: fixed;
         left: 0;
         top: var(--menubar-h);
@@ -1068,7 +1136,9 @@
         box-shadow: var(--shadow);
       }
 
+      .quickbar { left: auto; right: 0; transform: translateX(102%); border-left: 1px solid var(--line); border-right: 0; }
       .app.mobile-sidebar-open .sidebar { transform: translateX(0); }
+      .app.mobile-quickbar-open .quickbar { transform: translateX(0); }
       .tabbar,
       .workspace-shell { grid-column: 1; }
       .brand-text { display: none; }
@@ -1738,6 +1808,7 @@
       <div class="menu-right">
         <div class="status-pill"><span class="status-dot"></span><span id="saveStatus">Lokal gespeichert</span></div>
         <div class="window-controls" aria-label="Fensteroptionen">
+          <button id="openSettingsButton" class="window-control" title="Einstellungen öffnen" aria-label="Einstellungen öffnen">⚙</button>
           <button id="nativeMinimize" class="window-control" title="Arbeitsfläche minimieren">—</button>
           <button id="nativeFullscreen" class="window-control" title="Vollbild umschalten">□</button>
           <button id="nativeClose" class="window-control close" title="Ansicht leeren">×</button>
@@ -1761,10 +1832,15 @@
         </div>
 
         <div class="section-label">
-          <span>Module</span>
+          <span>Arbeitsmodule</span>
           <span id="moduleCount">0</span>
         </div>
         <div id="moduleList" class="module-list"></div>
+
+        <details class="module-category developer-panel">
+          <summary><span>Entwicklerbereich</span><span class="module-category-count" id="developerModuleCount">0</span></summary>
+          <div id="developerModuleList" class="module-category-items"></div>
+        </details>
 
         <button id="createModuleLarge" class="primary-button">＋ Eigenes Modul erstellen</button>
         <button id="loadManifestModules" class="ghost-button">↻ Manifest-Module laden</button>
@@ -1773,6 +1849,14 @@
       <div class="sidebar-footer">
         Ziehen Sie aktive Module in ein Rasterfeld. Rechtsklick öffnet weitere Optionen.
       </div>
+    </aside>
+
+    <aside class="quickbar" aria-label="Schnellfunktionen rechts">
+      <div class="quickbar-header">
+        <button id="quickbarToggle" class="icon-button" title="Schnellfunktionen ein-/ausklappen" aria-label="Schnellfunktionen ein-/ausklappen">›</button>
+        <span class="quickbar-title quickbar-text">Schnellfunktionen</span>
+      </div>
+      <div id="quickbarContent" class="quickbar-content"></div>
     </aside>
 
     <nav class="tabbar">
@@ -1837,17 +1921,17 @@
               <label for="moduleType">Modultyp</label>
               <select id="moduleType" name="type">
                 <option value="overview">Workflow-Zentrale</option>
-                <option value="calendar">Monatskalender</option>
+                <option value="calendar">Kalender Genres</option>
                 <option value="tasks">Todo-Liste Pro</option>
                 <option value="projectboard">Projektboard</option>
-                <option value="quicktext">Schnell-Text-Speicher</option>
+                <option value="quicktext">Schnelltextspeicher</option>
                 <option value="editor">Editor mit Titel</option>
                 <option value="code">Code & Entwicklungsvorhaben</option>
                 <option value="settings">Einstellungen</option>
                 <option value="timer">Fokus-Timer</option>
                 <option value="bookmarks">Schnelllinks</option>
                 <option value="activity">Aktivitätsprotokoll</option>
-                <option value="modulebuilder">Modul-Werkstatt</option>
+                <option value="modulebuilder">Modulwerkstatt</option>
                 <option value="notes">Einfache Notizen</option>
                 <option value="stats">Kennzahlen</option>
                 <option value="custom">Freies Modul</option>
@@ -1943,7 +2027,7 @@
       <div class="modal-body">
         <div class="shortcut-grid">
           <div class="shortcut-row"><span>Befehlssuche</span><kbd>Strg K</kbd></div>
-          <div class="shortcut-row"><span>Modul-Werkstatt</span><kbd>Strg N</kbd></div>
+          <div class="shortcut-row"><span>Modulwerkstatt</span><kbd>Strg N</kbd></div>
           <div class="shortcut-row"><span>Neuer Arbeitsbereich</span><kbd>Strg T</kbd></div>
           <div class="shortcut-row"><span>Konfiguration exportieren</span><kbd>Strg E</kbd></div>
           <div class="shortcut-row"><span>Speichern</span><kbd>Strg S</kbd></div>
@@ -1982,13 +2066,12 @@
       const ALLOWED_TYPES = ["overview", "calendar", "notes", "tasks", "projectboard", "stats", "quicktext", "editor", "code", "settings", "timer", "bookmarks", "activity", "modulebuilder", "mother", "registry", "debugging", "custom"];
       const APP_MANIFEST_PATH = "manifests/MULTIMODULTOOL2026_02_AppManifest.json";
       const MODULE_CREATION_TYPES = ["overview", "calendar", "notes", "tasks", "projectboard", "stats", "quicktext", "editor", "code", "timer", "bookmarks", "activity", "custom"];
+      const WORK_MODULE_TYPES = ["notes", "calendar", "quicktext", "tasks", "projectboard", "bookmarks", "editor", "code", "modulebuilder", "overview"];
+      const WORK_VISIBLE_NAMES = ["textbausteine", "genre"];
+      const DEVELOPER_MODULE_TYPES = ["mother", "registry", "debugging", "settings", "activity", "timer", "stats", "custom"];
       const MODULE_CATEGORIES = [
-        { id: "system", label: "Systemmodule", types: ["mother", "registry", "debugging", "settings", "modulebuilder", "activity"] },
-        { id: "songs", label: "Songs", match: ["song", "songs", "lied", "lieder", "musik"] },
-        { id: "hoerspiele", label: "Hörspiele", match: ["hörspiel", "hoerspiel", "audio", "sprecher"] },
-        { id: "arbeiten", label: "Arbeiten", types: ["overview", "calendar", "tasks", "projectboard", "timer", "bookmarks"], match: ["arbeit", "projekt", "workflow", "termin", "aufgabe"] },
-        { id: "ideen", label: "Ideen", types: ["notes", "quicktext", "custom", "stats"], match: ["idee", "ideen", "notiz", "konzept"] },
-        { id: "code", label: "Code", types: ["code", "editor"], match: ["code", "entwicklung", "script", "programm"] }
+        { id: "arbeiten", label: "Arbeiten & Aufgaben", types: WORK_MODULE_TYPES, match: ["arbeit", "projekt", "workflow", "termin", "aufgabe", "notiz", "text"] },
+        { id: "developer", label: "Entwicklerbereich", types: DEVELOPER_MODULE_TYPES, match: ["system", "debug", "registry", "protokoll", "timer", "kennzahlen"] }
       ];
 
       const CODE_LANGUAGES = {
@@ -2047,7 +2130,7 @@
           content: { showCompleted: false }
         },
         {
-          id: newId(), name: "Monatskalender", type: "calendar", color: "#38bdf8",
+          id: newId(), name: "Kalender Genres", type: "calendar", color: "#38bdf8",
           description: "Dynamische Monatsansicht mit lokal gespeicherten Terminen", active: false,
           category: "arbeiten",
           content: { year: new Date().getFullYear(), month: new Date().getMonth(), selectedDate: toDateKey(new Date()), events: [] }
@@ -2065,10 +2148,16 @@
           content: { cards: [], filter: "all" }
         },
         {
-          id: newId(), name: "Schnell-Text-Speicher", type: "quicktext", color: "#f59e0b",
+          id: newId(), name: "Schnelltextspeicher", type: "quicktext", color: "#f59e0b",
           description: "Schnelle Texteingabe mit validiertem TXT-Dateiexport", active: false,
           category: "ideen",
           content: { title: "Schnelltext", filename: "schnelltext.txt", text: "", addTimestamp: false }
+        },
+        {
+          id: newId(), name: "Textbausteine", type: "custom", color: "#f97316",
+          description: "Sammlung wiederverwendbarer Textbausteine für Arbeitsabläufe", active: false,
+          category: "arbeiten",
+          content: { text: "" }
         },
         {
           id: newId(), name: "Editor", type: "editor", color: "#8b5cf6",
@@ -2089,7 +2178,7 @@
           content: { filter: "all", limit: 80 }
         },
         {
-          id: newId(), name: "Modul-Werkstatt", type: "modulebuilder", color: "#06b6d4",
+          id: newId(), name: "Modulwerkstatt", type: "modulebuilder", color: "#06b6d4",
           description: "Module direkt im Dashboard erstellen, aktivieren, öffnen und bearbeiten", active: false,
           category: "system",
           content: { draftName: "", draftType: "notes", draftColor: "#38bdf8", draftDescription: "" }
@@ -2158,6 +2247,7 @@
         activeWorkspaceId: null,
         sidebarCollapsed: false,
         sidebarWidth: 320,
+        quickbarCollapsed: false,
         snapEnabled: true,
         lockLayout: false,
         autoWorkspaceOnFull: true,
@@ -2376,24 +2466,44 @@
 
       function renderSidebar() {
         const query = moduleSearch.value.trim().toLowerCase();
-        const filtered = state.modules.filter(module => {
-          return !query || [module.name, module.type, module.description, moduleCategoryLabel(module)].join(" ").toLowerCase().includes(query);
-        });
-        const groups = groupModulesByCategory(filtered);
+        const matchesQuery = module => !query || [module.name, module.type, module.description, moduleCategoryLabel(module)].join(" ").toLowerCase().includes(query);
+        const workModules = state.modules.filter(module => isWorkSidebarModule(module) && matchesQuery(module));
+        const developerModules = state.modules.filter(module => !isWorkSidebarModule(module) && matchesQuery(module));
 
         moduleList.innerHTML = "";
-        moduleCount.textContent = `${state.modules.filter(m => m.active).length}/${state.modules.length}`;
+        moduleCount.textContent = `${workModules.filter(m => m.active).length}/${workModules.length}`;
+        const developerList = document.getElementById("developerModuleList");
+        developerList.innerHTML = "";
+        document.getElementById("developerModuleCount").textContent = developerModules.length;
 
-        MODULE_CATEGORIES.forEach(category => {
-          const modules = groups.get(category.id) || [];
-          const section = document.createElement("details");
-          section.className = "module-category";
-          section.open = query || modules.length > 0;
-          section.innerHTML = `<summary><span>${escapeHtml(category.label)}</span><span class="module-category-count">${modules.length}</span></summary><div class="module-category-items"></div>`;
-          const items = section.querySelector(".module-category-items");
-          modules.forEach(module => items.appendChild(createModuleCard(module)));
-          moduleList.appendChild(section);
-        });
+        workModules.forEach(module => moduleList.appendChild(createModuleCard(module)));
+        developerModules.forEach(module => developerList.appendChild(createModuleCard(module)));
+        renderQuickbar();
+      }
+
+      function isWorkSidebarModule(module) {
+        const name = String(module?.name || "").toLowerCase();
+        return WORK_MODULE_TYPES.includes(module?.type) || WORK_VISIBLE_NAMES.some(term => name.includes(term));
+      }
+
+      function renderQuickbar() {
+        const target = document.getElementById("quickbarContent");
+        if (!target) return;
+        const actions = [
+          ["Notiz öffnen", "Schnell eine Arbeitsnotiz schreiben.", () => openModuleType("notes")],
+          ["Aufgabe öffnen", "Todo-Liste einblenden.", () => openModuleType("tasks")],
+          ["Text speichern", "Schnelltextspeicher öffnen.", () => openModuleType("quicktext")],
+          ["Schnelllink öffnen", "Link-Sammlung einblenden.", () => openModuleType("bookmarks")],
+          ["Einstellungen", "Darstellung und Sicherheit anpassen.", openSettingsModule]
+        ];
+        target.replaceChildren(...actions.map(([title, text, action]) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "quick-action-card";
+          button.innerHTML = `<strong>${escapeHtml(title)}</strong><span>${escapeHtml(text)}</span>`;
+          button.addEventListener("click", action);
+          return button;
+        }));
       }
 
       function groupModulesByCategory(modules) {
@@ -2406,11 +2516,12 @@
         const explicit = cleanText(module.category, 40);
         if (MODULE_CATEGORIES.some(category => category.id === explicit)) return explicit;
         const haystack = [module.name, module.type, module.description].join(" ").toLowerCase();
-        return MODULE_CATEGORIES.find(category => category.types?.includes(module.type) || category.match?.some(term => haystack.includes(term)))?.id || "ideen";
+        if (isWorkSidebarModule(module)) return "arbeiten";
+        return MODULE_CATEGORIES.find(category => category.types?.includes(module.type) || category.match?.some(term => haystack.includes(term)))?.id || "developer";
       }
 
       function moduleCategoryLabel(module) {
-        return MODULE_CATEGORIES.find(category => category.id === moduleCategoryId(module))?.label || "Ideen";
+        return MODULE_CATEGORIES.find(category => category.id === moduleCategoryId(module))?.label || "Entwicklerbereich";
       }
 
       function createModuleCard(module) {
@@ -3003,7 +3114,7 @@
         shell.className = "module-builder";
         shell.innerHTML = `
           <div class="module-builder-head">
-            <div><strong>Modul-Werkstatt</strong><div class="pro-meta">Neue Module werden aktiviert und sofort in das erste freie Rasterfeld eingesetzt.</div></div>
+            <div><strong>Modulwerkstatt</strong><div class="pro-meta">Neue Module werden aktiviert und sofort in das erste freie Rasterfeld eingesetzt.</div></div>
             <span class="status-pill"><span class="status-dot"></span> Direktmodus</span>
           </div>
           <form class="module-builder-form" novalidate>
@@ -3011,10 +3122,10 @@
               <div class="pro-field"><label>Modulname</label><input class="pro-input" name="name" maxlength="80" required placeholder="z. B. Projektstatus"></div>
               <div class="pro-field"><label>Modultyp</label><select class="pro-select" name="type">
                 <option value="overview">Workflow-Zentrale</option>
-                <option value="calendar">Monatskalender</option>
+                <option value="calendar">Kalender Genres</option>
                 <option value="tasks">Todo-Liste</option>
                 <option value="projectboard">Projektboard</option>
-                <option value="quicktext">Schnell-Text-Speicher</option>
+                <option value="quicktext">Schnelltextspeicher</option>
                 <option value="editor">Editor</option>
                 <option value="code">Code & Entwicklung</option>
                 <option value="timer">Fokus-Timer</option>
@@ -4343,7 +4454,7 @@
         let builder = state.modules.find(item => item.type === "modulebuilder");
         if (!builder) {
           builder = {
-            id: newId(), name: "Modul-Werkstatt", type: "modulebuilder", color: "#06b6d4",
+            id: newId(), name: "Modulwerkstatt", type: "modulebuilder", color: "#06b6d4",
             description: "Module direkt im Dashboard erstellen, aktivieren, öffnen und bearbeiten", active: false,
             content: normalizeContent("modulebuilder")
           };
@@ -4550,6 +4661,7 @@
         document.documentElement.style.setProperty("--font-scale", String(clamp(Number(state.fontScale) || 1, .9, 1.5)));
         document.documentElement.style.setProperty("--workspace-density", String(clamp(Number(state.workspaceDensity) || 1, .85, 1.25)));
         document.documentElement.style.setProperty("--sidebar-w", `${clamp(Number(state.sidebarWidth) || 320, 250, 460)}px`);
+        app.classList.toggle("quickbar-collapsed", !!state.quickbarCollapsed);
         document.documentElement.style.setProperty("--accent", validColor(state.accentColor) ? state.accentColor : "#38bdf8");
         document.querySelectorAll(".grid-cell").forEach(cell => {
           cell.style.borderStyle = state.gridVisible ? "dashed" : "solid";
@@ -4578,6 +4690,11 @@
           }
         });
 
+        document.getElementById("quickbarToggle").addEventListener("click", () => {
+          if (window.innerWidth <= 760) app.classList.toggle("mobile-quickbar-open");
+          else { state.quickbarCollapsed = !state.quickbarCollapsed; applyVisualSettings(); saveState(); }
+        });
+        document.getElementById("openSettingsButton").addEventListener("click", openSettingsModule);
         document.getElementById("addModuleButton").addEventListener("click", openModuleBuilder);
         document.getElementById("createModuleLarge").addEventListener("click", openModuleBuilder);
         document.getElementById("loadManifestModules").addEventListener("click", loadManifestModules);
@@ -5646,7 +5763,7 @@
 
       function buildCommandItems() {
         const items = [
-          { label: "Modul-Werkstatt öffnen", category: "Modul", keywords: "neu erstellen builder", action: openModuleBuilder },
+          { label: "Modulwerkstatt öffnen", category: "Modul", keywords: "neu erstellen builder", action: openModuleBuilder },
           { label: "Workflow-Zentrale öffnen", category: "Modul", keywords: "übersicht start dashboard", action: () => openModuleType("overview") },
           { label: "Projektboard öffnen", category: "Modul", keywords: "kanban projekt planung", action: () => openModuleType("projectboard") },
           { label: "Aktivitätsprotokoll öffnen", category: "Modul", keywords: "log historie", action: () => openModuleType("activity") },
@@ -5894,19 +6011,19 @@
       function typeLabel(type) {
         return ({
           overview: "Workflow-Zentrale",
-          calendar: "Monatskalender",
+          calendar: "Kalender Genres",
           notes: "Notizen",
           tasks: "Todo-Liste",
           projectboard: "Projektboard",
           stats: "Kennzahlen",
-          quicktext: "Schnell-Text-Speicher",
+          quicktext: "Schnelltextspeicher",
           editor: "Editor",
           code: "Code & Entwicklung",
           settings: "Einstellungen",
           timer: "Fokus-Timer",
           bookmarks: "Schnelllinks",
           activity: "Aktivitätsprotokoll",
-          modulebuilder: "Modul-Werkstatt",
+          modulebuilder: "Modulwerkstatt",
           custom: "Freies Modul"
         })[type] || "Modul";
       }
