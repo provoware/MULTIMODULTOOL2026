@@ -41,7 +41,7 @@ Die vorhandenen lokalen Prüfbefehle sind zusätzlich in `.github/workflows/rele
 
 ## Manuell offen vor echter Freigabe
 
-Diese Punkte bleiben offen, weil sie eine echte Browserumgebung mit sichtbarer Oberfläche brauchen:
+Diese Punkte bleiben offen, weil sie eine echte Browserumgebung mit sichtbarer Oberfläche brauchen. Die ausfüllbare Vorlage liegt in `docs/BROWSER_RELEASE_PROTOCOL_2026-07-16.md` und darf erst nach tatsächlicher Prüfung abgeschlossen werden:
 
 1. App über `./scripts/start-local.sh` in Chromium starten.
 2. App über `./scripts/start-local.sh` in Firefox starten.
@@ -52,4 +52,4 @@ Diese Punkte bleiben offen, weil sie eine echte Browserumgebung mit sichtbarer O
 
 ## Freigabeentscheidung
 
-Der Stand darf als lokal finalisierter Release-Kandidat weitergegeben werden, wenn die lokale Vorprüfung vollständig bestanden ist und die offenen manuellen Browserpunkte als bekannte Grenze mitgegeben werden. Eine endgültige Freigabe darf erst markiert werden, wenn die Browserpunkte geprüft und dokumentiert sind.
+Der Stand darf als lokal finalisierter Release-Kandidat weitergegeben werden, wenn die lokale Vorprüfung vollständig bestanden ist und die offenen manuellen Browserpunkte als bekannte Grenze mitgegeben werden. Eine endgültige Freigabe darf erst markiert werden, wenn die Browserpunkte geprüft und dokumentiert sind. Die Dokumentation erfolgt in `docs/BROWSER_RELEASE_PROTOCOL_2026-07-16.md`.

@@ -4,10 +4,11 @@ Fortschritt gesamt: 99 %
 
 ## Offen
 - [ ] Kontraständerungen auf einer echten Chromium- und Firefox-Installation visuell nachprüfen; die Container-Prüfung am 2026-07-16 war durch Snap-/Download-Sperren blockiert.
-- [ ] Echte Browser-Freigabe anhand von `docs/RELEASE_STATUS_2026-07-16.md` manuell prüfen: Chromium-Start, Firefox-Start, Backup-Wiederherstellung, JSON-Import und Exportdatei-Download.
-- [ ] Speicherprüfung zusätzlich in Chromium und Firefox ausführen und Ergebnis mit Screenshot oder kurzem Prüfprotokoll dokumentieren.
+- [ ] Echte Browser-Freigabe anhand von `docs/RELEASE_STATUS_2026-07-16.md` manuell prüfen; Ergebnisse in `docs/BROWSER_RELEASE_PROTOCOL_2026-07-16.md` dokumentieren: Chromium-Start, Firefox-Start, Backup-Wiederherstellung, JSON-Import und Exportdatei-Download.
+- [ ] Speicherprüfung zusätzlich in Chromium und Firefox ausführen und Ergebnis in `docs/BROWSER_RELEASE_PROTOCOL_2026-07-16.md` mit Screenshot-Hinweis oder kurzer Notiz dokumentieren.
 
 ## Erledigt
+- [x] Browser-Freigabe wurde am 2026-07-16 als getrenntes ausfüllbares Protokoll dokumentiert; die echte Chromium-/Firefox-Prüfung bleibt offen und wird nicht vorgetäuscht.
 - [x] Release-Kandidat wurde am 2026-07-16 lokal finalisiert: Manifestprüfung setzt die interne JavaScript-Grenze für `module.js` maschinell durch, und das Release-Gate gleicht Einzelprüfungen sowie Sammel-Syntaxcheck zwischen Statusdokument und CI ab.
 - [x] Hilfslogik-Test wurde am 2026-07-16 produktionsnäher gemacht: `tests/test_html_helpers.py` extrahiert sieben echte Funktionsblöcke aus der HTML-App und reduziert damit kopierte Testlogik, ohne die Single-File-App umzubauen.
 - [x] Release-Vorprüfung wurde am 2026-07-16 vervollständigt: Schnelltext-Prüfung und Startskript-Test sind jetzt im lokalen Release-Status, im CI-Gate und im Release-Gate-Validator enthalten, ohne die offene Browserfreigabe als erledigt zu markieren.
