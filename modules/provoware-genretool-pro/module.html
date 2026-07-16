@@ -45,19 +45,25 @@
     </article>
 
     <article class="genretool__panel genretool__generator" aria-labelledby="genretool-generator-title">
-      <div class="genretool__section-head"><div><h3 id="genretool-generator-title">Mixer</h3><p class="genretool__meta">Kategorien wählen, Treffer erzeugen, sperren und neu würfeln.</p></div></div>
+      <div class="genretool__section-head"><div><h3 id="genretool-generator-title">Mixer</h3><p class="genretool__meta">Kategorien wählen, Menge je Kategorie festlegen und als Komma-Liste ausgeben.</p></div></div>
       <fieldset class="genretool__mix"><legend>Kategorien</legend><div data-role="category-mixer"></div></fieldset>
+      <div class="genretool__quick" aria-label="Schnellmengen">
+        <button type="button" class="genretool__secondary" data-quick-count="3">3 je Kategorie</button>
+        <button type="button" class="genretool__secondary" data-quick-count="6">6 je Kategorie</button>
+        <button type="button" class="genretool__secondary" data-quick-count="9">9 je Kategorie</button>
+        <button type="button" class="genretool__secondary" data-quick-count="12">12 je Kategorie</button>
+      </div>
       <div class="genretool__options">
-        <label>Ergebnisse<input data-role="result-count" type="number" min="1" max="12" value="3"></label>
+        <label>Menge je Kategorie<input data-role="result-count" type="number" min="1" max="50" value="3"></label>
         <label class="genretool__check"><input data-role="avoid-recent" type="checkbox" checked> Letzte Treffer meiden</label>
         <label class="genretool__check"><input data-role="favorites-first" type="checkbox"> Favoriten bevorzugen</label>
         <label class="genretool__check"><input data-role="auto-copy" type="checkbox"> Nach Erzeugung kopieren</label>
       </div>
       <div class="genretool__actions">
-        <button type="button" data-action="generate">Zufall erzeugen</button>
+        <button type="button" data-action="generate">Listen erzeugen</button>
         <button type="button" class="genretool__secondary" data-action="copy-all">Alles kopieren</button>
-        <button type="button" class="genretool__secondary" data-action="unlock-all">Sperren lösen</button>
       </div>
+      <div class="genretool__stats" data-role="stats" aria-live="polite"></div>
       <div class="genretool__results" data-role="results" aria-live="polite"></div>
     </article>
   </section>

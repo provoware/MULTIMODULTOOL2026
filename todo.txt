@@ -86,3 +86,4 @@ Fortschritt gesamt: 95 %
 - [x] Import-Meldungen wurden am 2026-07-16 mit Export-/Backup-Meldungen verglichen und nur fehlende Angaben zu Grund, Lösung oder Speicherstatus ergänzt.
 - [x] Loader-Konzept wurde am 2026-07-16 gegen erste Prüffunktion abgeglichen; Modulordner-ID und vorhandene Einstiegspunkt-Dateien werden jetzt geprüft, ohne die HTML-App umzubauen.
 - [x] Für Schnell-Text-Speicher wurde am 2026-07-16 eine kleine gekapselte `module.css` ergänzt und im Manifest verknüpft.
+- [x] GenreTool-Mixer erzeugt am 2026-07-16 kompakte Komma-Listen mit wählbarer Menge je Kategorie, Schnellmengen 3/6/9/12 und sichtbaren Ziehstatistiken statt mehrerer Ergebnis-Kombinationen.

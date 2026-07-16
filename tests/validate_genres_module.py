@@ -72,7 +72,7 @@ def main() -> int:
         "status", "entry-form", "entry-category", "entry-terms", "count",
         "search", "filter-category", "sort", "list", "page-info",
         "category-mixer", "result-count", "avoid-recent", "favorites-first",
-        "auto-copy", "results", "import", "history", "edit-dialog",
+        "auto-copy", "stats", "results", "import", "history", "edit-dialog",
         "edit-form", "edit-category", "edit-term",
     )
     for role in required_roles:
@@ -81,7 +81,7 @@ def main() -> int:
 
     required_actions = (
         "validate", "page-prev", "page-next", "generate", "copy-all",
-        "unlock-all", "undo", "redo", "export", "backup", "reset",
+        "undo", "redo", "export", "backup", "reset",
         "edit-cancel",
     )
     for action in required_actions:
@@ -94,8 +94,8 @@ def main() -> int:
     required_markers = (
         'const STORAGE_KEY = "multimodultool2026.provoware-genretool-pro.v2"',
         "loadSeedIfEmpty", "fetchSeed", "normalizeState", "validateDatabase",
-        "parseImport", "addTermsFromRows", "renderArchive", "renderResults",
-        "renderHistory", "snapshot", "restoreSnapshot", "navigator.clipboard",
+        "parseImport", "addTermsFromRows", "renderArchive", "renderStats", "renderResults",
+        "renderHistory", "statsByCategory", "snapshot", "restoreSnapshot", "navigator.clipboard",
     )
     for marker in required_markers:
         if marker not in script:
