@@ -1,9 +1,9 @@
 {
   "id": "provoware-genretool-pro",
   "name": "Provoware GenreTool Pro",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "type": "custom",
-  "description": "Songs-Untermodul zum Verwalten und Kombinieren von Genres, Stimmungen, Stilen, Effekten, Themen und Besonderheiten.",
+  "description": "Vollständiges Songs-Untermodul zum Verwalten, Prüfen und Kombinieren von Genres, Stimmungen, Stilen, Effekten, Themen und Besonderheiten.",
   "entry": {
     "html": "module.html",
     "css": "module.css",
