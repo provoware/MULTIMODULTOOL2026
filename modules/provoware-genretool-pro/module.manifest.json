@@ -5,9 +5,9 @@
   "type": "custom",
   "description": "Songs-Untermodul für Genre-, Stimmungs-, Stil-, Effekt-, Themen- und Besonderheiten-Kombinationen.",
   "entry": {
-    "html": null,
-    "css": null,
-    "js": null
+    "html": "module.html",
+    "css": "module.css",
+    "js": "module.js"
   },
   "permissions": [
     "local-storage",
