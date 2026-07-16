@@ -3,7 +3,7 @@ Stand: 2026-07-16
 Aktueller Startpunkt: dashboard-studio-ultimate-pro-v3.1.0.html
 Arbeitsweise: lokal im Browser, ohne Build-Schritt, ohne externe Laufzeit-Abhängigkeiten.
 
-Fortschritt gesamt: 49 %
+Fortschritt gesamt: 50 %
 Berechnung: erledigte Grundlagen und Standards zählen 40 %, laufende Qualitäts- und UX-Arbeit 35 %, Modul-Auslagerung und Tests 25 %.
 Aktualisierungsregel: Bei jeder Iteration Stand, Prozentwert, erledigte Punkte, offene Punkte und bekannte Grenzen prüfen und anpassen.
 
@@ -19,6 +19,7 @@ Erledigt
 - Manifestprüfung wurde am 2026-07-16 mit `python3 tests/validate_module_manifests.py` erfolgreich ausgeführt: 16 Modulmanifeste geprüft.
 - Manifestprüfer wurde an die im Schema erlaubten Modultypen `mother`, `registry` und `debugging` angeglichen.
 - Kleine Hilfslogik-Prüfung für Datum, sichere Dateinamen und URL-Normalisierung wurde ergänzt.
+- Hilfslogik-Tests wurden um Textbegrenzung und Aufgaben-Zustandsnormalisierung erweitert.
 
 In Arbeit
 - README als schnelle Einstiegs- und Orientierungshilfe aktuell halten.
@@ -36,7 +37,7 @@ Priorität 2 – Qualitätsverbesserungen
 - Systemmodule-Bündel später aus der HTML-Datei in echte Moduldateien überführen, sobald der Loader existiert.
 - Manifest-Prüfung mit `python3 tests/validate_module_manifests.py` bei künftigen Moduländerungen erneut ausführen.
 - Die große HTML-Datei schrittweise in kleine Bereiche zerlegen: Styles, Standarddaten, Speicherlogik, Modul-Renderer und Hilfsfunktionen.
-- Kleine Testdatei für reine Hilfsfunktionen weiter ausbauen: Textbegrenzung und Zustandsnormalisierung ergänzen.
+- Kleine Testdatei für reine Hilfsfunktionen bei Bedarf weiter ausbauen, sobald weitere reine Logik identifiziert ist.
 - README bei jeder echten Struktur-, Bedien- oder Speicheränderung kurz aktualisieren.
 
 Priorität 3 – GUI-/UX-Verbesserungen
@@ -107,7 +108,7 @@ Ziel: Wiederverwendbare Logik sicherer machen, ohne große Architekturänderung.
 Schritte:
 1. Kleine reine Hilfsfunktionen identifizieren: Datum, Dateiname, URL, Textlänge, Zustand.
 2. Funktionen nur extrahieren, wenn dadurch Lesbarkeit oder Testbarkeit steigt.
-3. Kleine direkte Tests ergänzen. Erster Stand: Datum, Dateiname und URL sind abgedeckt.
+3. Kleine direkte Tests ergänzen. Aktueller Stand: Textbegrenzung, Aufgaben-Zustand, Datum, Dateiname und URL sind abgedeckt.
 4. Keine GUI- oder Speicherlogik in Hilfstests vermischen.
 Akzeptanzkriterien:
 - Tests prüfen klare Eingaben und Ausgaben.
@@ -132,7 +133,7 @@ Schritteplan für die nächsten Iterationen
 2. Iteration: Einheitliche Meldungstexte für Export und Backup definieren und minimal in der HTML-Datei anwenden.
 3. Iteration: Loader-Konzept gegen erste Prüffunktion planen, ohne die HTML-App umzubauen.
 4. Iteration: Einen kleinen Modul-Kandidaten auswählen und Auslagerung mit Rückbauhinweis vorbereiten.
-5. Iteration: Hilfslogik-Tests weiter ausbauen und erst danach mögliche Extraktion prüfen.
+5. Iteration: Weitere reine Hilfslogik nur bei konkretem Nutzen ergänzen und erst danach mögliche Extraktion prüfen.
 6. Iteration: Performance-Hotspots prüfen und nur belegte Engstellen optimieren.
 
 Bekannte Grenzen
@@ -150,7 +151,8 @@ Bewusste Nicht-Änderungen dieser Iteration
 - Kein Build-System.
 - Keine Codeänderung an der bestehenden HTML-App.
 - Keine Browserprüfung, weil diese Iteration nur reine Hilfslogik per Node geprüft hat.
+- Keine Codeänderung an der HTML-App; die bestehende Logik wurde nur gezielter geprüft.
 
 Empfohlene nächste Schritte
 1. Speicher-/Importpfad manuell im Browser prüfen und Ergebnis hier dokumentieren.
-2. Hilfslogik-Tests um Textbegrenzung und Zustandsnormalisierung ergänzen, bevor Logik ausgelagert wird.
+2. Export- und Backup-Meldungen vereinheitlichen, damit Nutzer Ursache, Folge und nächste Handlung klar erkennen.
