@@ -6,7 +6,7 @@ Lokales Dashboard-Werkzeug als Single-File-HTML-App. Die Anwendung soll ohne Ins
 
 - Startdatei: `dashboard-studio-ultimate-pro-v3.1.0.html`
 - Arbeitsmodell: empfohlenes Startskript mit lokalem Server; direkter Datei-Start nur als eingeschränkter Rückfall
-- Entwicklungsfortschritt: 85 % (Details siehe `todo.txt`)
+- Entwicklungsfortschritt: 87 % (Details siehe `todo.txt`)
 - Modulziel: spätere manifestbasierte Module unter `modules/`
 - Wichtige Regel: mittelgroße, sichere Änderungen vor großen Umbauten
 
@@ -74,6 +74,7 @@ Wichtige Projektdateien:
 - `todo.txt`: offene Punkte, erledigte Punkte, Fortschritt und bekannte Grenzen
 - `docs/DEVELOPER_GUIDE.md`: technische Hinweise zu Struktur, Start, Barrierefreiheit und Entwicklungsabläufen
 - `docs/RELEASE_CHECKLIST.md`: kurze Freigabe-Checkliste für lokale Test- und Weitergabestände
+- `docs/RELEASE_STATUS_2026-07-16.md`: aktuelles Release-Kandidaten-Protokoll mit lokalen Vorprüfungen und offenen Browserpunkten
 - `AGENTS.md`: verbindliche Arbeitsregeln für Änderungen in diesem Repository
 
 Relevante Prüfungen nach Änderungen:
@@ -86,4 +87,4 @@ Relevante Prüfungen nach Änderungen:
 
 ## Nächster sinnvoller Schritt
 
-Als nächste Iteration sollte der Speicher-/Importpfad anhand der Release-Checkliste manuell geprüft werden: Standardstart, kaputte localStorage-Daten, Backup-Wiederherstellung und kleiner JSON-Import. Die echte Chromium-/Firefox-Sichtprüfung und der Importpfad bleiben bewusst getrennt offen, damit Freigabeprüfungen nicht mit Layoutänderungen vermischt werden.
+Als nächste Iteration sollte das Release-Kandidaten-Protokoll in `docs/RELEASE_STATUS_2026-07-16.md` in einer echten Browserumgebung abgearbeitet werden: Chromium-Start, Firefox-Start, Speicherprüfung, Backup-Wiederherstellung, kleiner JSON-Import und Exportdownload. Die lokale Code-Vorprüfung ist getrennt dokumentiert, damit Freigabeprüfungen nicht mit Layoutänderungen vermischt werden.
