@@ -49,5 +49,82 @@
     "../modules/notizen/module.manifest.json",
     "../modules/provoware-genretool-pro/module.manifest.json",
     "../modules/systemmodule-buendel/module.manifest.json"
+  ],
+  "registeredModules": [
+    {
+      "id": "workflow-zentrale",
+      "version": "1.0.0",
+      "manifest": "../modules/workflow-zentrale/module.manifest.json"
+    },
+    {
+      "id": "monatskalender",
+      "version": "1.0.0",
+      "manifest": "../modules/monatskalender/module.manifest.json"
+    },
+    {
+      "id": "todo-liste",
+      "version": "1.0.0",
+      "manifest": "../modules/todo-liste/module.manifest.json"
+    },
+    {
+      "id": "projektboard",
+      "version": "1.0.0",
+      "manifest": "../modules/projektboard/module.manifest.json"
+    },
+    {
+      "id": "schnell-text-speicher",
+      "version": "1.0.0",
+      "manifest": "../modules/schnell-text-speicher/module.manifest.json"
+    },
+    {
+      "id": "editor",
+      "version": "1.0.0",
+      "manifest": "../modules/editor/module.manifest.json"
+    },
+    {
+      "id": "code-entwicklung",
+      "version": "1.0.0",
+      "manifest": "../modules/code-entwicklung/module.manifest.json"
+    },
+    {
+      "id": "aktivitaetsprotokoll",
+      "version": "1.0.0",
+      "manifest": "../modules/aktivitaetsprotokoll/module.manifest.json"
+    },
+    {
+      "id": "modul-werkstatt",
+      "version": "1.0.0",
+      "manifest": "../modules/modul-werkstatt/module.manifest.json"
+    },
+    {
+      "id": "einstellungen",
+      "version": "1.0.0",
+      "manifest": "../modules/einstellungen/module.manifest.json"
+    },
+    {
+      "id": "fokus-timer",
+      "version": "1.0.0",
+      "manifest": "../modules/fokus-timer/module.manifest.json"
+    },
+    {
+      "id": "schnelllinks",
+      "version": "1.0.0",
+      "manifest": "../modules/schnelllinks/module.manifest.json"
+    },
+    {
+      "id": "notizen",
+      "version": "1.0.0",
+      "manifest": "../modules/notizen/module.manifest.json"
+    },
+    {
+      "id": "provoware-genretool-pro",
+      "version": "2.0.0",
+      "manifest": "../modules/provoware-genretool-pro/module.manifest.json"
+    },
+    {
+      "id": "systemmodule-buendel",
+      "version": "1.0.0",
+      "manifest": "../modules/systemmodule-buendel/module.manifest.json"
+    }
   ]
 }
