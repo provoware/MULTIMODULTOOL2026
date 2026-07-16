@@ -3,7 +3,7 @@ Stand: 2026-07-16
 Aktueller Startpunkt: dashboard-studio-ultimate-pro-v3.1.0.html
 Arbeitsweise: lokal im Browser, ohne Build-Schritt, ohne externe Laufzeit-Abhängigkeiten.
 
-Fortschritt gesamt: 51 %
+Fortschritt gesamt: 52 %
 Berechnung: erledigte Grundlagen und Standards zählen 40 %, laufende Qualitäts- und UX-Arbeit 35 %, Modul-Auslagerung und Tests 25 %.
 Aktualisierungsregel: Bei jeder Iteration Stand, Prozentwert, erledigte Punkte, offene Punkte und bekannte Grenzen prüfen und anpassen.
 
@@ -21,6 +21,7 @@ Erledigt
 - Kleine Hilfslogik-Prüfung für Datum, sichere Dateinamen und URL-Normalisierung wurde ergänzt.
 - Hilfslogik-Tests wurden um Textbegrenzung und Aufgaben-Zustandsnormalisierung erweitert.
 - Schnell-Text-Speicher hat eine kleine README mit je einem nutzbaren Textbaustein für Coding, Prompting, Vibecoding, KI-Bildgenerierung, KI-Musikgenerierung und KI-Contentcreation.
+- Schnell-Text-Speicher wurde um je einen weiteren nutzbaren Textbaustein pro Kategorie ergänzt.
 
 In Arbeit
 - README als schnelle Einstiegs- und Orientierungshilfe aktuell halten.
@@ -142,7 +143,7 @@ Bekannte Grenzen
 - Die App ist noch eine große HTML-Datei; Änderungen sollen deshalb klein und gezielt bleiben.
 - Browser-Speicher ist je nach Browser und Gerät begrenzt.
 - Prozentwert ist eine gepflegte Projektschätzung, keine automatisch berechnete Kennzahl.
-- Schnell-Text-Speicher enthält aktuell dokumentierte Startbausteine, aber noch keine eigene Moduloberfläche außerhalb der Single-File-App.
+- Schnell-Text-Speicher enthält aktuell mehrere dokumentierte Startbausteine, aber noch keine eigene Moduloberfläche außerhalb der Single-File-App.
 - Visuelle Prüfungen ersetzen keine vollständige Barrierefreiheitsprüfung.
 - Der Phasenplan ist eine Arbeitsreihenfolge und ersetzt keine technische Spezifikation für einzelne Patches.
 
@@ -154,7 +155,7 @@ Bewusste Nicht-Änderungen dieser Iteration
 - Kein Build-System.
 - Keine Codeänderung an der bestehenden HTML-App.
 - Keine Browserprüfung, weil diese Iteration nur Dokumentation und Modul-Textbausteine ergänzt hat.
-- Keine neue Laufzeitlogik für den Schnell-Text-Speicher; ergänzt wurde nur eine kleine Moduldokumentation mit Textbausteinen.
+- Keine neue Laufzeitlogik für den Schnell-Text-Speicher; ergänzt wurden nur weitere dokumentierte Textbausteine.
 
 Empfohlene nächste Schritte
 1. Speicher-/Importpfad manuell im Browser prüfen und Ergebnis hier dokumentieren.
