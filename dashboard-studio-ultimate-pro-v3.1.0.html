@@ -4519,8 +4519,20 @@
 
       async function importFromTextarea() {
         const value = document.getElementById("importData").value.trim();
-        if (!value) return toast("Import abgelehnt: Keine JSON-Daten eingegeben. Bitte Exportdaten einfügen oder abbrechen.");
-        if (new Blob([value]).size > MAX_IMPORT_BYTES) return toast("Import abgelehnt: Die Daten sind größer als 8 MB. Bitte kleinere Konfiguration importieren.");
+        if (!value) return toast(feedbackText({
+          title: "Import abgelehnt: Keine JSON-Daten eingegeben.",
+          cause: "Das Eingabefeld ist leer.",
+          solution: "Bitte Exportdaten einfügen, eine JSON-Datei wählen oder den Import abbrechen.",
+          changed: "Nichts importiert; aktuelle Konfiguration bleibt unverändert.",
+          level: "warning"
+        }));
+        if (new Blob([value]).size > MAX_IMPORT_BYTES) return toast(feedbackText({
+          title: "Import abgelehnt: Die Daten sind größer als 8 MB.",
+          cause: "Große Importe können den Browser-Speicher überlasten.",
+          solution: "Bitte eine kleinere Konfiguration importieren oder Daten vorher aufteilen.",
+          changed: "Nichts importiert; aktuelle Konfiguration bleibt unverändert.",
+          level: "warning"
+        }));
         try {
           const parsed = parseJsonConfig(value, "Importdaten");
           if (!(await applyImportedState(parsed, value.length))) return;
@@ -4528,7 +4540,13 @@
           document.getElementById("importData").value = "";
         } catch (error) {
           console.error(error);
-          toast(`Import abgelehnt: ${cleanText(error.message, 120) || "ungültige JSON-Datei"}. Bitte gültigen JSON-Export einfügen.`);
+          toast(feedbackText({
+            title: `Import abgelehnt: ${cleanText(error.message, 120) || "ungültige JSON-Datei"}.`,
+            cause: "Die eingefügten Daten passen nicht zum erwarteten JSON-Export.",
+            solution: "Bitte einen vollständigen, gültigen JSON-Export einfügen.",
+            changed: "Nichts importiert; aktuelle Konfiguration bleibt unverändert.",
+            level: "error"
+          }));
         }
       }
 
@@ -4536,10 +4554,28 @@
         const file = event.target.files?.[0];
         event.target.value = "";
         if (!file) return;
-        if (file.size > MAX_IMPORT_BYTES) return toast("Import abgelehnt: Die Datei ist größer als 8 MB. Bitte kleinere JSON-Datei wählen.");
-        if (!/\.json$/i.test(file.name) && !/json/i.test(file.type || "")) return toast("Import abgelehnt: Bitte eine JSON-Datei wählen.");
+        if (file.size > MAX_IMPORT_BYTES) return toast(feedbackText({
+          title: "Import abgelehnt: Die Datei ist größer als 8 MB.",
+          cause: "Große Importdateien können den Browser-Speicher überlasten.",
+          solution: "Bitte eine kleinere JSON-Datei wählen oder Daten vorher aufteilen.",
+          changed: "Nichts importiert; aktuelle Konfiguration bleibt unverändert.",
+          level: "warning"
+        }));
+        if (!/\.json$/i.test(file.name) && !/json/i.test(file.type || "")) return toast(feedbackText({
+          title: "Import abgelehnt: Keine JSON-Datei gewählt.",
+          cause: "Der Dateiname oder Dateityp passt nicht zum erwarteten JSON-Format.",
+          solution: "Bitte eine Exportdatei mit der Endung .json wählen.",
+          changed: "Nichts importiert; aktuelle Konfiguration bleibt unverändert.",
+          level: "warning"
+        }));
         const reader = new FileReader();
-        reader.onerror = () => toast("Import abgelehnt: Datei konnte nicht gelesen werden. Bitte Datei prüfen oder erneut wählen.");
+        reader.onerror = () => toast(feedbackText({
+          title: "Import abgelehnt: Datei konnte nicht gelesen werden.",
+          cause: "Der Browser konnte die gewählte Datei nicht öffnen.",
+          solution: "Bitte Datei prüfen, erneut wählen oder einen anderen gültigen Export nutzen.",
+          changed: "Nichts importiert; aktuelle Konfiguration bleibt unverändert.",
+          level: "error"
+        }));
         reader.onload = async () => {
           try {
             if (!(await applyImportedState(parseJsonConfig(reader.result, "Importdatei"), file.size))) return;
@@ -4547,7 +4583,13 @@
             document.getElementById("importData").value = "";
           } catch (error) {
             console.error(error);
-            toast(`Import abgelehnt: ${cleanText(error.message, 120) || "ungültiges Format"}. Bitte gültigen JSON-Export wählen.`);
+            toast(feedbackText({
+              title: `Import abgelehnt: ${cleanText(error.message, 120) || "ungültiges Format"}.`,
+              cause: "Die Datei passt nicht zum erwarteten JSON-Export.",
+              solution: "Bitte eine vollständige, gültige Exportdatei wählen.",
+              changed: "Nichts importiert; aktuelle Konfiguration bleibt unverändert.",
+              level: "error"
+            }));
           }
         };
         reader.readAsText(file);
@@ -4556,12 +4598,24 @@
       async function applyImportedState(parsed, importSize = 0) {
         if (state.confirmDestructive && !confirm("Aktuelle Konfiguration durch den Import ersetzen? Vorher wird ein lokales Backup erstellt.")) return false;
         if (!(await hasEnoughStorageForImport(importSize))) {
-          toast("Import abgebrochen: Browser-Speicher wirkt knapp. Bitte zuerst Konfiguration exportieren oder Browser-Speicher freigeben.");
+          toast(feedbackText({
+            title: "Import abgebrochen: Browser-Speicher wirkt knapp.",
+            cause: "Für Import und Sicherheitskopie ist wahrscheinlich nicht genug freier Speicher vorhanden.",
+            solution: "Bitte zuerst Konfiguration exportieren oder Browser-Speicher freigeben.",
+            changed: "Nichts importiert; aktuelle Konfiguration bleibt unverändert.",
+            level: "warning"
+          }));
           return false;
         }
         pushHistory("Konfiguration importieren");
         if (!createLocalBackup(false)) {
-          toast("Import abgebrochen: Vorheriges Backup konnte nicht erstellt werden. Bitte Speicherrechte prüfen oder Konfiguration exportieren.");
+          toast(feedbackText({
+            title: "Import abgebrochen: Vorheriges Backup konnte nicht erstellt werden.",
+            cause: "Der Browser-Speicher ist nicht verfügbar, voll oder gesperrt.",
+            solution: "Bitte Speicherrechte prüfen oder die Konfiguration als Datei exportieren.",
+            changed: "Nichts importiert; aktuelle Konfiguration bleibt unverändert.",
+            level: "error"
+          }));
           return false;
         }
         state = normalizeState(parsed);
@@ -4569,7 +4623,13 @@
         applyVisualSettings();
         saveState("Import gespeichert");
         renderAll();
-        toast("Konfiguration geprüft und importiert");
+        toast(feedbackText({
+          title: "Konfiguration geprüft und importiert.",
+          cause: "Die JSON-Daten waren gültig und ein lokales Backup wurde vorher erstellt.",
+          solution: "Bitte kurz prüfen, ob Module und Daten wie erwartet angezeigt werden.",
+          changed: "Import gespeichert; vorheriger Stand liegt als lokales Backup vor.",
+          level: "success"
+        }));
         return true;
       }
 
