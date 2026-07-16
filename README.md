@@ -6,7 +6,7 @@ Lokales Dashboard-Werkzeug als Single-File-HTML-App. Die Anwendung soll ohne Ins
 
 - Startdatei: `dashboard-studio-ultimate-pro-v3.1.0.html`
 - Arbeitsmodell: Browser direkt öffnen oder Startskript verwenden
-- Entwicklungsfortschritt: 77 % (Details siehe `todo.txt`)
+- Entwicklungsfortschritt: 82 % (Details siehe `todo.txt`)
 - Modulziel: spätere manifestbasierte Module unter `modules/`
 - Wichtige Regel: mittelgroße, sichere Änderungen vor großen Umbauten
 
@@ -48,6 +48,7 @@ Neue oder ausgelagerte Module sollen nach dem Modulstandard beschrieben werden:
 - App-Manifest: `manifests/MULTIMODULTOOL2026_02_AppManifest.json`
 - Beispielmanifest: `manifests/MULTIMODULTOOL2026_03_ExampleModule.manifest.json`
 - Systemmodule-Bündel: `modules/systemmodule-buendel/module.manifest.json`
+- HTML-Auslagerungsplan: `docs/HTML_AUSLAGERUNGSPLAN.md`
 
 ## Warum zuerst Standards?
 

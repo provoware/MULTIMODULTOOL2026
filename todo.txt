@@ -1,18 +1,18 @@
 # TODO
 
-Fortschritt gesamt: 77 %
+Fortschritt gesamt: 82 %
 
 ## Offen
 - [ ] Kontraständerungen auf einer echten Chromium- und Firefox-Installation visuell nachprüfen; die Container-Prüfung am 2026-07-16 war durch Snap-/Download-Sperren blockiert.
 - [ ] Speicher-/Importpfad im Browser anhand der Release-Checkliste manuell prüfen: Standardstart, kaputte localStorage-Daten, Backup-Wiederherstellung und JSON-Import.
-- [ ] Systemmodule-Bündel später aus der HTML-Datei in echte Moduldateien überführen, sobald der Loader existiert.
-- [ ] Die große HTML-Datei schrittweise in kleine Bereiche zerlegen: Styles, Standarddaten, Speicherlogik, Modul-Renderer und Hilfsfunktionen.
-- [ ] Bei weiterem Wachstum des Schnell-Text-Speichers eine kleine Moduldatei statt README-Erweiterung planen.
 - [ ] Schnell-Text-Speicher-CSS später visuell im echten Loader prüfen, sobald HTML und CSS gemeinsam geladen werden.
-- [ ] Performance-Hotspots prüfen und nur belegte Engstellen optimieren.
-- [ ] Schnell-Text-Speicher im späteren Loader mit `module.html` und `module.css` gemeinsam anzeigen und Kontrast sowie Abstände visuell prüfen.
 
 ## Erledigt
+- [x] Systemmodule-Bündel hat am 2026-07-16 echte, lesende `module.html`- und `module.css`-Dateien erhalten; die Single-File-App bleibt als Rückbaupfad maßgeblich.
+- [x] HTML-Auslagerung wurde am 2026-07-16 in `docs/HTML_AUSLAGERUNGSPLAN.md` in prüfbare Schnittschritte zerlegt: Styles, Standarddaten, Speicherlogik, Modul-Renderer und Hilfsfunktionen.
+- [x] Schnell-Text-Speicher nutzt am 2026-07-16 eine kleine `preview.html`, die `module.html` und `module.css` gemeinsam lädt; weiteres Wachstum muss nicht mehr über README-Erweiterungen geplant werden.
+- [x] Performance-Hotspots wurden am 2026-07-16 mit einer kleinen Scan-Prüfung abgesichert: nur ein Dauertimer ist erlaubt und Timer-Speicherung muss gedrosselt bleiben.
+- [x] Schnell-Text-Speicher kann am 2026-07-16 statisch mit `module.html` und `module.css` gemeinsam angezeigt werden; die echte Browser-Sichtprüfung bleibt getrennt offen.
 - [x] Kontrast-Fokuszustände für Raster und Panels wurden am 2026-07-16 gezielt nachgeschärft, ohne das bestehende Design umzubauen.
 - [x] Tastaturbedienung für Modulplatzierung wurde am 2026-07-16 ergänzt: aktive Module lassen sich per Eingabe/Leertaste einblenden und platzierte Module per Pfeiltasten, Pos1 und Ende im Raster verschieben.
 - [x] Release-Checkliste wurde am 2026-07-16 für Tastaturplatzierung und getrennte Sicht-/Kontrastprüfung ergänzt; die Container-Browserprüfung ist als nicht freigabefähige Umgebungslimitierung benannt.
