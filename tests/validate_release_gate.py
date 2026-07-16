@@ -37,6 +37,19 @@ REQUIRED_CHECK_COMMANDS = (
     "python3 tests/validate_release_gate.py",
 )
 
+REQUIRED_COMPILE_COMMAND = (
+    "python3 -m py_compile "
+    "tests/validate_progress_consistency.py "
+    "tests/validate_module_manifests.py "
+    "tests/test_html_helpers.py "
+    "tests/validate_genres_module.py "
+    "tests/validate_module_previews.py "
+    "tests/validate_quicktext_snippets.py "
+    "tests/test_start_local.py "
+    "tests/scan_performance_hotspots.py "
+    "tests/validate_release_gate.py"
+)
+
 BROWSER_OPEN_PATTERN = re.compile(r"^- \[ \].*(Browser|Chromium|Firefox|Speicherprüfung)", re.MULTILINE)
 README_PROGRESS_PATTERN = re.compile(r"Entwicklungsfortschritt: (\d+) %")
 TODO_PROGRESS_PATTERN = re.compile(r"Fortschritt gesamt: (\d+) %")
@@ -80,6 +93,18 @@ def require_file_reference(command: str) -> None:
         raise RuntimeError(f"Release-Prüfbefehl verweist auf fehlende Datei: {parts[1]}")
 
 
+def normalized_command(text: str) -> str:
+    return " ".join(text.split())
+
+
+def require_compile_command(text: str, label: str) -> None:
+    if REQUIRED_COMPILE_COMMAND not in normalized_command(text):
+        raise RuntimeError(f"{label} enthält nicht den vollständigen Syntaxprüfbefehl.")
+    for file_name in REQUIRED_COMPILE_COMMAND.split()[3:]:
+        if not (ROOT / file_name).is_file():
+            raise RuntimeError(f"Syntaxprüfbefehl verweist auf fehlende Datei: {file_name}")
+
+
 def main() -> int:
     try:
         readme_text = read_text(README)
@@ -99,6 +124,8 @@ def main() -> int:
             require_contains(workflow_text, command, "Release-Workflow")
             require_file_reference(command)
 
+        require_compile_command(status_text, "Release-Status")
+        require_compile_command(workflow_text, "Release-Workflow")
         require_matching_progress(readme_text, todo_text)
         require_contains(checklist_text, "Wenn einer dieser Punkte offen ist, wird keine Freigabe markiert", "Release-Checkliste")
         require_contains(status_text, ".github/workflows/release-gate.yml", "Release-Status")
