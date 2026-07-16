@@ -1854,7 +1854,7 @@
       </div>
       <div class="modal-body">
         <div class="module-placeholder">
-          Checkliste: JSON einfügen oder Datei wählen, Größe prüfen, lokales Backup wird vor dem Import erstellt.
+          Checkliste: 1. JSON einfügen oder Datei wählen. 2. Größe und Speicherplatz prüfen. 3. Sicherheitsabfrage bestätigen. 4. Lokales Backup wird erstellt. 5. Danach importieren.
         </div>
         <div class="form-field">
           <label for="importData">JSON-Konfiguration</label>
@@ -2178,6 +2178,8 @@
       let commandItems = [];
       let commandIndex = 0;
       let timerTickHandle = null;
+      let lastTimerSaveAt = 0;
+      let moduleLookup = new Map();
       let undoStack = [];
       let redoStack = [];
       let historyLock = false;
@@ -2262,7 +2264,16 @@
         try { storageService.writePrimary(JSON.stringify(state)); } catch (_) {}
       }
 
+      function refreshModuleLookup() {
+        moduleLookup = new Map(state.modules.map(module => [module.id, module]));
+      }
+
+      function getModuleById(moduleId) {
+        return moduleLookup.get(moduleId) || state.modules.find(module => module.id === moduleId) || null;
+      }
+
       function renderAll() {
+        refreshModuleLookup();
         renderSidebar();
         renderTabs();
         renderWorkspace();
@@ -2373,7 +2384,7 @@
       }
 
       function setModuleActive(moduleId, active) {
-        const module = state.modules.find(m => m.id === moduleId);
+        const module = getModuleById(moduleId);
         if (!module) return false;
         pushHistory(active ? "Modul aktivieren" : "Modul deaktivieren");
         module.active = Boolean(active);
@@ -2424,13 +2435,14 @@
       }
 
       function renderWorkspace() {
+        refreshModuleLookup();
         createGrid();
         const ws = activeWorkspace();
         const placements = Object.entries(ws.layout || {});
         let visibleCount = 0;
 
         placements.forEach(([cellIndex, placement]) => {
-          const module = state.modules.find(m => m.id === placement.moduleId);
+          const module = getModuleById(placement.moduleId);
           if (!module || !module.active) return;
           const cell = workspace.querySelector(`[data-cell="${cellIndex}"]`);
           if (!cell) return;
@@ -2660,7 +2672,7 @@
       function renderMotherModule(container, module) {
         module.content ||= { updateStatus: "Noch nicht geprüft", lastCheck: "" };
         const registry = buildModuleRegistry();
-        const visible = Object.values(activeWorkspace().layout || {}).filter(item => state.modules.some(m => m.id === item.moduleId && m.active)).length;
+        const visible = Object.values(activeWorkspace().layout || {}).filter(item => !!getModuleById(item.moduleId)?.active).length;
         const shell = document.createElement("div");
         shell.className = "core-grid";
         shell.innerHTML = `
@@ -2719,7 +2731,7 @@
         const nextWeek = new Date(); nextWeek.setDate(nextWeek.getDate() + 7);
         const upcomingEvents = state.modules.filter(item => item.type === "calendar").flatMap(item => item.content?.events || [])
           .filter(event => event.date >= todayKey && event.date <= toDateKey(nextWeek)).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 6);
-        const visible = Object.values(activeWorkspace().layout || {}).filter(item => state.modules.some(moduleItem => moduleItem.id === item.moduleId && moduleItem.active)).length;
+        const visible = Object.values(activeWorkspace().layout || {}).filter(item => !!getModuleById(item.moduleId)?.active).length;
         const codeProjects = state.modules.filter(item => item.type === "code");
         const shell = document.createElement("div"); shell.className = "overview-pro";
         const now = new Date();
@@ -3711,7 +3723,7 @@
         cell.classList.remove("drag-over");
         const moduleId = draggedModuleId || event.dataTransfer.getData("text/plain");
         if (!moduleId) return;
-        const module = state.modules.find(m => m.id === moduleId);
+        const module = getModuleById(moduleId);
         if (!module || !module.active) return;
         placeModule(moduleId, Number(cell.dataset.cell));
       }
@@ -3741,7 +3753,7 @@
           geometry: null
         };
 
-        logAction(`Modul platziert: ${state.modules.find(item => item.id === moduleId)?.name || "Modul"}`, "Layout");
+        logAction(`Modul platziert: ${getModuleById(moduleId)?.name || "Modul"}`, "Layout");
         saveState();
         renderWorkspace();
         toast("Modul platziert");
@@ -3782,7 +3794,7 @@
           zoom: 1,
           geometry: null
         };
-        logAction(`Modul eingeblendet: ${state.modules.find(item => item.id === moduleId)?.name || "Modul"}`, "Layout");
+        logAction(`Modul eingeblendet: ${getModuleById(moduleId)?.name || "Modul"}`, "Layout");
         if (persist) saveState();
         if (rerender) renderAll();
         if (!silent) toast("Modul eingeblendet");
@@ -3804,7 +3816,7 @@
         Object.keys(ws.layout || {}).forEach(key => {
           if (ws.layout[key]?.moduleId === moduleId) delete ws.layout[key];
         });
-        logAction(`Modul aus Arbeitsbereich entfernt: ${state.modules.find(item => item.id === moduleId)?.name || "Modul"}`, "Layout");
+        logAction(`Modul aus Arbeitsbereich entfernt: ${getModuleById(moduleId)?.name || "Modul"}`, "Layout");
         saveState();
         renderWorkspace();
       }
@@ -3813,7 +3825,7 @@
         if (trackHistory) pushHistory("Fenster automatisch anordnen");
         const ws = activeWorkspace();
         const placements = Object.values(ws.layout || {}).filter(item => {
-          const module = state.modules.find(m => m.id === item.moduleId);
+          const module = getModuleById(item.moduleId);
           return module?.active;
         });
         ws.layout = {};
@@ -3846,7 +3858,7 @@
       }
 
       function openModuleContextMenu(x, y, moduleId) {
-        const module = state.modules.find(m => m.id === moduleId);
+        const module = getModuleById(moduleId);
         if (!module) return;
         contextMenu.innerHTML = `
           <button data-context="toggle">${module.active ? "Deaktivieren" : "Aktivieren"}</button>
@@ -4232,7 +4244,7 @@
       }
 
       function deleteModule(moduleId) {
-        const module = state.modules.find(m => m.id === moduleId);
+        const module = getModuleById(moduleId);
         if (!module) return;
         if (["settings", "modulebuilder"].includes(module.type)) return toast(`${typeLabel(module.type)} kann nicht gelöscht werden`);
         if (state.confirmDestructive && !confirm(`Modul „${module.name}“ wirklich löschen?`)) return;
@@ -4613,11 +4625,14 @@
       }
 
       async function applyImportedState(parsed, importSize = 0) {
+        const normalizedImport = normalizeState(parsed);
+        const serializedImport = JSON.stringify(normalizedImport);
+        const estimatedWriteSize = new Blob([serializedImport]).size || importSize;
         if (!confirmRiskyAction(
           "Aktuelle Konfiguration durch den Import ersetzen? Vorher wird ein lokales Backup erstellt.",
           "Import abgebrochen: Sicherheitsabfrage nicht bestätigt."
         )) return false;
-        if (!(await hasEnoughStorageForImport(importSize))) {
+        if (!(await hasEnoughStorageForImport(estimatedWriteSize))) {
           toast(feedbackText({
             title: "Import abgebrochen: Browser-Speicher wirkt knapp.",
             cause: "Für Import und Sicherheitskopie ist wahrscheinlich nicht genug freier Speicher vorhanden.",
@@ -4638,7 +4653,7 @@
           }));
           return false;
         }
-        state = normalizeState(parsed);
+        state = normalizedImport;
         logAction("Konfiguration geprüft und importiert", "Datei");
         applyVisualSettings();
         saveState("Import gespeichert");
@@ -4657,9 +4672,11 @@
         try {
           if (!navigator.storage?.estimate || !importSize) return true;
           const estimate = await navigator.storage.estimate();
-          if (!estimate.quota || !estimate.usage) return true;
+          if (!estimate.quota || typeof estimate.usage !== "number") return true;
           const freeBytes = estimate.quota - estimate.usage;
-          return freeBytes > importSize * 2;
+          const currentBytes = new Blob([storageService.readPrimary() || "", storageService.readBackup() || ""]).size;
+          const neededBytes = Math.max(importSize * 2, importSize + currentBytes + 256000);
+          return freeBytes > neededBytes;
         } catch (error) {
           console.warn("Speicherprüfung nicht verfügbar", error);
           return true;
@@ -5549,6 +5566,7 @@
 
       function updateRunningTimers() {
         let changed = false;
+        let finished = false;
         state.modules.filter(module => module.type === "timer").forEach(module => {
           const data = module.content;
           if (!data?.running || !data.endAt) return;
@@ -5556,9 +5574,13 @@
           if (remaining !== data.remaining) { data.remaining = remaining; changed = true; }
           const clock = document.querySelector(`.timer-live[data-module-id="${CSS.escape(module.id)}"]`);
           if (clock) clock.textContent = formatSeconds(remaining);
-          if (remaining <= 0) { finishTimer(data); changed = true; renderWorkspace(); }
+          if (remaining <= 0) { finishTimer(data); changed = true; finished = true; renderWorkspace(); }
         });
-        if (changed) saveState("Timer gespeichert");
+        const now = Date.now();
+        if (changed && (finished || now - lastTimerSaveAt >= 15000)) {
+          lastTimerSaveAt = now;
+          saveState("Timer gespeichert");
+        }
       }
 
       function formatSeconds(seconds) {
