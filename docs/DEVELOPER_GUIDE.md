@@ -14,7 +14,7 @@ Empfohlen:
 ./scripts/start-local.sh
 ```
 
-Alternativ kann `dashboard-studio-ultimate-pro-v3.1.0.html` direkt im Browser geöffnet werden. Es gibt keinen Build-Schritt und keine Paketinstallation.
+Alternativ kann `dashboard-studio-ultimate-pro-v3.1.0.html` direkt im Browser geöffnet werden. Das ist nur ein eingeschränkter Rückfall, weil Browser beim Datei-Start ausgelagerte Manifest-, Modul- und Startdaten-Dateien blockieren können. Es gibt keinen Build-Schritt und keine Paketinstallation.
 
 ## Entwicklungsorganisation
 
@@ -31,12 +31,12 @@ Alternativ kann `dashboard-studio-ultimate-pro-v3.1.0.html` direkt im Browser ge
 - `modules/`: künftige Modulordner. Jeder echte Modulordner braucht ein Manifest.
 - `modules/systemmodule-buendel/`: Übergangsbeschreibung für vorhandene Systemmodule.
 - `scripts/`: kleine lokale Hilfsskripte ohne Build-System.
-- `tests/`: gezielte Prüfungen, aktuell Manifestvalidierung.
+- `tests/`: gezielte Prüfungen für Manifestvalidierung, Startweg, Hilfslogik, Modul-Previews und Performance-Hotspots.
 
 ## Barrierefreiheit: aktueller Stand und Verbesserungsfelder
 
 - Modale Fenster setzen beim Öffnen einen sichtbaren Fokus und geben ihn beim Schließen an den Auslöser zurück.
-- Das 3-mal-3-Arbeitsraster sollte als nächstes eine Tastaturbedienung zum Platzieren und Verschieben von Modulen erhalten.
+- Das 3-mal-3-Arbeitsraster unterstützt Tastaturbedienung: aktive Module lassen sich einblenden und platzierte Module mit Pfeiltasten, Pos1 und Ende verschieben.
 - Schalter und Menüknöpfe sollten durchgängig `aria-expanded`, `aria-controls` und klare Zustände setzen.
 - Statusmeldungen sollten wichtige Speicher-, Import- und Fehlerereignisse zusätzlich über die Live-Region melden.
 - Farbige Modulkennzeichnungen sollten immer durch Text ergänzt bleiben, damit Farbe nie die einzige Information ist.
@@ -56,8 +56,12 @@ Alternativ kann `dashboard-studio-ultimate-pro-v3.1.0.html` direkt im Browser ge
 
 ## Relevante Prüfungen
 
+Nur direkt betroffene Prüfungen ausführen. Häufige Einzelprüfungen sind:
+
 ```sh
 python3 tests/validate_module_manifests.py
+python3 tests/validate_progress_consistency.py
+python3 tests/validate_module_previews.py
+python3 tests/test_start_local.py
 python3 -m json.tool manifests/MULTIMODULTOOL2026_02_AppManifest.json >/dev/null
-python3 -m json.tool modules/systemmodule-buendel/module.manifest.json >/dev/null
 ```

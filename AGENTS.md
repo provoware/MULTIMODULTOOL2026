@@ -11,7 +11,7 @@ Ziel ist ein stabiles, schnelles, verständliches und lokal nutzbares Dashboard-
 - Projektname: `MULTIMODULTOOL2026`
 - Anwendungstyp: lokale Single-File-HTML-App mit geplanter Modulstruktur
 - Aktueller Startpunkt: `dashboard-studio-ultimate-pro-v3.1.0.html`
-- Aktueller Runtime-Ansatz: Browser direkt öffnen, kein Build-Schritt
+- Aktueller Runtime-Ansatz: empfohlenes Startskript mit lokalem Server; direkter Datei-Start nur als eingeschränkter Rückfall, kein Build-Schritt
 - Langfristiges Ziel: manifestbasierte Module unter `modules/`
 - Modulstandard: `standards/MULTIMODULTOOL2026_01_Modulstandard.md`
 - App- und Modulmanifeste: `manifests/`
@@ -179,10 +179,10 @@ Ein Arbeitsschritt ist erst abgeschlossen, wenn diese Punkte erfüllt sind:
 6. GUI bleibt bedienbar, falls GUI betroffen ist.
 7. Test- oder Prüfstatus ist dokumentiert.
 8. Offene Punkte sind benannt oder in `todo.txt` festgehalten.
-9. Prozentzahl des Entwicklungsfortschritts steht oben in der README und wird bei jeder Iteration bewusst geprüft.
-10. mintestens einen Platzhalter, oder eine offene Codestelle vollständig und optimal ersetzen mit richtigem Code.
-11. Mindestens eine todo-aufgabe vollständig erledigen.
-12. 
+9. Die Prozentzahl des Entwicklungsfortschritts steht oben in der README und wird bei jeder Iteration bewusst geprüft.
+10. Mindestens ein dokumentierter Platzhalter, eine offene Codestelle oder eine offene Dokumentationsinkonsistenz wird vollständig und nachvollziehbar behoben, sofern dies ohne Architekturwechsel möglich ist.
+11. Mindestens eine Aufgabe aus `todo.txt` oder eine im Audit dokumentierte offene Aufgabe wird vollständig erledigt.
+12. Nicht erledigbare Folgepunkte bleiben offen und werden nicht als erledigt markiert.
 ## 12. Bewusste Nicht-Ziele ohne separaten Auftrag
 - Kein Build-System einführen.
 - Keine externen Frameworks hinzufügen.
