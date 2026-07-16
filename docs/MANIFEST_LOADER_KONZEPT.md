@@ -67,6 +67,32 @@ Die erste technische Umsetzung sollte klein bleiben:
 3. Erst danach eine einfache Registrierungsliste für gültige Module vorbereiten.
 4. Noch keine automatische Ausführung von fremdem Modul-JavaScript einbauen.
 
+## Phasenplan für kleine sichere Schritte
+
+Die weitere Arbeit bleibt in drei getrennte Pfade aufgeteilt. Eine Phase gilt erst als erledigt, wenn sie einzeln prüfbar ist und ohne Datenverlust zurückgenommen werden kann.
+
+### Phase 1: Loader-Prototyp ohne Ausführung
+
+1. Bestehende Manifestprüfung als einzige technische Grundlage nutzen.
+2. Eine kleine Registrierungsliste aus gültigen Manifesten vorbereiten.
+3. Fehler gesammelt und verständlich ausgeben.
+4. Noch kein Modul-JavaScript laden und keine bestehende HTML-Struktur verschieben.
+
+### Phase 2: Ein Modul gezielt auslagern
+
+1. Ein fachlich kleines Modul auswählen.
+2. `module.html` und, falls nötig, `module.css` über das Manifest prüfen.
+3. Die Anzeige zuerst nur lesend einbinden.
+4. Speichern, Import und riskante Aktionen erst nach separater Prüfung ergänzen.
+
+### Phase 3: Rückbaupfad absichern
+
+1. Vor jeder Auslagerung festhalten, welcher Single-File-Bereich ersetzt wird.
+2. Einen Weg dokumentieren, wie das Modul wieder deaktiviert oder in die HTML-Datei zurückgeführt werden kann.
+3. Alte Daten erst entfernen, wenn Modulansicht, Speicherbereich und Export geprüft sind.
+4. Bei Fehlern bleibt die Single-File-App startbar; fehlerhafte Module werden übersprungen.
+
+
 ## Bewusste Nicht-Ziele
 
 - Kein Build-System.
