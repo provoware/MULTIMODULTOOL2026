@@ -1,0 +1,28 @@
+Dashboard Studio Ultimate Pro – TODO
+Stand: 2026-07-16
+
+Priorität 1 – Notwendige Korrekturen
+- Speicher-/Importpfad im Browser manuell prüfen: Standardstart, kaputte localStorage-Daten, Backup-Wiederherstellung und JSON-Import.
+- Für Export/Import kurze Nutzermeldungen vereinheitlichen: Was ist passiert? Warum? Was kann der Nutzer tun?
+- Vor großen Importen prüfen, ob Browser-Speicherplatz ausreicht, damit ein Import nicht erst beim späteren Speichern scheitert.
+
+Priorität 2 – Qualitätsverbesserungen
+- Die große HTML-Datei schrittweise in kleine Bereiche zerlegen: Styles, Standarddaten, Speicherlogik, Modul-Renderer und Hilfsfunktionen.
+- Kleine Testdatei für reine Hilfsfunktionen ergänzen: Datumsprüfung, Dateinamen-Bereinigung, URL-Normalisierung, Textbegrenzung und Zustandsnormalisierung.
+- README mit Startanleitung, Datenspeicherung, Backup-Verhalten und bekannten Browser-Grenzen ergänzen.
+
+Priorität 3 – GUI-/UX-Verbesserungen
+- Import-Dialog um eine kurze Checkliste ergänzen: JSON einfügen, Größe prüfen, Backup wird erstellt, danach importieren.
+- Statusbereich deutlicher machen, wenn ein Backup erstellt, wiederhergestellt oder abgelehnt wurde.
+- Für gefährliche Aktionen einheitliche Bestätigungstexte verwenden.
+
+Priorität 4 – Performance-Verbesserungen
+- Häufig wiederholte Modul-Suchen in Render-Pfaden prüfen und bei Bedarf über eine Map zwischenspeichern.
+- Aktivitätsprotokoll und große Textmodule bei sehr vielen Einträgen begrenzen oder seitenweise anzeigen.
+- Timer-Speicherung drosseln, damit laufende Timer den lokalen Speicher nicht unnötig oft schreiben.
+
+Bewusste Nicht-Änderungen dieser Iteration
+- Keine komplette Architektur-Umstellung.
+- Keine neuen externen Abhängigkeiten.
+- Keine optischen Massenänderungen.
+- Keine Umbenennung der bestehenden HTML-Datei.
