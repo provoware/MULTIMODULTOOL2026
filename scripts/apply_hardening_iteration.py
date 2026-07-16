@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 """Apply the focused manifest, import and keyboard hardening iteration once."""
 
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 APP = ROOT / "dashboard-studio-ultimate-pro-v3.1.0.html"
+
+if "--apply" not in sys.argv:
+    print("Einmaliges Hardening-Skript: keine Änderung ausgeführt. Nur mit --apply auf einem passenden Altstand starten.")
+    sys.exit(0)
 
 
 def replace_once(path: Path, old: str, new: str) -> None:

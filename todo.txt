@@ -1,20 +1,15 @@
 # TODO
 
-Fortschritt gesamt: 67 %
+Fortschritt gesamt: 70 %
 
 ## Offen
-- [ ] Manifestprüfungen schrittweise an das Loader-Konzept angleichen, ohne die HTML-App umzubauen.
 - [ ] Kontraste gezielt verbessern, ohne das bestehende Design komplett umzubauen.
 - [ ] Offene Entwicklung in Phasen planen, damit jede Iteration klein, prüfbar und rückbaubar bleibt.
 - [ ] Speicher-/Importpfad im Browser anhand der Release-Checkliste manuell prüfen: Standardstart, kaputte localStorage-Daten, Backup-Wiederherstellung und JSON-Import.
 - [ ] Kontraständerungen in mindestens einem Chromium- und einem Firefox-basierten Browser visuell prüfen.
 - [ ] Leere Zustände in `dashboard-studio-ultimate-pro-v3.1.0.html` prüfen, zum Beispiel Debug-Ereignisse, Termine, Code- oder Entwicklungsvorhaben, Schnelllinks und Aufgaben.
 - [ ] Eingabe-Platzhalter in Formularen in `dashboard-studio-ultimate-pro-v3.1.0.html` prüfen; sicherstellen, dass sie nur Beispiele sind und keine notwendigen Feldbeschriftungen ersetzen.
-- [ ] Eingabe-Platzhalter für Begriffe und Suche in `modules/provoware-genretool-pro/module.html` prüfen; sicherstellen, dass Pflichtangaben auch ohne Platzhalter verständlich bleiben.
-- [ ] Sentinel-Prüfung auf `PLACEHOLDER` in `tests/validate_genres_module.py` bei Moduländerungen erneut ausführen.
-- [ ] Harte Ersetzungswerte für Fortschritt/TODO in `scripts/apply_hardening_iteration.py` prüfen; entscheiden, ob das Skript archiviert, aktualisiert oder als einmaliges Hilfsskript markiert werden soll.
 - [ ] Systemmodule-Bündel später aus der HTML-Datei in echte Moduldateien überführen, sobald der Loader existiert.
-- [ ] Manifest-Prüfung mit `python3 tests/validate_module_manifests.py` bei künftigen Moduländerungen erneut ausführen.
 - [ ] Die große HTML-Datei schrittweise in kleine Bereiche zerlegen: Styles, Standarddaten, Speicherlogik, Modul-Renderer und Hilfsfunktionen.
 - [ ] Kleine Testdatei für reine Hilfsfunktionen bei Bedarf weiter ausbauen, sobald weitere reine Logik identifiziert ist.
 - [ ] README bei jeder echten Struktur-, Bedien- oder Speicheränderung kurz aktualisieren.
@@ -33,6 +28,11 @@ Fortschritt gesamt: 67 %
 - [ ] Schnell-Text-Speicher im späteren Loader mit `module.html` und `module.css` gemeinsam anzeigen und Kontrast sowie Abstände visuell prüfen.
 
 ## Erledigt
+- [x] Manifestprüfungen wurden am 2026-07-16 weiter an das Loader-Konzept angeglichen: Einstiegspunkte dürfen nur erlaubte Moduldateien sein und vorhandene Einstiegspunkt-Dateien werden geprüft.
+- [x] Eingabe-Platzhalter im GenreTool wurden am 2026-07-16 geprüft und durch sichtbare Hilfstexte ergänzt, damit Pflichtangaben auch ohne Platzhalter verständlich bleiben.
+- [x] Sentinel-Prüfung auf `PLACEHOLDER` wurde am 2026-07-16 nach der GenreTool-Moduländerung erneut ausgeführt und bestanden.
+- [x] `scripts/apply_hardening_iteration.py` wurde am 2026-07-16 als einmaliges Hilfsskript markiert und führt ohne explizites `--apply` keine Ersetzungen mehr aus.
+- [x] Manifest-Prüfung wurde am 2026-07-16 mit `python3 tests/validate_module_manifests.py` erneut ausgeführt: 16 Modulmanifeste geprüft.
 - [x] Import-Dialog zeigt jetzt eine konkrete 5-Schritt-Checkliste: JSON wählen, Größe und Speicherplatz prüfen, Sicherheitsabfrage bestätigen, Backup erstellen und importieren.
 - [x] Vor Importen wird am 2026-07-16 die normalisierte Importgröße gegen die verfügbare Browser-Speicherschätzung geprüft, bevor Backup und Speichern starten.
 - [x] Häufige Modul-Suchen in Render- und Layout-Pfaden nutzen seit 2026-07-16 eine aktualisierte Modul-Map mit sicherem Fallback.

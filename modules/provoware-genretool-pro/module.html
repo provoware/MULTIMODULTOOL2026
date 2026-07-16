@@ -15,7 +15,7 @@
     </div>
     <form class="genretool__form" data-role="entry-form">
       <label>Kategorie<select data-role="entry-category"></select></label>
-      <label class="genretool__grow">Begriffe<textarea data-role="entry-terms" maxlength="4000" rows="2" placeholder="z. B. Hard Techno, dystopisch, Maschinenhall" required></textarea></label>
+      <label class="genretool__grow">Begriffe<span class="genretool__meta">Pflichtfeld: eigene Genre-, Stimmungs- oder Stilbegriffe eingeben. Der Platzhalter ist nur ein Beispiel.</span><textarea data-role="entry-terms" maxlength="4000" rows="2" placeholder="z. B. Hard Techno, dystopisch, Maschinenhall" required></textarea></label>
       <button type="submit">Speichern</button>
     </form>
   </section>
@@ -27,7 +27,7 @@
         <button type="button" class="genretool__secondary" data-action="validate">Datenbank prüfen</button>
       </div>
       <div class="genretool__toolbar">
-        <label class="genretool__grow">Suche<input data-role="search" type="search" placeholder="Begriff suchen …"></label>
+        <label class="genretool__grow">Suche<span class="genretool__meta">Optional: Archiv nach sichtbarem Begriff filtern; leer zeigt alle Einträge.</span><input data-role="search" type="search" placeholder="Begriff suchen …"></label>
         <label>Kategorie<select data-role="filter-category"><option value="all">Alle</option></select></label>
         <label>Sortierung
           <select data-role="sort">

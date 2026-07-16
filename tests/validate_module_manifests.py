@@ -50,6 +50,7 @@ ENTRY_VALUES = {
     "css": {"module.css", None},
     "js": {"module.js", None},
 }
+ENTRY_FILENAMES = {"module.html", "module.css", "module.js"}
 ID_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 VERSION_PATTERN = re.compile(r"^\d+\.\d+\.\d+$")
 EXT_PATTERN = re.compile(r"^\.[a-z0-9]+$")
@@ -67,6 +68,15 @@ def require(condition: bool, errors: list[str], message: str) -> None:
         errors.append(message)
 
 
+def validate_entry_file(key: str, entry_file: object, module_dir: Path | None, errors: list[str]) -> None:
+    require(entry_file in ENTRY_VALUES[key], errors, f"entry.{key} ist ungueltig")
+    if not isinstance(entry_file, str):
+        return
+    require(entry_file in ENTRY_FILENAMES and "/" not in entry_file and "\\" not in entry_file, errors, f"entry.{key} darf nur eine erlaubte Moduldatei sein")
+    if module_dir is not None:
+        require((module_dir / entry_file).is_file(), errors, f"entry.{key} verweist auf fehlende Datei")
+
+
 def validate_manifest(path: Path, module_dir: Path | None = None) -> list[str]:
     data = load_json(path)
     errors: list[str] = []
@@ -81,11 +91,8 @@ def validate_manifest(path: Path, module_dir: Path | None = None) -> list[str]:
     entry = data.get("entry")
     require(isinstance(entry, dict) and set(entry) == set(ENTRY_VALUES), errors, "entry muss html, css und js enthalten")
     if isinstance(entry, dict):
-        for key, allowed in ENTRY_VALUES.items():
-            entry_file = entry.get(key)
-            require(entry_file in allowed, errors, f"entry.{key} ist ungueltig")
-            if module_dir is not None and entry_file is not None:
-                require((module_dir / entry_file).is_file(), errors, f"entry.{key} verweist auf fehlende Datei")
+        for key in ENTRY_VALUES:
+            validate_entry_file(key, entry.get(key), module_dir, errors)
 
     if module_dir is not None:
         require(data.get("id") == module_dir.name, errors, "id passt nicht zum Modulordner")
@@ -99,7 +106,8 @@ def validate_manifest(path: Path, module_dir: Path | None = None) -> list[str]:
     storage = data.get("storage")
     require(isinstance(storage, dict) and set(storage) == {"scope", "backupRequired"}, errors, "storage ist unvollstaendig")
     if isinstance(storage, dict):
-        require(storage.get("scope") in ALLOWED_STORAGE_SCOPES, errors, "storage.scope ist ungueltig")
+        scope = storage.get("scope")
+        require(scope in ALLOWED_STORAGE_SCOPES, errors, "storage.scope ist ungueltig")
         require(isinstance(storage.get("backupRequired"), bool), errors, "storage.backupRequired muss boolean sein")
 
     validation = data.get("validation")
