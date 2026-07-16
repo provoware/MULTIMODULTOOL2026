@@ -624,20 +624,20 @@
       position: relative;
       flex: 1;
       min-height: 0;
-      overflow: auto;
-      padding: 14px;
+      overflow: hidden;
+      padding: clamp(7px, 1.1vw, 14px);
     }
 
     .workspace {
       position: relative;
       width: 100%;
-      min-width: min(100%, 720px);
-      min-height: clamp(540px, calc(100vh - var(--menubar-h) - var(--tabbar-h) - 84px), 780px);
-      height: max(100%, clamp(540px, calc(100vh - var(--menubar-h) - var(--tabbar-h) - 84px), 780px));
+      height: 100%;
+      min-width: 0;
+      min-height: 0;
       display: grid;
-      grid-template-columns: repeat(3, minmax(clamp(150px, calc(24vw * var(--workspace-density)), 270px), 1fr));
-      grid-template-rows: repeat(3, minmax(clamp(132px, calc(18vh * var(--workspace-density)), 220px), 1fr));
-      gap: clamp(8px, 1.4vw, var(--grid-gap));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-rows: repeat(3, minmax(0, 1fr));
+      gap: clamp(6px, calc(1.1vw / var(--workspace-density)), var(--grid-gap));
       isolation: isolate;
     }
 
@@ -712,9 +712,11 @@
       top: 18%;
       width: min(560px, calc(100vw - 24px));
       height: min(420px, calc(100vh - var(--menubar-h) - 24px));
+      max-width: calc(100vw - 18px);
+      max-height: calc(100vh - var(--menubar-h) - 18px);
       z-index: 170;
       resize: both;
-      overflow: auto;
+      overflow: hidden;
     }
 
     .panel-window.minimized .panel-body,
@@ -765,6 +767,7 @@
       flex: 1;
       min-height: 0;
       overflow: auto;
+      overscroll-behavior: contain;
       padding: var(--panel-padding);
     }
 
@@ -836,7 +839,6 @@
       color: var(--muted);
       line-height: 1.5;
     }
-
     .dashboard-start-card strong {
       display: block;
       margin-bottom: 5px;
@@ -1174,8 +1176,8 @@
       .brand-text { display: none; }
       .menu-left .menu-dropdown-wrap { display: none; }
       .workspace {
-        min-width: 100%;
-        grid-template-columns: repeat(3, minmax(132px, 1fr));
+        min-width: 0;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
       }
       .empty-steps, .dashboard-start-grid { grid-template-columns: 1fr; }
       .panel-window.maximized { left: 10px; }
@@ -1184,7 +1186,8 @@
     @media (max-height: 650px) {
       :root { --tabbar-h: 42px; --menubar-h: 38px; }
       .toolbar { min-height: 40px; }
-      .workspace { min-height: 500px; grid-template-rows: repeat(3, minmax(120px, 1fr)); }
+      .workspace-wrap { padding: 6px; }
+      .workspace { min-height: 0; grid-template-rows: repeat(3, minmax(0, 1fr)); }
     }
 
 
@@ -1646,7 +1649,7 @@
     .panel-window { contain: layout paint; }
     .panel-window.floating, .panel-window.maximized { contain: layout; }
     .panel-header { color: var(--text-strong); }
-    .panel-body { color: var(--text); scrollbar-gutter: stable; }
+    .panel-body { color: var(--text); scrollbar-gutter: auto; }
     .panel-content {
       position: relative;
       width: var(--module-zoom-inverse, 100%);
@@ -1657,6 +1660,10 @@
       font-size: var(--module-auto-font);
       line-height: 1.5;
     }
+    .panel-window[data-fit="tight"] .panel-body { padding: clamp(5px, 1.6cqw, 9px); }
+    .panel-window[data-fit="tight"] .panel-header { min-height: 34px; padding-block: 4px; }
+    .panel-window[data-fit="tight"] .panel-subtitle { display: none; }
+    .panel-window[data-fit="tight"] .panel-action { width: 25px; height: 25px; }
     @supports not (zoom: 1) {
       .panel-content {
         transform: scale(var(--module-zoom));
@@ -3947,16 +3954,27 @@
       function formatZoom(value) {
         return `${Math.round(normalizeModuleZoom(value) * 100)}%`;
       }
-      function autoFitModuleZoom(manualZoom) {
+      function autoFitModuleZoom(manualZoom, panel = null) {
         const density = clamp(Number(state.workspaceDensity) || 1, .85, 1.25);
         const readableBoost = density >= 1.12 ? 1.04 : density <= .92 ? .96 : 1;
-        return normalizeModuleZoom((Number(manualZoom) || 1) * readableBoost);
+        const rect = panel?.getBoundingClientRect?.();
+        const widthFit = rect?.width ? clamp(rect.width / 280, 0.78, 1) : 1;
+        const heightFit = rect?.height ? clamp(rect.height / 210, 0.8, 1) : 1;
+        return normalizeModuleZoom((Number(manualZoom) || 1) * readableBoost * Math.min(widthFit, heightFit));
       }
 
       function applyPanelZoom(panel, manualZoom) {
-        const effectiveZoom = state.autoModuleFit ? autoFitModuleZoom(manualZoom) : normalizeModuleZoom(manualZoom);
+        const effectiveZoom = state.autoModuleFit ? autoFitModuleZoom(manualZoom, panel) : normalizeModuleZoom(manualZoom);
+        panel.dataset.fit = effectiveZoom < 0.92 ? "tight" : "comfortable";
         panel.style.setProperty("--module-zoom", String(effectiveZoom));
         panel.style.setProperty("--module-zoom-inverse", `${100 / effectiveZoom}%`);
+      }
+
+      function refreshPanelAutoFit() {
+        document.querySelectorAll(".panel-window").forEach(panel => {
+          const placement = findPlacement(panel.dataset.moduleId);
+          if (placement) applyPanelZoom(panel, placement.zoom);
+        });
       }
 
 
@@ -4074,6 +4092,7 @@
           activeResize.placement.geometry = fitted;
           activeResize.panel.style.width = `${width}px`;
           activeResize.panel.style.height = `${height}px`;
+          applyPanelZoom(activeResize.panel, activeResize.placement.zoom);
         }
       }
 
@@ -4903,6 +4922,7 @@
             const placement = findPlacement(panel.dataset.moduleId);
             if (placement) applyFloatingGeometry(panel, placement);
           });
+          refreshPanelAutoFit();
           saveStateDebounced();
         });
         window.addEventListener("error", event => reportRuntimeIssue(event.error || event.message));

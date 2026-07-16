@@ -8,6 +8,7 @@ Fortschritt gesamt: 95 %
 - [ ] Speicherprüfung zusätzlich in Chromium und Firefox ausführen und Ergebnis mit Screenshot oder kurzem Prüfprotokoll dokumentieren.
 
 ## Erledigt
+- [x] Untermodule passen sich am 2026-07-16 stärker automatisch an: Das 3×3-Raster nutzt die verfügbare Fläche ohne Arbeitsflächen-Scrollbalken, kleine Panels werden kompakter gezoomt und schwebende Fenster bleiben begrenzt sichtbar.
 - [x] Dashboard-Startübersicht prüft am 2026-07-16 zuerst den lokalen Standardspeicherbereich, zeigt Speicherort, Datum/Uhrzeit, letzte 5 Schritte und allgemeine Einstellungen an.
 - [x] Modulversionen werden am 2026-07-16 im App-Manifest unter `registeredModules` registriert; die Manifestprüfung erkennt fehlende, doppelte oder versionsabweichende Registrierungseinträge.
 - [x] Sidebar-Navigation wurde am 2026-07-16 bereinigt: links stehen Arbeits- und Aufgabenmodule, Systemmodule sind im Entwicklerbereich getrennt, Einstellungen sind als Dashboard-Button erreichbar und rechts gibt es eine einklappbare Schnellfunktionsleiste.
