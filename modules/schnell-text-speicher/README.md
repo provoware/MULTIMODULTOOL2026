@@ -20,6 +20,8 @@ Dokumentiere nach jeder kleinen Änderung genau eine Begründung: Welches Risiko
 
 Erstelle eine Platzhalter-Inventur: Suche nach TODO, FIXME, Dummy, Stub, Beispieltexten und leeren Zuständen. Bearbeite nichts sofort, sondern schreibe zuerst eine nummerierte Liste mit Risiko und Prüfschritt.
 
+Prüfe ein Manifest wie einen Türsteher: Stimmen Pflichtfelder, Ordnername, erlaubte Einstiegspunkte und vorhandene Dateien? Lehne nur klar falsche Angaben ab und melde verständlich, was fehlt.
+
 ### Prompting
 
 Ermittle Platzhalter nicht nur nach dem Wort „TODO“, sondern auch nach Beispielen, leeren Zuständen, Dummy-Daten und Stubs. Gib je Fundstelle Datei, Zweck, Risiko und nächsten Schritt an.
@@ -35,6 +37,8 @@ Formuliere eine Fehlermeldung in einfacher Sprache. Nutze die Reihenfolge: Ereig
 Bitte gleiche diese Meldung an vorhandene gute Beispiele an, ohne Funktion oder Datenformat zu ändern. Nenne danach kurz, welche Information vorher gefehlt hat.
 
 Bitte erstelle eine knappe Änderungsanweisung mit Ziel, betroffenen Dateien, Nicht-Zielen und Abnahmekriterium. Halte sie so klein, dass ein Mini-Patch genügt.
+
+Bitte prüfe diese Modulbeschreibung auf Konsistenz: Passt die ID zum Ordner, zeigen Einstiegsdateien auf echte Dateien und bleibt die Fehlermeldung für Laien verständlich?
 
 ### Vibecoding
 
@@ -52,6 +56,8 @@ Wenn eine manuelle Prüfung in der Umgebung nicht möglich ist, dokumentiere ehr
 
 Halte die kreative Energie gezielt: Sammle drei Ideen, wähle eine risikoarme Idee aus und setze nur den kleinsten sichtbaren Teil davon um.
 
+Behandle Prüfcode wie Sicherheitsgeländer: Er soll klare Fehltritte verhindern, aber keine funktionierende Übergangslösung unnötig blockieren.
+
 ### KI-Bildgenerierung
 
 Erstelle eine klare Platzhalter-Grafik für einen leeren Modulzustand: freundliche Karte, dezentes Plus-Symbol, kurze visuelle Anleitung, hoher Kontrast, kein echter Text und keine Warnstimmung.
@@ -67,6 +73,8 @@ Gestalte eine freundliche Hinweisgrafik für eine lokale Backup-Funktion: sicher
 Erzeuge eine kleine Import-Hinweisgrafik: geöffnete Datei, prüfendes Häkchen, dezenter Sicherheitsschild, klare helle Akzente, keine Warnpanik und keine schwer lesbaren Details.
 
 Gestalte eine ruhige Modul-Vorschau: sechs Karten in sauberem Raster, leichte Tiefe, klare Überschriften als Formen angedeutet, freundliche Akzente und kein echter Produktname.
+
+Erzeuge ein klares Symbolbild für Manifest-Prüfung: Ordner, Häkchen, kleine Dateikarten und dezenter Schutzrahmen, ruhige Blautöne, keine bedrohliche Warnoptik und kein lesbarer Kleinsttext.
 
 ### KI-Musikgenerierung
 
@@ -84,6 +92,8 @@ Beschreibe einen kurzen Bestätigungs-Sound für erfolgreichen Import: 8 Sekunde
 
 Erzeuge einen fokussierten Review-Loop: 70 Sekunden, leiser Puls, weiche E-Piano-Akkorde, kaum Höhen, keine Stimme und gut geeignet für ruhiges Lesen von Prüflisten.
 
+Beschreibe einen sanften Validierungs-Loop: 80 Sekunden, ruhiger Klick-Puls, warme Pads, kurze helle Bestätigungstöne, keine Stimme und passend zum konzentrierten Prüfen von Manifesten.
+
 ### KI-Contentcreation
 
 Erstelle aus einer Platzhalter-Liste eine umsetzbare Aufgabenübersicht: zuerst Risiko, dann Nutzerwirkung, dann kleinster nächster Schritt und zuletzt ein klares Abnahmekriterium.
@@ -99,3 +109,5 @@ Erstelle eine Nutzerinfo für verbesserte Meldungen: Beschreibe kurz, dass Hinwe
 Schreibe ein kompaktes Prüfprotokoll: Was wurde im Browser geprüft, was war wegen Umgebung offen, welche Daten wurden nicht verändert und welcher nächste Schritt ist empfohlen.
 
 Erstelle eine kurze Fortschrittsmeldung: ein Satz zum Nutzen, ein Satz zur geprüften Grenze und ein Satz mit dem nächsten sinnvollen Schritt ohne Werbesprache.
+
+Schreibe eine kurze Prüferklärung für Nicht-Techniker: Ein Manifest ist der Steckbrief eines Moduls; geprüft wurden Name, Ordner, erlaubte Dateien und fehlende Verweise.
