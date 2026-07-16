@@ -5,7 +5,7 @@
   "type": "quicktext",
   "description": "Schnelle Texteingabe mit validiertem TXT-Dateiexport.",
   "entry": {
-    "html": null,
+    "html": "module.html",
     "css": null,
     "js": null
   },
