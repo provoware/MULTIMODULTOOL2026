@@ -3,7 +3,7 @@ Stand: 2026-07-16
 Aktueller Startpunkt: dashboard-studio-ultimate-pro-v3.1.0.html
 Arbeitsweise: lokal im Browser, ohne Build-Schritt, ohne externe Laufzeit-Abhängigkeiten.
 
-Fortschritt gesamt: 54 %
+Fortschritt gesamt: 55 %
 Berechnung: erledigte Grundlagen und Standards zählen 40 %, laufende Qualitäts- und UX-Arbeit 35 %, Modul-Auslagerung und Tests 25 %.
 Aktualisierungsregel: Bei jeder Iteration Stand, Prozentwert, erledigte Punkte, offene Punkte und bekannte Grenzen prüfen und anpassen.
 
@@ -24,6 +24,7 @@ Erledigt
 - Schnell-Text-Speicher wurde um je einen weiteren nutzbaren Textbaustein pro Kategorie ergänzt.
 - Release-Checkliste für lokale Freigabeprüfungen wurde in docs/RELEASE_CHECKLIST.md ergänzt.
 - Schnell-Text-Speicher wurde für die aktuelle Iteration erneut um je einen Textbaustein pro Kategorie erweitert.
+- Export- und Backup-Meldungen wurden strukturierter formuliert: Ereignis, Grund, Lösung und Speicherstatus werden nun bei den direkt betroffenen Hinweisen angezeigt.
 
 In Arbeit
 - README als schnelle Einstiegs- und Orientierungshilfe aktuell halten.
@@ -34,7 +35,6 @@ In Arbeit
 
 Priorität 1 – Notwendige Korrekturen
 - Speicher-/Importpfad im Browser anhand der Release-Checkliste manuell prüfen: Standardstart, kaputte localStorage-Daten, Backup-Wiederherstellung und JSON-Import.
-- Für Export kurze Nutzermeldungen vereinheitlichen: Was ist passiert? Warum? Was kann der Nutzer tun? Wurde etwas gespeichert?
 - Vor großen Importen prüfen, ob Browser-Speicherplatz ausreicht, damit ein Import nicht erst beim späteren Speichern scheitert.
 - Kontraständerungen in mindestens einem Chromium- und einem Firefox-basierten Browser visuell prüfen.
 
@@ -45,7 +45,7 @@ Priorität 2 – Qualitätsverbesserungen
 - Kleine Testdatei für reine Hilfsfunktionen bei Bedarf weiter ausbauen, sobald weitere reine Logik identifiziert ist.
 - README bei jeder echten Struktur-, Bedien- oder Speicheränderung kurz aktualisieren.
 - Release-Checkliste nach der ersten vollständigen manuellen Browserprüfung mit Datum und Ergebnis verfeinern.
-- Textbausteine im Schnell-Text-Speicher bei weiteren Iterationen gezielt ergänzen, ohne die Moduldatei aufzublähen.
+- Textbausteine im Schnell-Text-Speicher bei weiteren Iterationen gezielt ergänzen, ohne die Moduldatei aufzublähen; bei weiterem Wachstum eine kleine Moduldatei statt README-Erweiterung planen.
 
 Priorität 3 – GUI-/UX-Verbesserungen
 - Import-Dialog um eine kurze Checkliste ergänzen: JSON einfügen, Größe prüfen, Backup wird erstellt, danach importieren.
@@ -137,7 +137,7 @@ Akzeptanzkriterien:
 
 Schritteplan für die nächsten Iterationen
 1. Iteration: Manuelle Browserprüfung für Speicher, Import und Backup durchführen; Ergebnis in `todo.txt` eintragen.
-2. Iteration: Einheitliche Meldungstexte für Export und Backup definieren und minimal in der HTML-Datei anwenden.
+2. Iteration: Import-Meldungen nach demselben Muster prüfen und nur bei echten Lücken angleichen.
 3. Iteration: Loader-Konzept gegen erste Prüffunktion planen, ohne die HTML-App umzubauen.
 4. Iteration: Einen kleinen Modul-Kandidaten auswählen und Auslagerung mit Rückbauhinweis vorbereiten.
 5. Iteration: Weitere reine Hilfslogik nur bei konkretem Nutzen ergänzen und erst danach mögliche Extraktion prüfen.
@@ -157,10 +157,10 @@ Bewusste Nicht-Änderungen dieser Iteration
 - Keine optischen Massenänderungen.
 - Keine Umbenennung der bestehenden HTML-Datei.
 - Kein Build-System.
-- Keine Codeänderung an der bestehenden HTML-App.
-- Keine Browserprüfung, weil diese Iteration nur Dokumentation und Modul-Textbausteine ergänzt hat.
+- Keine Änderung an Import-Datenformat, Speicherformat oder Modulstruktur.
+- Keine Browserprüfung, weil diese Iteration Meldungstexte und Dokumentationsbausteine gezielt angepasst hat.
 - Keine neue Laufzeitlogik für den Schnell-Text-Speicher; ergänzt wurden nur weitere dokumentierte Textbausteine.
 
 Empfohlene nächste Schritte
 1. Speicher-/Importpfad manuell im Browser prüfen und Ergebnis hier dokumentieren.
-2. Export- und Backup-Meldungen vereinheitlichen, damit Nutzer Ursache, Folge und nächste Handlung klar erkennen.
+2. Import-Meldungen mit den neuen Export-/Backup-Meldungen vergleichen und nur dort angleichen, wo Ursache, Lösung oder Speicherstatus fehlen.
