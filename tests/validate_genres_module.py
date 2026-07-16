@@ -10,6 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 MODULE = ROOT / "modules" / "provoware-genretool-pro"
+LEGACY_ROOT_DATABASE = ROOT / "genres_db.json"
 APP_MANIFEST = ROOT / "manifests" / "MULTIMODULTOOL2026_02_AppManifest.json"
 EXPECTED_CATEGORIES = ("genres", "moods", "styles", "effects", "themes", "special")
 EXPECTED_TOTAL = 1800
@@ -20,6 +21,9 @@ def fail(message: str) -> None:
 
 
 def main() -> int:
+    if LEGACY_ROOT_DATABASE.exists():
+        fail("Veraltete Root-Kopie genres_db.json gefunden; Startdaten müssen nur im GenreTool-Modul liegen")
+
     manifest = json.loads((MODULE / "module.manifest.json").read_text(encoding="utf-8"))
     database = json.loads((MODULE / "genres_db.json").read_text(encoding="utf-8"))
     app = json.loads(APP_MANIFEST.read_text(encoding="utf-8"))
