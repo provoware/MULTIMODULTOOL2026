@@ -35,6 +35,12 @@ jobs:
       - name: Validate module previews
         run: python3 tests/validate_module_previews.py
 
+      - name: Validate quick text snippets
+        run: python3 tests/validate_quicktext_snippets.py
+
+      - name: Test local start script
+        run: python3 tests/test_start_local.py
+
       - name: Scan performance hotspots
         run: python3 tests/scan_performance_hotspots.py
 
@@ -49,5 +55,7 @@ jobs:
           tests/test_html_helpers.py
           tests/validate_genres_module.py
           tests/validate_module_previews.py
+          tests/validate_quicktext_snippets.py
+          tests/test_start_local.py
           tests/scan_performance_hotspots.py
           tests/validate_release_gate.py

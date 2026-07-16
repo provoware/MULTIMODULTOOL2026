@@ -4,7 +4,7 @@ Dieses Protokoll beschreibt den aktuellen Stand der Release-Fertigstellung. Es e
 
 ## Ergebnis
 
-- Status: Release-Kandidat mit offener manueller Browserfreigabe.
+- Status: Release-Kandidat mit offener manueller Browserfreigabe; die lokale Vorprüfung ist vollständig abgedeckt.
 - Nutzbarkeit: Die App bleibt ohne Build-Schritt nutzbar.
 - Datenlage: Keine privaten Beispiel-, Import-, Export- oder Logdaten wurden für diese Freigabe ergänzt.
 - Grenze: Eine echte Chromium- und Firefox-Sichtprüfung ist in dieser Containerumgebung nicht belegbar.
@@ -19,9 +19,11 @@ python3 tests/validate_module_manifests.py
 python3 tests/test_html_helpers.py
 python3 tests/validate_genres_module.py
 python3 tests/validate_module_previews.py
+python3 tests/validate_quicktext_snippets.py
+python3 tests/test_start_local.py
 python3 tests/scan_performance_hotspots.py
 python3 tests/validate_release_gate.py
-python3 -m py_compile tests/validate_progress_consistency.py tests/validate_module_manifests.py tests/test_html_helpers.py tests/validate_genres_module.py tests/validate_module_previews.py tests/scan_performance_hotspots.py tests/validate_release_gate.py
+python3 -m py_compile tests/validate_progress_consistency.py tests/validate_module_manifests.py tests/test_html_helpers.py tests/validate_genres_module.py tests/validate_module_previews.py tests/validate_quicktext_snippets.py tests/test_start_local.py tests/scan_performance_hotspots.py tests/validate_release_gate.py
 ```
 
 Zusätzlich kann der lokale Start ohne Browseröffnung technisch geprüft werden:
@@ -33,7 +35,7 @@ curl -I http://127.0.0.1:8765/dashboard-studio-ultimate-pro-v3.1.0.html
 
 ## Lokales Release-Gate
 
-Das zusätzliche Release-Gate `python3 tests/validate_release_gate.py` prüft bewusst nur dokumentierte Freigabegrenzen und vorhandene Prüfbefehle. Es ersetzt keine sichtbare Browserprüfung. Dadurch bleibt maschinell belegbar, dass der Stand ein Release-Kandidat ist und die manuelle Browserfreigabe nicht versehentlich als erledigt markiert wurde.
+Das zusätzliche Release-Gate `python3 tests/validate_release_gate.py` prüft bewusst nur dokumentierte Freigabegrenzen und vorhandene Prüfbefehle. Es ersetzt keine sichtbare Browserprüfung. Dadurch bleibt maschinell belegbar, dass der Stand ein Release-Kandidat ist, alle vorhandenen lokalen Prüfscripte im Gate abgedeckt sind und die manuelle Browserfreigabe nicht versehentlich als erledigt markiert wurde.
 
 Die vorhandenen lokalen Prüfbefehle sind zusätzlich in `.github/workflows/release-gate.yml` hinterlegt. Dadurch werden Pushes auf `work` und `main` sowie Pull Requests mit denselben statischen Release-Prüfungen abgesichert, ohne Browserfreigabe oder Build-Schritt vorzutäuschen.
 
@@ -50,4 +52,4 @@ Diese Punkte bleiben offen, weil sie eine echte Browserumgebung mit sichtbarer O
 
 ## Freigabeentscheidung
 
-Der Stand darf als lokaler Release-Kandidat weitergegeben werden, wenn die lokalen Vorprüfungen bestanden sind und die offenen manuellen Browserpunkte als bekannte Grenze mitgegeben werden. Eine endgültige Freigabe darf erst markiert werden, wenn die Browserpunkte geprüft und dokumentiert sind.
+Der Stand darf als lokaler Release-Kandidat weitergegeben werden, wenn die lokale Vorprüfung vollständig bestanden ist und die offenen manuellen Browserpunkte als bekannte Grenze mitgegeben werden. Eine endgültige Freigabe darf erst markiert werden, wenn die Browserpunkte geprüft und dokumentiert sind.
