@@ -1,0 +1,30 @@
+{
+  "id": "bildvorschau",
+  "name": "Bildvorschau",
+  "version": "1.0.0",
+  "type": "custom",
+  "description": "Lokale Bildvorschau mit Vor und Zurück Navigation durch ausgewählte Nutzerdateien.",
+  "entry": {
+    "html": "module.html",
+    "css": "module.css",
+    "js": "module.js"
+  },
+  "permissions": [
+    "file-import"
+  ],
+  "storage": {
+    "scope": "module",
+    "backupRequired": false
+  },
+  "validation": {
+    "maxInputBytes": 8000000,
+    "allowedFileExtensions": [
+      ".png",
+      ".jpg",
+      ".jpeg",
+      ".gif",
+      ".webp",
+      ".svg"
+    ]
+  }
+}

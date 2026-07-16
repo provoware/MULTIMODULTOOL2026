@@ -1,0 +1,38 @@
+{
+  "id": "dateinamensuche",
+  "name": "Dateinamensuche",
+  "version": "1.0.0",
+  "type": "custom",
+  "description": "Lokale Dateinamensuche in einem ausgewählten Ordner mit Wortfiltern und Dateiaktionen.",
+  "entry": {
+    "html": "module.html",
+    "css": "module.css",
+    "js": "module.js"
+  },
+  "permissions": [
+    "file-import"
+  ],
+  "storage": {
+    "scope": "module",
+    "backupRequired": false
+  },
+  "validation": {
+    "maxInputBytes": 8000000,
+    "allowedFileExtensions": [
+      ".txt",
+      ".md",
+      ".json",
+      ".html",
+      ".css",
+      ".js",
+      ".png",
+      ".jpg",
+      ".jpeg",
+      ".mp3",
+      ".wav",
+      ".mp4",
+      ".webm",
+      ".pdf"
+    ]
+  }
+}

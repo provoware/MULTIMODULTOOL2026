@@ -9,6 +9,7 @@ Fortschritt gesamt: 99 %
 - [ ] Speicherprüfung zusätzlich in Chromium und Firefox ausführen und Ergebnis in `docs/BROWSER_RELEASE_PROTOCOL_2026-07-16.md` mit Screenshot-Hinweis oder kurzer Notiz dokumentieren.
 
 ## Erledigt
+- [x] Lokale Dateiwerkzeuge wurden am 2026-07-16 ergänzt: Audio-Playlist, Bildvorschau, Dateinamensuche, Favoriten-Ablage, Quickbar-Informationsspeicher und Startskript-Ampelmeldungen sind ohne neue Abhängigkeiten verfügbar.
 - [x] Automatisierbarer Browser-Smoke-Test wurde am 2026-07-16 ergänzt: `tests/browser_release_smoke.py` kann Chromium/Firefox-Start, Speicherprüfung, Backup-Wiederherstellung, kleinen JSON-Import und Exportdownload mit Playwright prüfen, ohne die sichtbare Freigabe vorzutäuschen.
 - [x] Browser-Freigabevorprüfung wurde am 2026-07-16 nach erteilter Arbeitsfreigabe dokumentiert: Im Container fehlen Chromium/Chrome, Firefox und `xdg-open`, deshalb bleibt die echte Sichtfreigabe offen und wird nicht vorgetäuscht.
 - [x] Release-Gate prüft am 2026-07-16 zusätzlich die Browser-Freigabevorlage, damit offene Chromium-/Firefox-, Speicher- und Datenprüfungen nicht versehentlich als abgeschlossen erscheinen.

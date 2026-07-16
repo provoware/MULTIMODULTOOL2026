@@ -8,12 +8,12 @@ Lokales Dashboard-Werkzeug als Single-File-HTML-App. Die Anwendung soll ohne Ins
 - Arbeitsmodell: empfohlenes Startskript mit lokalem Server; direkter Datei-Start nur als eingeschränkter Rückfall
 - Entwicklungsfortschritt: 99 % (Details siehe `todo.txt`)
 - Nächster logischer Schritt: echte Browser-Freigabe in Chromium und Firefox nach `docs/RELEASE_STATUS_2026-07-16.md`; dabei Start, Kontrast, Tastaturbedienung, Speicherprüfung, JSON-Import, Backup-Wiederherstellung und Exportdownload mit kleinen Testdaten prüfen.
-- Modulziel: spätere manifestbasierte Module unter `modules/`
+- Modulziel: spätere manifestbasierte Module unter `modules/`; erste lokale Dateiwerkzeuge sind als manifestbasierte Module ergänzt: Audio-Playlist, Bildvorschau, Dateinamensuche und Favoriten-Ablage.
 - Wichtige Regel: mittelgroße, sichere Änderungen vor großen Umbauten
 
 ## Start
 
-Die Anwendung sollte per Startskript geöffnet werden. Das Skript prüft die wichtigsten Projektdateien, prüft zuerst den gewünschten lokalen Port, wählt bei Belegung automatisch einen nahen Alternativport, startet einen kleinen lokalen Python-Server und öffnet die App im Browser:
+Die Anwendung sollte per Startskript geöffnet werden. Das Skript prüft die wichtigsten Projektdateien mit Ampelmeldungen, prüft zuerst den gewünschten lokalen Port, wählt bei Belegung automatisch einen nahen Alternativport, startet einen kleinen lokalen Python-Server und öffnet die App im Browser:
 
 ```sh
 ./scripts/start-local.sh
@@ -42,7 +42,7 @@ Wichtige Hinweise:
 
 ## Modulstrategie
 
-Ja, Module können künftig separate Dateien sein. Die laufende Version bleibt zuerst als stabile Single-File-HTML-App bestehen. Über **Module → Manifest-Module laden** oder den Button in der Seitenleiste kann die App das App-Manifest lesen und gültige Modulmanifeste ergänzend in die lokale Modulübersicht übernehmen. Das App-Manifest führt die vorgesehenen Module zusätzlich mit ID, Version und Manifestpfad in `registeredModules`; die Prüfung meldet fehlende, doppelte oder versionsabweichende Einträge vor einer Weitergabe. Beim direkten Öffnen per `file://` kann der Browser diesen Zugriff blockieren; deshalb startet `./scripts/start-local.sh` automatisch einen lokalen Server und öffnet die App über `http://127.0.0.1`.
+Ja, Module können künftig separate Dateien sein. Die laufende Version bleibt zuerst als stabile Single-File-HTML-App bestehen. Über **Module → Manifest-Module laden** oder den Button in der Seitenleiste kann die App das App-Manifest lesen und gültige Modulmanifeste ergänzend in die lokale Modulübersicht übernehmen. Die lokalen Dateiwerkzeuge nutzen browserkonforme Datei- oder Ordnerauswahl; eine Suche über den ganzen Rechner oder echtes Umbenennen auf der Festplatte ist ohne Nutzerfreigabe durch Browser-Sicherheitsregeln begrenzt. Das App-Manifest führt die vorgesehenen Module zusätzlich mit ID, Version und Manifestpfad in `registeredModules`; die Prüfung meldet fehlende, doppelte oder versionsabweichende Einträge vor einer Weitergabe. Beim direkten Öffnen per `file://` kann der Browser diesen Zugriff blockieren; deshalb startet `./scripts/start-local.sh` automatisch einen lokalen Server und öffnet die App über `http://127.0.0.1`.
 
 Neue oder ausgelagerte Module sollen nach dem Modulstandard beschrieben werden:
 
