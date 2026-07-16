@@ -16,6 +16,8 @@ Verbessere eine Nutzer-Meldung so, dass sie vier Fragen beantwortet: Was ist pas
 
 Vergleiche ähnliche Meldungen paarweise, bevor du Code änderst: Export, Import und Backup sollen gleich klar sein, aber nur echte Lücken bekommen neue Wörter.
 
+Dokumentiere nach jeder kleinen Änderung genau eine Begründung: Welches Risiko wurde gesenkt, welche Datei wurde berührt und welche Prüfung reicht dafür aus?
+
 ### Prompting
 
 Beschreibe zuerst Ziel, gewünschtes Ausgabeformat, Eingabedaten und Ausschlüsse. Bitte danach um Rückfragen nur dann, wenn ohne Antwort ein falsches Ergebnis wahrscheinlich wäre.
@@ -27,6 +29,8 @@ Bitte prüfe meinen Entwurf wie ein Release-Reviewer: Nenne zuerst blockierende 
 Formuliere eine Fehlermeldung in einfacher Sprache. Nutze die Reihenfolge: Ereignis, Grund, nächster Schritt, Speicherstatus. Vermeide Schuldzuweisungen und unklare Wörter wie „Fehler 1“.
 
 Bitte gleiche diese Meldung an vorhandene gute Beispiele an, ohne Funktion oder Datenformat zu ändern. Nenne danach kurz, welche Information vorher gefehlt hat.
+
+Bitte erstelle eine knappe Änderungsanweisung mit Ziel, betroffenen Dateien, Nicht-Zielen und Abnahmekriterium. Halte sie so klein, dass ein Mini-Patch genügt.
 
 ### Vibecoding
 
@@ -40,6 +44,8 @@ Nimm dir pro Runde nur einen sichtbaren Qualitätsgewinn vor, zum Beispiel besse
 
 Wenn eine manuelle Prüfung in der Umgebung nicht möglich ist, dokumentiere ehrlich die Grenze und ergänze den kleinsten nächsten Prüfschritt statt ein Ergebnis zu erfinden.
 
+Halte die kreative Energie gezielt: Sammle drei Ideen, wähle eine risikoarme Idee aus und setze nur den kleinsten sichtbaren Teil davon um.
+
 ### KI-Bildgenerierung
 
 Erzeuge ein ruhiges, kontrastreiches Vorschaubild mit klar erkennbarem Hauptmotiv, einfacher Lichtführung und wenigen Ablenkungen. Nenne Stil, Kameraperspektive, Farbpalette und was ausdrücklich nicht im Bild erscheinen soll.
@@ -51,6 +57,8 @@ Erzeuge ein schlichtes Release-Banner: ruhige dunkle Fläche, eine klare Checkli
 Gestalte eine freundliche Hinweisgrafik für eine lokale Backup-Funktion: sicherer Tresor, kleine Datei-Karte, ruhige Blautöne, klare Symbole, keine Angststimmung, kein winziger Text.
 
 Erzeuge eine kleine Import-Hinweisgrafik: geöffnete Datei, prüfendes Häkchen, dezenter Sicherheitsschild, klare helle Akzente, keine Warnpanik und keine schwer lesbaren Details.
+
+Gestalte eine ruhige Modul-Vorschau: sechs Karten in sauberem Raster, leichte Tiefe, klare Überschriften als Formen angedeutet, freundliche Akzente und kein echter Produktname.
 
 ### KI-Musikgenerierung
 
@@ -64,6 +72,8 @@ Erstelle einen ruhigen Sicherheits-Jingle: 30 Sekunden, sanfte Marimba, warmer B
 
 Beschreibe einen kurzen Bestätigungs-Sound für erfolgreichen Import: 8 Sekunden, zwei warme Akkorde, leichter Glockenakzent, ruhiger Ausklang, nicht laut und passend zu sachlichen Statusmeldungen.
 
+Erzeuge einen fokussierten Review-Loop: 70 Sekunden, leiser Puls, weiche E-Piano-Akkorde, kaum Höhen, keine Stimme und gut geeignet für ruhiges Lesen von Prüflisten.
+
 ### KI-Contentcreation
 
 Schreibe den Inhalt zuerst als kurze Kernbotschaft, dann als Nutzenversprechen und zuletzt als klare Handlungsaufforderung. Halte Sprache einfach, konkret und ohne unnötige Fachbegriffe.
@@ -75,3 +85,5 @@ Schreibe eine Release-Notiz in einfacher Sprache: Was wurde verbessert, welche N
 Erstelle eine Nutzerinfo für verbesserte Meldungen: Beschreibe kurz, dass Hinweise jetzt Grund, Lösung und Speicherstatus nennen. Nenne auch, dass keine Arbeitsweise geändert wurde.
 
 Schreibe ein kompaktes Prüfprotokoll: Was wurde im Browser geprüft, was war wegen Umgebung offen, welche Daten wurden nicht verändert und welcher nächste Schritt ist empfohlen.
+
+Erstelle eine kurze Fortschrittsmeldung: ein Satz zum Nutzen, ein Satz zur geprüften Grenze und ein Satz mit dem nächsten sinnvollen Schritt ohne Werbesprache.
