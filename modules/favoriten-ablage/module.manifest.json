@@ -10,6 +10,8 @@
     "js": "module.js"
   },
   "permissions": [
+    "file-export",
+    "file-import",
     "local-storage"
   ],
   "storage": {

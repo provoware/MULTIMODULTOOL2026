@@ -6,9 +6,9 @@ Lokales Dashboard-Werkzeug als Single-File-HTML-App. Die Anwendung soll ohne Ins
 
 - Startdatei: `dashboard-studio-ultimate-pro-v3.1.0.html`
 - Arbeitsmodell: empfohlenes Startskript mit lokalem Server; direkter Datei-Start nur als eingeschränkter Rückfall
-- Entwicklungsfortschritt: 99 % (Details siehe `todo.txt`)
+- Entwicklungsfortschritt: 87 % (Details siehe `todo.txt`)
 - Nächster logischer Schritt: echte Browser-Freigabe in Chromium und Firefox nach `docs/RELEASE_STATUS_2026-07-16.md`; dabei Start, Kontrast, Tastaturbedienung, Speicherprüfung, JSON-Import, Backup-Wiederherstellung und Exportdownload mit kleinen Testdaten prüfen.
-- Modulziel: spätere manifestbasierte Module unter `modules/`; erste lokale Dateiwerkzeuge sind als manifestbasierte Module ergänzt: Audio-Playlist, Bildvorschau, Dateinamensuche und Favoriten-Ablage.
+- Modulziel: spätere manifestbasierte Module unter `modules/`; erste lokale Dateiwerkzeuge sind als manifestbasierte Module ergänzt und basisgehärtet: Audio-Playlist, Bildvorschau, Dateinamensuche und Favoriten-Ablage.
 - Wichtige Regel: mittelgroße, sichere Änderungen vor großen Umbauten
 
 ## Start

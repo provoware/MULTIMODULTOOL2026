@@ -1,14 +1,16 @@
 # TODO
 
-Fortschritt gesamt: 99 %
+Fortschritt gesamt: 87 %
 
 ## Offen
+- [ ] Modul-Sandbox, Hash-/Signaturprüfung und strikte Laufzeitdurchsetzung aller Manifestrechte als eigene Architekturiteration umsetzen; der aktuelle Hotfix härtet interne Repository-Module, ersetzt aber keine echte Drittmodul-Isolation.
 - [ ] Optionalen automatischen Browser-Smoke-Test auf einem Rechner mit installiertem Playwright, Chromium und Firefox streng ausführen: `python3 tests/browser_release_smoke.py --browser chromium --require-browser` und `python3 tests/browser_release_smoke.py --browser firefox --require-browser`; Ergebnis anschließend im Browser-Freigabeprotokoll ergänzen.
 - [ ] Kontraständerungen auf einer echten Chromium- und Firefox-Installation visuell nachprüfen; die Container-Prüfung am 2026-07-16 war durch Snap-/Download-Sperren blockiert.
 - [ ] Echte Browser-Freigabe anhand von `docs/RELEASE_STATUS_2026-07-16.md` manuell prüfen; Ergebnisse in `docs/BROWSER_RELEASE_PROTOCOL_2026-07-16.md` dokumentieren: Chromium-Start, Firefox-Start, Backup-Wiederherstellung, JSON-Import und Exportdatei-Download.
 - [ ] Speicherprüfung zusätzlich in Chromium und Firefox ausführen und Ergebnis in `docs/BROWSER_RELEASE_PROTOCOL_2026-07-16.md` mit Screenshot-Hinweis oder kurzer Notiz dokumentieren.
 
 ## Erledigt
+- [x] Kritischer Laufzeit- und Sicherheits-Hotfix wurde am 2026-07-16 umgesetzt: `moduleEntry()` ist definiert, einfache Modulskripte finden ihre Modulwurzel robust, offensichtliche DOM-XSS-Senken in Dateiwerkzeugen sind entfernt, Blob-URLs werden freigegeben, Dateimengen/-größen begrenzt, Statusbereiche beschriftet und der Chromium-Smoke-Test ist im Release-Gate streng eingebunden.
 - [x] Lokale Dateiwerkzeuge wurden am 2026-07-16 ergänzt: Audio-Playlist, Bildvorschau, Dateinamensuche, Favoriten-Ablage, Quickbar-Informationsspeicher und Startskript-Ampelmeldungen sind ohne neue Abhängigkeiten verfügbar.
 - [x] Automatisierbarer Browser-Smoke-Test wurde am 2026-07-16 ergänzt: `tests/browser_release_smoke.py` kann Chromium/Firefox-Start, Speicherprüfung, Backup-Wiederherstellung, kleinen JSON-Import und Exportdownload mit Playwright prüfen, ohne die sichtbare Freigabe vorzutäuschen.
 - [x] Browser-Freigabevorprüfung wurde am 2026-07-16 nach erteilter Arbeitsfreigabe dokumentiert: Im Container fehlen Chromium/Chrome, Firefox und `xdg-open`, deshalb bleibt die echte Sichtfreigabe offen und wird nicht vorgetäuscht.

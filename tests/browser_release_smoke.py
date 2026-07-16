@@ -20,7 +20,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 APP_FILE = "dashboard-studio-ultimate-pro-v3.1.0.html"
 APP_URL = f"http://127.0.0.1:{{port}}/{APP_FILE}"
-STORAGE_KEY = "MULTIMODULTOOL2026/dashboard-data"
+STORAGE_KEY = "dashboardStudioUltimatePro.v3.1.state"
 BROWSERS = ("chromium", "firefox")
 
 
@@ -71,22 +71,23 @@ def exercise_browser(playwright, browser_name: str, port: int, require_browser: 
         page.locator("#app").wait_for(timeout=7000)
         page.wait_for_function("key => Boolean(localStorage.getItem(key))", arg=STORAGE_KEY)
 
-        page.evaluate("() => checkStorageHealth()")
+        page.wait_for_function("() => Boolean(window.MULTIMODULTOOL2026)")
+        page.evaluate("() => window.MULTIMODULTOOL2026.checkStorageHealth()")
         wait_for_toast(page, "Speicherprüfung abgeschlossen")
 
-        page.evaluate("() => createLocalBackup(true)")
+        page.evaluate("() => window.MULTIMODULTOOL2026.createLocalBackup(true)")
         wait_for_toast(page, "Lokales Backup erstellt")
-        page.evaluate("() => restoreLocalBackup()")
+        page.evaluate("() => window.MULTIMODULTOOL2026.restoreLocalBackup()")
         wait_for_toast(page, "Backup wiederhergestellt")
 
         exported_state = page.evaluate("key => localStorage.getItem(key)", STORAGE_KEY)
-        page.evaluate("() => executeCommand('importConfig')")
+        page.evaluate("() => window.MULTIMODULTOOL2026.executeCommand('importConfig')")
         page.locator("#importData").fill(exported_state)
         page.locator("#confirmImport").click()
         wait_for_toast(page, "Import abgeschlossen")
 
         with page.expect_download(timeout=7000) as download_info:
-            page.evaluate("() => exportConfig()")
+            page.evaluate("() => window.MULTIMODULTOOL2026.exportConfig()")
         download = download_info.value
         target = Path(download_dir) / download.suggested_filename
         download.save_as(target)
@@ -130,7 +131,7 @@ def main() -> int:
         server.shutdown()
         server.server_close()
 
-    if not tried and args.require_browser:
+    if not tried:
         print("FEHLER: Kein Browser-Smoke-Test wurde ausgeführt.", file=sys.stderr)
         return 1
     return 0
