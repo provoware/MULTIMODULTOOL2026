@@ -10,7 +10,8 @@
     "js": "module.js"
   },
   "permissions": [
-    "file-import"
+    "file-import",
+    "local-storage"
   ],
   "storage": {
     "scope": "module",

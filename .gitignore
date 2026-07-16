@@ -1,0 +1,22 @@
+# Lokale Nutzdaten und erzeugte Laufzeitdateien
+logs/*
+exports/*
+imports/private-*
+data/private-*
+backups/*
+trash/*
+
+# Strukturordner bei Bedarf weiter versionierbar halten
+!logs/.gitkeep
+!exports/.gitkeep
+!backups/.gitkeep
+!trash/.gitkeep
+
+# Python-/Test-Artefakte
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Browser-/Playwright-Artefakte
+playwright-report/
+test-results/

@@ -3125,7 +3125,7 @@
           return;
         }
 
-        const manifestEntry = normalizeManifestEntry(module?.content?.entry);
+        const manifestEntry = normalizeManifestEntry(module?.content?.entry, module?.content?.manifestPath?.replace(/[^/]*$/, "") || "");
         if (manifestEntry) {
           renderManifestBackedModule(container, module, manifestEntry);
           return;
@@ -3137,32 +3137,72 @@
         container.appendChild(placeholder);
       }
 
-      function normalizeManifestEntry(entry) {
+      function moduleEntry(moduleId) {
+        const safeId = cleanText(moduleId, 80);
+        if (!/^[a-z0-9-]+$/.test(safeId)) return null;
+        const base = `modules/${safeId}/`;
+        return {
+          html: `${base}module.html`,
+          css: `${base}module.css`,
+          js: `${base}module.js`
+        };
+      }
+
+      function normalizeManifestEntry(entry, basePath = "") {
         if (!entry || typeof entry !== "object") return null;
-        const html = cleanText(entry.html, 160);
-        const css = cleanText(entry.css, 160);
-        const js = cleanText(entry.js, 160);
-        if (!html || !css || !js) return null;
-        if ([html, css, js].some(path => path.includes("..") || /^(?:https?:|data:|javascript:)/i.test(path))) return null;
-        return { html, css, js };
+        const normalized = {};
+        for (const part of ["html", "css", "js"]) {
+          const value = cleanText(entry[part], 180);
+          if (!value) { normalized[part] = null; continue; }
+          if (value.includes("..") || /^(?:https?:|data:|javascript:)/i.test(value)) return null;
+          normalized[part] = resolveModuleEntryPath(value, basePath);
+        }
+        if (!normalized.html && !normalized.css && !normalized.js) return null;
+        return normalized;
+      }
+
+      function resolveModuleEntryPath(path, basePath = "") {
+        if (!basePath) return path;
+        try {
+          return new URL(path, new URL(basePath, globalThis.location.href)).pathname.replace(/^\//, "");
+        } catch (_) {
+          return path;
+        }
+      }
+
+      async function fetchOptionalModulePart(url, fallback = "") {
+        if (!url) return fallback;
+        const response = await fetch(url, { cache: "no-store" });
+        if (!response.ok) throw new Error(`Moduldatei nicht erreichbar: ${url}`);
+        return response.text();
       }
 
       async function renderManifestBackedModule(container, module, entry) {
         container.innerHTML = '<div class="module-placeholder"><div><strong>Modul wird geladen …</strong><br>Die Moduldateien werden lokal eingebunden.</div></div>';
         try {
-          const [htmlResponse, cssResponse, jsResponse] = await Promise.all([
-            fetch(entry.html, { cache: "no-store" }),
-            fetch(entry.css, { cache: "no-store" }),
-            fetch(entry.js, { cache: "no-store" })
+          const [html, css, js] = await Promise.all([
+            fetchOptionalModulePart(entry.html),
+            fetchOptionalModulePart(entry.css),
+            fetchOptionalModulePart(entry.js)
           ]);
-          if (!htmlResponse.ok || !cssResponse.ok || !jsResponse.ok) throw new Error("Mindestens eine Moduldatei ist nicht erreichbar.");
-          const [html, css, js] = await Promise.all([htmlResponse.text(), cssResponse.text(), jsResponse.text()]);
           if (!document.body.contains(container)) return;
-          container.innerHTML = `<style>${css}</style>${html}`;
-          const script = document.createElement("script");
-          script.dataset.moduleBase = new URL(entry.html, globalThis.location.href).href.replace(/[^/]*$/, "");
-          script.textContent = js;
-          container.appendChild(script);
+          container.replaceChildren();
+          if (css) {
+            const style = document.createElement("style");
+            style.textContent = css;
+            container.appendChild(style);
+          }
+          const host = document.createElement("div");
+          host.dataset.moduleHost = module.id;
+          host.innerHTML = html || `<div class="module-placeholder">${escapeHtml(module.name)} hat keine HTML-Ansicht hinterlegt.</div>`;
+          container.appendChild(host);
+          if (js) {
+            const script = document.createElement("script");
+            script.dataset.moduleRoot = module.id;
+            script.dataset.moduleBase = new URL(entry.html || entry.js || entry.css, globalThis.location.href).href.replace(/[^/]*$/, "");
+            script.textContent = js;
+            container.appendChild(script);
+          }
         } catch (error) {
           handleAppError(error, {
             area: `Manifest-Modul: ${module?.name || "Unbekannt"}`,
@@ -3171,7 +3211,7 @@
             solution: "Bitte die App über ./scripts/start-local.sh oder einen lokalen Webserver öffnen und erneut laden.",
             changed: "Es wurden keine Moduldaten verändert."
           });
-          container.innerHTML = '<div class="module-error-state"><strong>GenreTool nicht geladen.</strong><span>Bitte ./scripts/start-local.sh nutzen. Das Skript prüft die wichtigsten Dateien, startet einen lokalen Server und öffnet diese App über http://127.0.0.1, damit HTML, CSS, JavaScript und Startdaten gelesen werden dürfen.</span></div>';
+          container.innerHTML = `<div class="module-error-state"><strong>${escapeHtml(module?.name || "Modul")} nicht geladen.</strong><span>Bitte ./scripts/start-local.sh nutzen. Das Skript prüft die wichtigsten Dateien, startet einen lokalen Server und öffnet diese App über http://127.0.0.1. Es wurde nichts gespeichert oder verändert.</span></div>`;
         }
       }
 
@@ -6368,6 +6408,16 @@
         return Math.min(max, Math.max(min, value));
       }
 
+      function exposeSmokeTestApi() {
+        globalThis.MULTIMODULTOOL2026 = Object.freeze({
+          checkStorageHealth,
+          createLocalBackup,
+          restoreLocalBackup,
+          executeCommand,
+          exportConfig
+        });
+      }
+
       function escapeHtml(value) {
         return String(value)
           .replaceAll("&", "&amp;")
@@ -6376,6 +6426,8 @@
           .replaceAll('"', "&quot;")
           .replaceAll("'", "&#039;");
       }
+
+      exposeSmokeTestApi();
     })();
   </script>
 </body>
