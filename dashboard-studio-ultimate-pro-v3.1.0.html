@@ -2122,8 +2122,10 @@
           id: newId(), name: "Provoware GenreTool Pro", type: "custom", color: "#ec4899",
           description: "Songs-Untermodul für Genre-, Stimmungs-, Stil- und Themenkombinationen", active: false,
           category: "songs",
+          manifestId: "provoware-genretool-pro",
           content: {
-            brief: "Verwaltet eindeutige GenreTool-Einträge und kombiniert Kategorien ohne Duplikate."
+            brief: "Verwaltet eindeutige GenreTool-Einträge und kombiniert Kategorien ohne Duplikate.",
+            entry: genreToolEntry()
           }
         }
       ];
@@ -2709,10 +2711,54 @@
           return;
         }
 
+        const manifestEntry = normalizeManifestEntry(module?.content?.entry);
+        if (manifestEntry) {
+          renderManifestBackedModule(container, module, manifestEntry);
+          return;
+        }
+
         const placeholder = document.createElement("div");
         placeholder.className = "module-placeholder";
         placeholder.innerHTML = `<div><strong>${escapeHtml(module.name)}</strong><br>${escapeHtml(getModuleFallbackText(module))}</div>`;
         container.appendChild(placeholder);
+      }
+
+      function normalizeManifestEntry(entry) {
+        if (!entry || typeof entry !== "object") return null;
+        const html = cleanText(entry.html, 160);
+        const css = cleanText(entry.css, 160);
+        const js = cleanText(entry.js, 160);
+        if (!html || !css || !js) return null;
+        if ([html, css, js].some(path => path.includes("..") || /^(?:https?:|data:|javascript:)/i.test(path))) return null;
+        return { html, css, js };
+      }
+
+      async function renderManifestBackedModule(container, module, entry) {
+        container.innerHTML = '<div class="module-placeholder"><div><strong>Modul wird geladen …</strong><br>Die Moduldateien werden lokal eingebunden.</div></div>';
+        try {
+          const [htmlResponse, cssResponse, jsResponse] = await Promise.all([
+            fetch(entry.html, { cache: "no-store" }),
+            fetch(entry.css, { cache: "no-store" }),
+            fetch(entry.js, { cache: "no-store" })
+          ]);
+          if (!htmlResponse.ok || !cssResponse.ok || !jsResponse.ok) throw new Error("Mindestens eine Moduldatei ist nicht erreichbar.");
+          const [html, css, js] = await Promise.all([htmlResponse.text(), cssResponse.text(), jsResponse.text()]);
+          if (!document.body.contains(container)) return;
+          container.innerHTML = `<style>${css}</style>${html}`;
+          const script = document.createElement("script");
+          script.dataset.moduleBase = new URL(entry.html, globalThis.location.href).href.replace(/[^/]*$/, "");
+          script.textContent = js;
+          container.appendChild(script);
+        } catch (error) {
+          handleAppError(error, {
+            area: `Manifest-Modul: ${module?.name || "Unbekannt"}`,
+            userMessage: "Das ausgelagerte Modul konnte nicht geladen werden.",
+            cause: "Der Browser blockiert lokale Moduldateien oder eine Moduldatei fehlt.",
+            solution: "Bitte die App über ./scripts/start-local.sh oder einen lokalen Webserver öffnen und erneut laden.",
+            changed: "Es wurden keine Moduldaten verändert."
+          });
+          container.innerHTML = '<div class="module-error-state"><strong>GenreTool nicht geladen.</strong><span>Bitte über das Startskript öffnen, damit HTML, CSS, JavaScript und Startdaten gelesen werden dürfen.</span></div>';
+        }
       }
 
       function getModuleFallbackText(module) {
@@ -4217,7 +4263,7 @@
         return {
           id: newId(), manifestId: id, name, type, description,
           color: colorFromText(id), active: false, category: moduleCategoryId({ name, type, description }),
-          content: normalizeContent(type)
+          content: { ...normalizeContent(type), entry: manifest.entry }
         };
       }
 
@@ -4239,6 +4285,16 @@
         }
         if (!builder.active) setModuleActive(builder.id, true);
         else placeModuleInFirstFreeCell(builder.id);
+      }
+
+      function genreToolEntry() {
+        return { html: "modules/provoware-genretool-pro/module.html", css: "modules/provoware-genretool-pro/module.css", js: "modules/provoware-genretool-pro/module.js" };
+      }
+
+      function normalizeModuleContent(raw, type) {
+        const content = normalizeContent(type, raw?.content);
+        if (raw?.name === "Provoware GenreTool Pro") return { ...content, entry: genreToolEntry() };
+        return content;
       }
 
       function normalizeContent(type, existing = null) {
@@ -4962,9 +5018,10 @@
             type,
             color: validColor(raw.color) ? raw.color : "#38bdf8",
             description: cleanText(raw.description, 300),
+            manifestId: cleanText(raw.manifestId, 80),
             category: moduleCategoryId(raw),
             active: Boolean(raw.active),
-            content: normalizeContent(type, raw.content)
+            content: normalizeModuleContent(raw, type)
           };
         }).filter(Boolean);
 
@@ -4973,6 +5030,12 @@
         settingsModules.slice(1).forEach(module => { module.type = "custom"; module.content = {}; });
         const builderModules = output.modules.filter(module => module.type === "modulebuilder");
         builderModules.slice(1).forEach(module => { module.type = "custom"; module.content = {}; });
+        output.modules.forEach(module => {
+          if (module.name === "Provoware GenreTool Pro" && !module.content?.entry) {
+            module.manifestId = "provoware-genretool-pro";
+            module.content = { ...module.content, entry: genreToolEntry() };
+          }
+        });
         if (!settingsModules.length) {
           const template = structuredClone(defaultModules.find(module => module.type === "settings"));
           template.id = newId();
