@@ -51,7 +51,7 @@ python3 tests/browser_release_smoke.py --browser chromium --require-browser
 python3 tests/browser_release_smoke.py --browser firefox --require-browser
 ```
 
-Ohne `--require-browser` überspringt der Test fehlende Browser oder fehlendes Playwright bewusst mit einer klaren Meldung. Das ist für Entwicklungscontainer hilfreich, ersetzt aber keine Freigabe. Die automatische Prüfung bewertet außerdem keine menschliche Lesbarkeit, keinen echten Kontrasteindruck und keine Bedienqualität mit sichtbarer Oberfläche; diese Sichtprüfung bleibt im Browser-Freigabeprotokoll offen, bis sie auf einem echten Chromium- und Firefox-Arbeitsplatz dokumentiert wurde.
+Ohne `--require-browser` überspringt der Test fehlende Browser oder fehlendes Playwright bewusst mit einer klaren Meldung und beendet den Lauf ohne Freigabefehler. Das ist für Entwicklungscontainer hilfreich, ersetzt aber keine Freigabe. Mit `--require-browser` bleibt der Lauf streng: fehlendes Playwright, ein fehlender Browser oder kein tatsächlich ausgeführter Browser-Test führen zu einem Fehler. Die automatische Prüfung bewertet außerdem keine menschliche Lesbarkeit, keinen echten Kontrasteindruck und keine Bedienqualität mit sichtbarer Oberfläche; diese Sichtprüfung bleibt im Browser-Freigabeprotokoll offen, bis sie auf einem echten Chromium- und Firefox-Arbeitsplatz dokumentiert wurde.
 
 ## Manuell offen vor echter Freigabe
 
