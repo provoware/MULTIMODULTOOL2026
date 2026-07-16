@@ -1,0 +1,78 @@
+<section class="genretool" aria-labelledby="genretool-title">
+  <header class="genretool__header">
+    <div>
+      <p class="genretool__eyebrow">Songs-Untermodul</p>
+      <h2 id="genretool-title">Provoware GenreTool Pro</h2>
+      <p>Lokale Begriffsdatenbank für Genres, Stimmungen, Stile, Effekte, Themen und Besonderheiten.</p>
+    </div>
+    <output id="genretool-status" class="genretool__status" role="status">Bereit. Noch nichts verändert.</output>
+  </header>
+
+  <form id="genretool-entry-form" class="genretool__panel genretool__form">
+    <label>
+      Kategorie
+      <select id="genretool-category" required>
+        <option value="genre">Genre</option>
+        <option value="mood">Stimmung</option>
+        <option value="style">Stil</option>
+        <option value="effect">Effekt</option>
+        <option value="theme">Thema</option>
+        <option value="special">Besonderheit</option>
+      </select>
+    </label>
+    <label>
+      Begriff
+      <input id="genretool-term" maxlength="80" placeholder="z. B. Synthwave" required>
+    </label>
+    <button type="submit">Eintrag speichern</button>
+  </form>
+
+  <section class="genretool__grid">
+    <article class="genretool__panel">
+      <h3>Archiv</h3>
+      <div class="genretool__toolbar">
+        <input id="genretool-search" placeholder="Suchen..." aria-label="Einträge suchen">
+        <select id="genretool-filter" aria-label="Kategorie filtern">
+          <option value="all">Alle Kategorien</option>
+          <option value="genre">Genre</option>
+          <option value="mood">Stimmung</option>
+          <option value="style">Stil</option>
+          <option value="effect">Effekt</option>
+          <option value="theme">Thema</option>
+          <option value="special">Besonderheit</option>
+        </select>
+      </div>
+      <p id="genretool-count" class="genretool__meta">0 von 1.800 Einträgen.</p>
+      <div id="genretool-list" class="genretool__list" aria-live="polite"></div>
+    </article>
+
+    <article class="genretool__panel">
+      <h3>Generator</h3>
+      <div class="genretool__toolbar">
+        <label>
+          Ergebnisse
+          <input id="genretool-result-count" type="number" min="1" max="12" value="3">
+        </label>
+        <button id="genretool-generate" type="button">Zufall erzeugen</button>
+      </div>
+      <div id="genretool-results" class="genretool__results" aria-live="polite"></div>
+    </article>
+  </section>
+
+  <section class="genretool__panel">
+    <h3>Daten & Sicherheit</h3>
+    <div class="genretool__actions">
+      <button id="genretool-undo" type="button">Undo</button>
+      <button id="genretool-redo" type="button">Redo</button>
+      <button id="genretool-export" type="button">Export</button>
+      <label class="genretool__file">Import JSON/TXT/CSV<input id="genretool-import" type="file" accept=".json,.txt,.csv"></label>
+      <button id="genretool-backup" type="button">Backup erstellen</button>
+      <button id="genretool-reset" class="genretool__danger" type="button">Zurücksetzen</button>
+    </div>
+  </section>
+
+  <section class="genretool__panel">
+    <h3>Verlauf</h3>
+    <div id="genretool-history" class="genretool__history" aria-live="polite"></div>
+  </section>
+</section>
