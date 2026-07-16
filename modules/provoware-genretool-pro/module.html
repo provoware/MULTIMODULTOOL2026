@@ -1,78 +1,93 @@
-<section class="genretool" aria-labelledby="genretool-title">
+<section class="genretool" data-module-id="provoware-genretool-pro" aria-labelledby="genretool-title">
   <header class="genretool__header">
     <div>
       <p class="genretool__eyebrow">Songs-Untermodul</p>
       <h2 id="genretool-title">Provoware GenreTool Pro</h2>
-      <p>Lokale Begriffsdatenbank für Genres, Stimmungen, Stile, Effekte, Themen und Besonderheiten.</p>
+      <p>Genres, Stimmungen, Stile, Effekte, Themen und Besonderheiten verwalten und kombinieren.</p>
     </div>
-    <output id="genretool-status" class="genretool__status" role="status">Bereit. Noch nichts verändert.</output>
+    <output class="genretool__status" data-role="status" role="status" aria-live="polite">Modul wird geladen …</output>
   </header>
 
-  <form id="genretool-entry-form" class="genretool__panel genretool__form">
-    <label>
-      Kategorie
-      <select id="genretool-category" required>
-        <option value="genre">Genre</option>
-        <option value="mood">Stimmung</option>
-        <option value="style">Stil</option>
-        <option value="effect">Effekt</option>
-        <option value="theme">Thema</option>
-        <option value="special">Besonderheit</option>
-      </select>
-    </label>
-    <label>
-      Begriff
-      <input id="genretool-term" maxlength="80" placeholder="z. B. Synthwave" required>
-    </label>
-    <button type="submit">Eintrag speichern</button>
-  </form>
+  <section class="genretool__panel genretool__add" aria-labelledby="genretool-add-title">
+    <div>
+      <h3 id="genretool-add-title">Begriffe ergänzen</h3>
+      <p class="genretool__meta">Mehrere Werte durch Komma, Semikolon oder Zeilenumbruch trennen.</p>
+    </div>
+    <form class="genretool__form" data-role="entry-form">
+      <label>Kategorie<select data-role="entry-category"></select></label>
+      <label class="genretool__grow">Begriffe<textarea data-role="entry-terms" maxlength="4000" rows="2" placeholder="z. B. Hard Techno, dystopisch, Maschinenhall" required></textarea></label>
+      <button type="submit">Speichern</button>
+    </form>
+  </section>
 
   <section class="genretool__grid">
-    <article class="genretool__panel">
-      <h3>Archiv</h3>
-      <div class="genretool__toolbar">
-        <input id="genretool-search" placeholder="Suchen..." aria-label="Einträge suchen">
-        <select id="genretool-filter" aria-label="Kategorie filtern">
-          <option value="all">Alle Kategorien</option>
-          <option value="genre">Genre</option>
-          <option value="mood">Stimmung</option>
-          <option value="style">Stil</option>
-          <option value="effect">Effekt</option>
-          <option value="theme">Thema</option>
-          <option value="special">Besonderheit</option>
-        </select>
+    <article class="genretool__panel genretool__archive" aria-labelledby="genretool-archive-title">
+      <div class="genretool__section-head">
+        <div><h3 id="genretool-archive-title">Archiv</h3><p class="genretool__meta" data-role="count">0 Einträge</p></div>
+        <button type="button" class="genretool__secondary" data-action="validate">Datenbank prüfen</button>
       </div>
-      <p id="genretool-count" class="genretool__meta">0 von 1.800 Einträgen.</p>
-      <div id="genretool-list" class="genretool__list" aria-live="polite"></div>
+      <div class="genretool__toolbar">
+        <label class="genretool__grow">Suche<input data-role="search" type="search" placeholder="Begriff suchen …"></label>
+        <label>Kategorie<select data-role="filter-category"><option value="all">Alle</option></select></label>
+        <label>Sortierung
+          <select data-role="sort">
+            <option value="az">A–Z</option><option value="za">Z–A</option>
+            <option value="favorites">Favoriten zuerst</option><option value="custom">Eigene zuerst</option>
+          </select>
+        </label>
+      </div>
+      <div class="genretool__list" data-role="list" aria-live="polite"></div>
+      <nav class="genretool__pager" aria-label="Archivseiten">
+        <button type="button" class="genretool__secondary" data-action="page-prev">Zurück</button>
+        <span data-role="page-info">Seite 1</span>
+        <button type="button" class="genretool__secondary" data-action="page-next">Weiter</button>
+      </nav>
     </article>
 
-    <article class="genretool__panel">
-      <h3>Generator</h3>
-      <div class="genretool__toolbar">
-        <label>
-          Ergebnisse
-          <input id="genretool-result-count" type="number" min="1" max="12" value="3">
-        </label>
-        <button id="genretool-generate" type="button">Zufall erzeugen</button>
+    <article class="genretool__panel genretool__generator" aria-labelledby="genretool-generator-title">
+      <div class="genretool__section-head"><div><h3 id="genretool-generator-title">Mixer</h3><p class="genretool__meta">Kategorien wählen, Treffer erzeugen, sperren und neu würfeln.</p></div></div>
+      <fieldset class="genretool__mix"><legend>Kategorien</legend><div data-role="category-mixer"></div></fieldset>
+      <div class="genretool__options">
+        <label>Ergebnisse<input data-role="result-count" type="number" min="1" max="12" value="3"></label>
+        <label class="genretool__check"><input data-role="avoid-recent" type="checkbox" checked> Letzte Treffer meiden</label>
+        <label class="genretool__check"><input data-role="favorites-first" type="checkbox"> Favoriten bevorzugen</label>
+        <label class="genretool__check"><input data-role="auto-copy" type="checkbox"> Nach Erzeugung kopieren</label>
       </div>
-      <div id="genretool-results" class="genretool__results" aria-live="polite"></div>
+      <div class="genretool__actions">
+        <button type="button" data-action="generate">Zufall erzeugen</button>
+        <button type="button" class="genretool__secondary" data-action="copy-all">Alles kopieren</button>
+        <button type="button" class="genretool__secondary" data-action="unlock-all">Sperren lösen</button>
+      </div>
+      <div class="genretool__results" data-role="results" aria-live="polite"></div>
     </article>
   </section>
 
-  <section class="genretool__panel">
-    <h3>Daten & Sicherheit</h3>
+  <section class="genretool__panel" aria-labelledby="genretool-data-title">
+    <div class="genretool__section-head"><div><h3 id="genretool-data-title">Daten & Sicherheit</h3><p class="genretool__meta">Importe werden geprüft; riskante Änderungen erhalten vorher eine Sicherung.</p></div></div>
     <div class="genretool__actions">
-      <button id="genretool-undo" type="button">Undo</button>
-      <button id="genretool-redo" type="button">Redo</button>
-      <button id="genretool-export" type="button">Export</button>
-      <label class="genretool__file">Import JSON/TXT/CSV<input id="genretool-import" type="file" accept=".json,.txt,.csv"></label>
-      <button id="genretool-backup" type="button">Backup erstellen</button>
-      <button id="genretool-reset" class="genretool__danger" type="button">Zurücksetzen</button>
+      <button type="button" class="genretool__secondary" data-action="undo">Rückgängig</button>
+      <button type="button" class="genretool__secondary" data-action="redo">Wiederholen</button>
+      <button type="button" class="genretool__secondary" data-action="export">Datenbank exportieren</button>
+      <label class="genretool__file">Import JSON/TXT/CSV<input data-role="import" type="file" accept=".json,.txt,.csv,application/json,text/plain,text/csv"></label>
+      <button type="button" class="genretool__secondary" data-action="backup">Backup erstellen</button>
+      <button type="button" class="genretool__danger" data-action="reset">Auf Startdaten zurücksetzen</button>
     </div>
   </section>
 
-  <section class="genretool__panel">
-    <h3>Verlauf</h3>
-    <div id="genretool-history" class="genretool__history" aria-live="polite"></div>
+  <section class="genretool__panel" aria-labelledby="genretool-history-title">
+    <div class="genretool__section-head"><div><h3 id="genretool-history-title">Verlauf</h3><p class="genretool__meta">Die letzten 50 erzeugten Kombinationen.</p></div></div>
+    <div class="genretool__history" data-role="history" aria-live="polite"></div>
   </section>
+
+  <dialog class="genretool__dialog" data-role="edit-dialog" aria-labelledby="genretool-edit-title">
+    <form method="dialog" data-role="edit-form">
+      <h3 id="genretool-edit-title">Eintrag bearbeiten</h3>
+      <label>Kategorie<select data-role="edit-category"></select></label>
+      <label>Begriff<input data-role="edit-term" maxlength="80" required></label>
+      <div class="genretool__actions">
+        <button type="button" class="genretool__secondary" data-action="edit-cancel">Abbrechen</button>
+        <button type="submit">Änderung speichern</button>
+      </div>
+    </form>
+  </dialog>
 </section>
