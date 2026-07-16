@@ -3,7 +3,7 @@ Stand: 2026-07-16
 Aktueller Startpunkt: dashboard-studio-ultimate-pro-v3.1.0.html
 Arbeitsweise: lokal im Browser, ohne Build-Schritt, ohne externe Laufzeit-Abhängigkeiten.
 
-Fortschritt gesamt: 50 %
+Fortschritt gesamt: 51 %
 Berechnung: erledigte Grundlagen und Standards zählen 40 %, laufende Qualitäts- und UX-Arbeit 35 %, Modul-Auslagerung und Tests 25 %.
 Aktualisierungsregel: Bei jeder Iteration Stand, Prozentwert, erledigte Punkte, offene Punkte und bekannte Grenzen prüfen und anpassen.
 
@@ -20,6 +20,7 @@ Erledigt
 - Manifestprüfer wurde an die im Schema erlaubten Modultypen `mother`, `registry` und `debugging` angeglichen.
 - Kleine Hilfslogik-Prüfung für Datum, sichere Dateinamen und URL-Normalisierung wurde ergänzt.
 - Hilfslogik-Tests wurden um Textbegrenzung und Aufgaben-Zustandsnormalisierung erweitert.
+- Schnell-Text-Speicher hat eine kleine README mit je einem nutzbaren Textbaustein für Coding, Prompting, Vibecoding, KI-Bildgenerierung, KI-Musikgenerierung und KI-Contentcreation.
 
 In Arbeit
 - README als schnelle Einstiegs- und Orientierungshilfe aktuell halten.
@@ -39,6 +40,7 @@ Priorität 2 – Qualitätsverbesserungen
 - Die große HTML-Datei schrittweise in kleine Bereiche zerlegen: Styles, Standarddaten, Speicherlogik, Modul-Renderer und Hilfsfunktionen.
 - Kleine Testdatei für reine Hilfsfunktionen bei Bedarf weiter ausbauen, sobald weitere reine Logik identifiziert ist.
 - README bei jeder echten Struktur-, Bedien- oder Speicheränderung kurz aktualisieren.
+- Textbausteine im Schnell-Text-Speicher bei weiteren Iterationen gezielt ergänzen, ohne die Moduldatei aufzublähen.
 
 Priorität 3 – GUI-/UX-Verbesserungen
 - Import-Dialog um eine kurze Checkliste ergänzen: JSON einfügen, Größe prüfen, Backup wird erstellt, danach importieren.
@@ -140,6 +142,7 @@ Bekannte Grenzen
 - Die App ist noch eine große HTML-Datei; Änderungen sollen deshalb klein und gezielt bleiben.
 - Browser-Speicher ist je nach Browser und Gerät begrenzt.
 - Prozentwert ist eine gepflegte Projektschätzung, keine automatisch berechnete Kennzahl.
+- Schnell-Text-Speicher enthält aktuell dokumentierte Startbausteine, aber noch keine eigene Moduloberfläche außerhalb der Single-File-App.
 - Visuelle Prüfungen ersetzen keine vollständige Barrierefreiheitsprüfung.
 - Der Phasenplan ist eine Arbeitsreihenfolge und ersetzt keine technische Spezifikation für einzelne Patches.
 
@@ -150,8 +153,8 @@ Bewusste Nicht-Änderungen dieser Iteration
 - Keine Umbenennung der bestehenden HTML-Datei.
 - Kein Build-System.
 - Keine Codeänderung an der bestehenden HTML-App.
-- Keine Browserprüfung, weil diese Iteration nur reine Hilfslogik per Node geprüft hat.
-- Keine Codeänderung an der HTML-App; die bestehende Logik wurde nur gezielter geprüft.
+- Keine Browserprüfung, weil diese Iteration nur Dokumentation und Modul-Textbausteine ergänzt hat.
+- Keine neue Laufzeitlogik für den Schnell-Text-Speicher; ergänzt wurde nur eine kleine Moduldokumentation mit Textbausteinen.
 
 Empfohlene nächste Schritte
 1. Speicher-/Importpfad manuell im Browser prüfen und Ergebnis hier dokumentieren.
