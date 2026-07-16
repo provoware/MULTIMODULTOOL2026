@@ -6,7 +6,7 @@
   "description": "Schnelle Texteingabe mit validiertem TXT-Dateiexport.",
   "entry": {
     "html": "module.html",
-    "css": null,
+    "css": "module.css",
     "js": null
   },
   "permissions": [
