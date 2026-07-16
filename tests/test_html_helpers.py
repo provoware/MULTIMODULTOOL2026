@@ -12,9 +12,29 @@ ROOT = Path(__file__).resolve().parents[1]
 APP = ROOT / "dashboard-studio-ultimate-pro-v3.1.0.html"
 
 NODE_SCRIPT = r'''
-function cleanText(value, maxLength = 200) {
+function cleanText(value, maxLength = 500) {
   if (value === null || value === undefined) return "";
-  return String(value).replace(/\u0000/g, "").replace(/\s+/g, " ").trim().slice(0, maxLength);
+  return String(value)
+    .replace(/[\u0000-\u001F\u007F]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, maxLength);
+}
+function normalizeContent(type, existing = null) {
+  const source = existing && typeof existing === "object" ? existing : {};
+  if (type === "tasks") return {
+    filter: ["all", "open", "done", "overdue"].includes(source.filter) ? source.filter : "all",
+    sort: ["manual", "priority", "due"].includes(source.sort) ? source.sort : "manual",
+    items: Array.isArray(source.items) ? source.items.slice(0, 5000).map(item => ({
+      id: cleanText(item?.id, 120) || "test-id",
+      text: cleanText(item?.text, 180),
+      done: Boolean(item?.done),
+      priority: ["low", "medium", "high"].includes(item?.priority) ? item.priority : "medium",
+      due: validDate(item?.due) ? item.due : "",
+      createdAt: cleanText(item?.createdAt, 50) || "2026-07-16T00:00:00.000Z"
+    })).filter(item => item.text) : []
+  };
+  return {};
 }
 function validDate(value) {
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
@@ -49,6 +69,8 @@ function normalizeUrl(value) {
   }
 }
 const checks = [
+  ["clean text trims and limits", cleanText("  A\n\tB\u0000C  ", 5) === "A B C"],
+  ["clean text default limit", cleanText("x".repeat(501)).length === 500],
   ["valid date", validDate("2026-02-28") === true],
   ["invalid leap day", validDate("2026-02-29") === false],
   ["invalid format", validDate("28.02.2026") === false],
@@ -58,6 +80,8 @@ const checks = [
   ["url adds https", normalizeUrl("example.com/path") === "https://example.com/path"],
   ["url strips credentials", normalizeUrl("https://user:pass@example.com/a") === "https://example.com/a"],
   ["url rejects unsupported", normalizeUrl("javascript:alert(1)") === ""],
+  ["tasks normalize invalid state", normalizeContent("tasks", { filter: "bad", sort: "bad", items: [{ text: " Aufgabe ", priority: "urgent", due: "2026-02-29" }] }).items[0].priority === "medium"],
+  ["tasks drop empty text", normalizeContent("tasks", { items: [{ text: "   " }, { text: "ok" }] }).items.length === 1],
 ];
 const failed = checks.filter(([, ok]) => !ok).map(([name]) => name);
 if (failed.length) {
@@ -67,7 +91,7 @@ if (failed.length) {
 console.log(JSON.stringify({ checked: checks.length }));
 '''
 
-REQUIRED_HELPERS = ("function validDate", "function safeFilename", "function normalizeUrl")
+REQUIRED_HELPERS = ("function cleanText", "function normalizeContent", "function validDate", "function safeFilename", "function normalizeUrl")
 
 
 def main() -> int:
@@ -84,7 +108,7 @@ def main() -> int:
         return 1
 
     checked = json.loads(result.stdout)["checked"]
-    print(f"OK: {checked} Hilfslogik-Faelle fuer Datum, Dateiname und URL geprueft.")
+    print(f"OK: {checked} Hilfslogik-Faelle fuer Text, Zustand, Datum, Dateiname und URL geprueft.")
     return 0
 
 
