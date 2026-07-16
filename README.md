@@ -6,7 +6,7 @@ Lokales Dashboard-Werkzeug als Single-File-HTML-App. Die Anwendung soll ohne Ins
 
 - Startdatei: `dashboard-studio-ultimate-pro-v3.1.0.html`
 - Arbeitsmodell: Browser direkt öffnen oder Startskript verwenden
-- Entwicklungsfortschritt: 83 % (Details siehe `todo.txt`)
+- Entwicklungsfortschritt: 85 % (Details siehe `todo.txt`)
 - Modulziel: spätere manifestbasierte Module unter `modules/`
 - Wichtige Regel: mittelgroße, sichere Änderungen vor großen Umbauten
 
@@ -33,6 +33,7 @@ Die App arbeitet lokal im Browser. Je nach Funktion können Daten im Browser-Spe
 Wichtige Hinweise:
 
 - Vor riskanten Importen oder Wiederherstellungen sollte ein Backup vorhanden sein.
+- In den Einstellungen kann **Speicher prüfen** einen kurzen Browser-Speicher-Test, eine Speicher-Schätzung und einen Backup-Lesetest ausführen, ohne Nutzdaten zu verändern.
 - Große JSON-Importe sollen vor dem Speichern auf Größe und Inhalt geprüft werden.
 - Keine privaten Echtdaten in Beispiel-, Import-, Export- oder Logdateien committen.
 - Exportdateien sollten nachvollziehbare Namen mit Datum oder Zeitstempel bekommen.

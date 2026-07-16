@@ -2163,6 +2163,7 @@
         updatedAt: new Date().toISOString()
       });
 
+      let startupStorageNotice = null;
       let state = loadState();
       if (!state.activeWorkspaceId || !state.workspaces.some(w => w.id === state.activeWorkspaceId)) {
         state.activeWorkspaceId = state.workspaces[0].id;
@@ -2204,6 +2205,7 @@
         bindGlobalEvents();
         logDebugEvent("INFO", "Muttermodul", "App gestartet", "Initialisierung abgeschlossen", "Dashboard ist bereit.");
         renderAll();
+        reportStartupStorageNotice();
         timerTickHandle = window.setInterval(updateRunningTimers, 1000);
       }
 
@@ -2218,11 +2220,48 @@
             const backup = storageService.readBackup();
             if (backup) {
               const parsedBackup = parseJsonConfig(backup, "Lokales Backup");
+              startupStorageNotice = {
+                level: "warning",
+                title: "Gespeicherte Konfiguration war beschädigt. Lokales Backup wurde geladen.",
+                cause: cleanText(error?.message, 180) || "Die gespeicherten Daten konnten nicht gelesen werden.",
+                solution: "Bitte prüfen Sie die angezeigten Module und exportieren Sie bei Bedarf eine neue Sicherung.",
+                changed: "Arbeitsstand aus lokalem Backup geladen; beschädigte Hauptdaten wurden nicht überschrieben."
+              };
               return normalizeState(parsedBackup.state || parsedBackup);
             }
-          } catch (_) {}
+          } catch (backupError) {
+            startupStorageNotice = {
+              level: "error",
+              title: "Gespeicherte Konfiguration und lokales Backup konnten nicht geladen werden.",
+              cause: cleanText(backupError?.message || error?.message, 180) || "Die lokalen Daten sind beschädigt oder nicht erreichbar.",
+              solution: "Bitte eine gültige Exportdatei importieren oder mit dem neuen Standardstand weiterarbeiten.",
+              changed: "Standardstand geladen; alte lokale Daten wurden nicht gelöscht."
+            };
+          }
+          if (!startupStorageNotice) {
+            startupStorageNotice = {
+              level: "warning",
+              title: "Gespeicherte Konfiguration konnte nicht geladen werden.",
+              cause: cleanText(error?.message, 180) || "Die lokalen Daten sind beschädigt oder nicht erreichbar.",
+              solution: "Bitte eine gültige Exportdatei importieren oder mit dem neuen Standardstand weiterarbeiten.",
+              changed: "Standardstand geladen; alte lokale Daten wurden nicht gelöscht."
+            };
+          }
           return defaultState();
         }
+      }
+
+      function reportStartupStorageNotice() {
+        if (!startupStorageNotice) return;
+        logDebugEvent(
+          startupStorageNotice.level === "error" ? "ERROR" : "WARN",
+          "Speicherung",
+          startupStorageNotice.title,
+          startupStorageNotice.cause,
+          startupStorageNotice.solution,
+          startupStorageNotice.changed
+        );
+        toast(feedbackText(startupStorageNotice));
       }
 
       function saveState(message = "Lokal gespeichert") {
@@ -3438,7 +3477,8 @@
             settingToggle("Löschaktionen bestätigen", "confirmDestructive", state.confirmDestructive),
             settingRange("Meldungsdauer", "toastDuration", state.toastDuration, 1200, 8000, 100),
             settingAction("Lokales Backup", "Jetzt erstellen", () => createLocalBackup(true)),
-            settingAction("Backup wiederherstellen", "Wiederherstellen", restoreLocalBackup)
+            settingAction("Backup wiederherstellen", "Wiederherstellen", restoreLocalBackup),
+            settingAction("Speicher prüfen", "Prüfen", checkStorageHealth)
           ]),
           settingsCard("Workflow", [
             settingAction("Befehlssuche", "Öffnen", openCommandPalette),
@@ -5341,6 +5381,43 @@
         saveState();
         renderWorkspace();
         toast("Darstellung zurückgesetzt");
+      }
+
+      async function checkStorageHealth() {
+        const probeKey = `${STORAGE_KEY}-probe`;
+        try {
+          localStorage.setItem(probeKey, "ok");
+          localStorage.removeItem(probeKey);
+          const primaryBytes = new Blob([storageService.readPrimary() || ""]).size;
+          const backupRaw = storageService.readBackup() || "";
+          const backupBytes = new Blob([backupRaw]).size;
+          let backupStatus = backupRaw ? "Backup lesbar" : "Kein lokales Backup vorhanden";
+          if (backupRaw) parseJsonConfig(backupRaw, "Lokales Backup");
+          let estimateText = "Speicher-Schätzung nicht verfügbar";
+          if (navigator.storage?.estimate) {
+            const estimate = await navigator.storage.estimate();
+            if (estimate.quota && typeof estimate.usage === "number") {
+              const freeMb = Math.max(0, estimate.quota - estimate.usage) / 1_000_000;
+              estimateText = `ungefähr ${freeMb.toFixed(1)} MB frei`;
+            }
+          }
+          logDebugEvent("INFO", "Speicherung", "Speicherprüfung abgeschlossen", estimateText, "Bei knappem Speicher zuerst exportieren und Browser-Speicher freigeben.", "Nichts verändert");
+          toast(feedbackText({
+            title: "Speicherprüfung abgeschlossen.",
+            cause: `${estimateText}; Daten: ${(primaryBytes / 1000).toFixed(1)} KB; Backup: ${(backupBytes / 1000).toFixed(1)} KB; ${backupStatus}.`,
+            solution: "Vor Importen oder Wiederherstellungen trotzdem eine Exportdatei anlegen.",
+            changed: "Nur ein kurzer Schreibtest wurde erstellt und wieder entfernt; Nutzdaten bleiben unverändert.",
+            level: "success"
+          }));
+        } catch (error) {
+          handleAppError(error, {
+            area: "Speicherung",
+            userMessage: "Speicherprüfung fehlgeschlagen.",
+            cause: "Der Browser-Speicher ist gesperrt, voll oder das lokale Backup ist beschädigt.",
+            solution: "Bitte Konfiguration als Datei exportieren, Browser-Speicher freigeben oder ein gültiges Backup importieren.",
+            changed: "Nutzdaten wurden nicht verändert."
+          });
+        }
       }
 
       function createLocalBackup(showToast = true) {

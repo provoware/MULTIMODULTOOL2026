@@ -25,6 +25,7 @@ Diese Checkliste beschreibt die kleinste sichere Freigabeprüfung für die lokal
 
 ## 4. Daten- und Backup-Sicherheit
 
+- In den Einstellungen **Speicher prüfen** ausführen; die Meldung muss Schreibtest, Speicher-Schätzung, Backup-Zustand und den Hinweis „Nutzdaten bleiben unverändert“ sinngemäß enthalten.
 - Vor Import oder Wiederherstellung prüfen, ob ein Backup-Hinweis angezeigt wird.
 - Bei absichtlich ungültigen Daten muss die App verständlich erklären, was passiert ist und was der Nutzer tun kann.
 - Keine stillen Überschreibungen akzeptieren.
