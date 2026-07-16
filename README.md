@@ -39,7 +39,9 @@ Wichtige Hinweise:
 
 ## Modulstrategie
 
-Ja, Module können künftig separate Dateien sein. Die laufende Version bleibt zuerst als stabile Single-File-HTML-App bestehen. Neue oder ausgelagerte Module sollen nach dem Modulstandard beschrieben werden:
+Ja, Module können künftig separate Dateien sein. Die laufende Version bleibt zuerst als stabile Single-File-HTML-App bestehen. Über **Module → Manifest-Module laden** oder den Button in der Seitenleiste kann die App das App-Manifest lesen und gültige Modulmanifeste ergänzend in die lokale Modulübersicht übernehmen. Beim direkten Öffnen per `file://` kann der Browser diesen Zugriff blockieren; dann bitte das Startskript oder einen lokalen Webserver verwenden.
+
+Neue oder ausgelagerte Module sollen nach dem Modulstandard beschrieben werden:
 
 - Standard: `standards/MULTIMODULTOOL2026_01_Modulstandard.md`
 - Manifest-Schema: `manifests/MULTIMODULTOOL2026_01_ModuleManifest.schema.json`
@@ -78,4 +80,4 @@ Relevante Prüfungen nach Änderungen:
 
 ## Nächster sinnvoller Schritt
 
-Als nächste Iteration kann ein kleiner Modul-Loader geplant werden. Er sollte Manifeste lesen, Pflichtfelder prüfen und nur gültige Module in die Oberfläche aufnehmen.
+Als nächste Iteration kann der Modul-Loader um eine Detailansicht für Manifestfehler und um das optionale Laden von `module.html`, `module.css` und `module.js` erweitert werden.
