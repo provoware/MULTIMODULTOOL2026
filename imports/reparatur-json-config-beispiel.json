@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 5,
+  "appVersion": "3.1.0",
+  "theme": "dark",
+  "accentColor": "#38bdf8",
+  "modules": [],
+  "workspaces": [
+    {
+      "id": "reparatur-dashboard",
+      "name": "Reparatur-Dashboard",
+      "layout": {}
+    }
+  ]
+}

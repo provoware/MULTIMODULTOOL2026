@@ -1581,6 +1581,64 @@
       --surface-elevated: rgba(12, 17, 42, .99);
     }
 
+    body.theme-forest {
+      --bg-0: #07130d;
+      --bg-1: #0d2418;
+      --bg-2: #123520;
+      --panel: rgba(10, 35, 24, .94);
+      --panel-strong: rgba(14, 50, 33, .98);
+      --text: #f0fff6;
+      --text-strong: #ffffff;
+      --muted: #b7d8c3;
+      --subtle: #95bfa5;
+      --placeholder: #87aa94;
+      --line: rgba(134, 239, 172, .24);
+      --line-strong: rgba(134, 239, 172, .46);
+      --surface-card: rgba(34, 197, 94, .08);
+      --surface-card-hover: rgba(34, 197, 94, .14);
+      --surface-control: rgba(3, 18, 11, .72);
+      --surface-elevated: rgba(10, 35, 24, .99);
+    }
+
+    body.theme-sunset {
+      --bg-0: #210b16;
+      --bg-1: #3a1421;
+      --bg-2: #5b1e2a;
+      --panel: rgba(54, 20, 32, .94);
+      --panel-strong: rgba(74, 25, 38, .98);
+      --text: #fff7ed;
+      --text-strong: #ffffff;
+      --muted: #ffd0b5;
+      --subtle: #f2aa8b;
+      --placeholder: #db977d;
+      --line: rgba(251, 146, 60, .27);
+      --line-strong: rgba(251, 146, 60, .50);
+      --surface-card: rgba(251, 146, 60, .09);
+      --surface-card-hover: rgba(251, 146, 60, .16);
+      --surface-control: rgba(36, 10, 18, .74);
+      --surface-elevated: rgba(54, 20, 32, .99);
+    }
+
+    body.theme-focus {
+      --bg-0: #f3f4f6;
+      --bg-1: #ffffff;
+      --bg-2: #e5e7eb;
+      --panel: rgba(255, 255, 255, .98);
+      --panel-strong: #ffffff;
+      --text: #111827;
+      --text-strong: #030712;
+      --muted: #374151;
+      --subtle: #4b5563;
+      --placeholder: #6b7280;
+      --line: rgba(17, 24, 39, .20);
+      --line-strong: rgba(17, 24, 39, .38);
+      --surface-card: rgba(17, 24, 39, .045);
+      --surface-card-hover: rgba(17, 24, 39, .08);
+      --surface-control: rgba(255, 255, 255, .92);
+      --surface-elevated: #ffffff;
+      color-scheme: light;
+    }
+
     body.theme-light {
       --bg-0: #eaf0f7;
       --bg-1: #f8fafc;
@@ -2157,6 +2215,14 @@
       const MODULE_CATEGORIES = [
         { id: "arbeiten", label: "Arbeiten & Aufgaben", types: WORK_MODULE_TYPES, match: ["arbeit", "projekt", "workflow", "termin", "aufgabe", "notiz", "text"] },
         { id: "developer", label: "Entwicklerbereich", types: DEVELOPER_MODULE_TYPES, match: ["system", "debug", "registry", "protokoll", "timer", "kennzahlen"] }
+      ];
+      const THEME_OPTIONS = [
+        { id: "dark", label: "Dunkel" },
+        { id: "light", label: "Hell" },
+        { id: "midnight", label: "Midnight" },
+        { id: "forest", label: "Waldgrün" },
+        { id: "sunset", label: "Sonnenuntergang" },
+        { id: "focus", label: "Fokus hell" }
       ];
 
       const CODE_LANGUAGES = {
@@ -3804,7 +3870,7 @@
         const grid = document.createElement("div"); grid.className = "settings-pro-grid";
         grid.append(
           settingsCard("Darstellung", [
-            settingSelect("Farbschema", "theme", state.theme, [["dark", "Dunkel"], ["light", "Hell"], ["midnight", "Midnight"]]),
+            settingSelect("Farbschema", "theme", state.theme, THEME_OPTIONS.map(theme => [theme.id, theme.label])),
             settingColor("Akzentfarbe", "accentColor", state.accentColor),
             settingRange("Schriftgröße", "fontScale", state.fontScale, .9, 1.5, .01),
             settingRange("Bereichsgröße", "workspaceDensity", state.workspaceDensity, .85, 1.25, .01),
@@ -4840,8 +4906,9 @@
         document.body.classList.toggle("compact", !!state.compact);
         document.body.classList.toggle("high-contrast", !!state.highContrast);
         document.body.classList.toggle("reduce-motion", !!state.reduceMotion);
-        document.body.classList.toggle("theme-light", state.theme === "light");
-        document.body.classList.toggle("theme-midnight", state.theme === "midnight");
+        THEME_OPTIONS.filter(theme => theme.id !== "dark").forEach(theme => {
+          document.body.classList.toggle(`theme-${theme.id}`, state.theme === theme.id);
+        });
         document.body.classList.toggle("show-grid-numbers", !!state.showGridNumbers);
         document.documentElement.style.setProperty("--font-scale", String(clamp(Number(state.fontScale) || 1, .9, 1.5)));
         document.documentElement.style.setProperty("--workspace-density", String(clamp(Number(state.workspaceDensity) || 1, .85, 1.25)));
@@ -4925,9 +4992,11 @@
           backdrop.addEventListener("keydown", trapModalFocus);
         });
         createHelpRows(document.getElementById("quickHelpList"), [
-          { title: "Modul finden", text: "Nutzen Sie die Suche links oder Strg K. Aktive Module werden automatisch in freie Rasterfelder gesetzt." },
-          { title: "Problem verstehen", text: "Meldungen nennen Grund, Lösung und ob etwas gespeichert, abgebrochen oder unverändert blieb." },
-          { title: "Sicher arbeiten", text: "Vor Importen zuerst exportieren oder ein lokales Backup erstellen. Riskante Aktionen fragen nach." }
+          { title: "Schnell starten", text: "Links ein Modul aktivieren oder Strg K nutzen. Die App setzt neue Module automatisch in freie Rasterfelder." },
+          { title: "Ansicht anpassen", text: "In Einstellungen lassen sich Farbschema, Schriftgröße, Bereichsgröße und Kontrast ändern. Drei zusätzliche Designs stehen bereit." },
+          { title: "JSON reparieren", text: "Wenn ein Import abbricht: Datei öffnen, Kommas, Anführungszeichen und geschweifte Klammern prüfen. Die Reparaturhilfe liegt in docs/JSON_CONFIG_REPAIR_GUIDE.md." },
+          { title: "Sicher arbeiten", text: "Vor Importen zuerst exportieren oder ein lokales Backup erstellen. Bei Abbruch bleibt der bisherige Stand unverändert." },
+          { title: "Problem melden", text: "Fehlermeldungen nennen Ursache, Lösung und Speicherstatus. Das Aktivitätsprotokoll hilft beim Nachvollziehen." }
         ]);
 
         document.querySelectorAll("[data-menu]").forEach(button => {
@@ -5353,12 +5422,14 @@
       }
 
       function parseJsonConfig(raw, sourceLabel = "JSON") {
+        const text = String(raw || "").trim();
+        if (!text) throw new Error(`${sourceLabel} ist leer. Bitte eine Exportdatei wählen oder JSON einfügen. Gespeichert wurde nichts.`);
         try {
-          const parsed = JSON.parse(String(raw || ""));
-          if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("Wurzel ist kein Objekt");
+          const parsed = JSON.parse(text);
+          if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("Die oberste Ebene muss ein Objekt mit geschweiften Klammern sein.");
           return parsed;
         } catch (error) {
-          throw new Error(`${sourceLabel} ist ungültig: ${cleanText(error.message, 160)}`);
+          throw new Error(`${sourceLabel} ist ungültig: ${cleanText(error.message, 160)}. Bitte Kommas, Anführungszeichen und Klammern prüfen. Gespeichert wurde nichts.`);
         }
       }
 
@@ -5371,7 +5442,7 @@
         output.sidebarWidth = clamp(Number(input.sidebarWidth) || base.sidebarWidth, 250, 460);
         output.fontScale = clamp(Number(input.fontScale) || base.fontScale, .9, 1.5);
         output.workspaceDensity = clamp(Number(input.workspaceDensity) || base.workspaceDensity, .85, 1.25);
-        output.theme = ["dark", "light", "midnight"].includes(input.theme) ? input.theme : base.theme;
+        output.theme = THEME_OPTIONS.some(theme => theme.id === input.theme) ? input.theme : base.theme;
         output.accentColor = validColor(input.accentColor) ? input.accentColor : base.accentColor;
         output.autosaveDelay = clamp(Number(input.autosaveDelay) || base.autosaveDelay, 100, 3000);
         output.backupEvery = clamp(Number(input.backupEvery) || base.backupEvery, 1, 100);

@@ -36,7 +36,7 @@ Wichtige Hinweise:
 - Vor riskanten Importen oder Wiederherstellungen sollte ein Backup vorhanden sein.
 - Beim Start prüft die App zuerst den browserlokalen Standardspeicherort `MULTIMODULTOOL2026/dashboard-data` und legt ihn an, wenn der Browser den privaten lokalen Datei-Speicher unterstützt. Falls nicht, wird der vorhandene Browser-Speicher als Rückfall angezeigt.
 - In den Einstellungen kann **Speicher prüfen** einen kurzen Browser-Speicher-Test, eine Speicher-Schätzung und einen Backup-Lesetest ausführen, ohne Nutzdaten zu verändern.
-- Große JSON-Importe sollen vor dem Speichern auf Größe und Inhalt geprüft werden.
+- Große JSON-Importe sollen vor dem Speichern auf Größe und Inhalt geprüft werden. Bei fehlerhaften Importdateien hilft `docs/JSON_CONFIG_REPAIR_GUIDE.md`; ein kleines neutrales Reparaturbeispiel liegt unter `imports/reparatur-json-config-beispiel.json`.
 - Keine privaten Echtdaten in Beispiel-, Import-, Export- oder Logdateien committen.
 - Exportdateien sollten nachvollziehbare Namen mit Datum oder Zeitstempel bekommen.
 
@@ -59,7 +59,7 @@ Ein direkter Umbau der großen HTML-Datei in viele Dateien kann funktionierende 
 
 ## Bedienbarkeit und Kontraste
 
-Die Oberfläche nutzt ein dunkles Standarddesign mit optionalen Darstellungsmodi. Text-, Linien-, Statuschip- und Eingabekontraste sollen gut lesbar bleiben. Die Kontrast- und Fokuszustände wurden am 2026-07-16 gezielt nachgeschärft; die echte Chromium-/Firefox-Sichtprüfung muss auf einer Browserinstallation nachgeholt werden, weil Snap- und Playwright-Browserdownloads im Container blockiert waren. Änderungen am Design sollen weiter gezielt erfolgen und die bestehende Bedienung nicht unnötig verändern.
+Die Oberfläche nutzt ein dunkles Standarddesign mit optionalen Darstellungsmodi, darunter zusätzliche Waldgrün-, Sonnenuntergang- und Fokus-Designs. Text-, Linien-, Statuschip- und Eingabekontraste sollen gut lesbar bleiben. Die Kontrast- und Fokuszustände wurden am 2026-07-16 gezielt nachgeschärft; die echte Chromium-/Firefox-Sichtprüfung muss auf einer Browserinstallation nachgeholt werden, weil Snap- und Playwright-Browserdownloads im Container blockiert waren. Änderungen am Design sollen weiter gezielt erfolgen und die bestehende Bedienung nicht unnötig verändern.
 
 Für bessere Lesbarkeit lassen sich Schriftgröße und Bereichsgröße in den Einstellungen anpassen. Die linke Sidebar zeigt nur Arbeits- und Aufgabenmodule; System-, Diagnose- und weitere Sondermodule liegen getrennt im aufklappbaren Entwicklerbereich. Einstellungen sind zusätzlich über den Zahnrad-Button im Dashboard erreichbar, und rechts steht eine einklappbare Schnellfunktionsleiste bereit. Die automatische Modul-Anpassung bleibt standardmäßig aktiv: größere Bereiche bekommen etwas mehr Luft und Leseschrift, kleine Bereiche brechen Formulare kompakter um, und der Arbeitsbereich bleibt beim Browser-Zoom möglichst ohne eigene Scrollbalken sichtbar.
 
