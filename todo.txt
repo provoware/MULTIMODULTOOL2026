@@ -8,6 +8,7 @@ Fortschritt gesamt: 99 %
 - [ ] Speicherprüfung zusätzlich in Chromium und Firefox ausführen und Ergebnis in `docs/BROWSER_RELEASE_PROTOCOL_2026-07-16.md` mit Screenshot-Hinweis oder kurzer Notiz dokumentieren.
 
 ## Erledigt
+- [x] Browser-Freigabevorprüfung wurde am 2026-07-16 nach erteilter Arbeitsfreigabe dokumentiert: Im Container fehlen Chromium/Chrome, Firefox und `xdg-open`, deshalb bleibt die echte Sichtfreigabe offen und wird nicht vorgetäuscht.
 - [x] Release-Gate prüft am 2026-07-16 zusätzlich die Browser-Freigabevorlage, damit offene Chromium-/Firefox-, Speicher- und Datenprüfungen nicht versehentlich als abgeschlossen erscheinen.
 - [x] Fehlerhandling, Farbschemas und Hilfe wurden am 2026-07-16 gezielt verbessert: drei zusätzliche Themes sind auswählbar, leere/ungültige JSON-Imports melden konkrete Reparaturschritte, und eine JSON-/Config-Reparaturhilfe mit Beispiel liegt unter `docs/` und `imports/`.
 - [x] Browser-Freigabe wurde am 2026-07-16 als getrenntes ausfüllbares Protokoll dokumentiert; die echte Chromium-/Firefox-Prüfung bleibt offen und wird nicht vorgetäuscht.

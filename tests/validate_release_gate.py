@@ -28,6 +28,7 @@ REQUIRED_TODO_ITEMS = (
 
 REQUIRED_PROTOCOL_PHRASES = (
     "Dieses Protokoll ist die ausfüllbare Vorlage für die echte Freigabeprüfung",
+    "In dieser Containerumgebung sind jedoch weder Chromium/Chrome noch Firefox noch `xdg-open` als startbarer Browser vorhanden",
     "| Chromium-Start | offen | Noch nicht geprüft. |",
     "| Firefox-Start | offen | Noch nicht geprüft. |",
     "| Speicherprüfung | offen | Noch nicht geprüft. |",

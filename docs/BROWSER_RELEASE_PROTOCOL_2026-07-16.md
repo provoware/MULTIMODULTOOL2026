@@ -23,6 +23,10 @@ Dieses Protokoll ist die ausfüllbare Vorlage für die echte Freigabeprüfung. E
 | Backup-Wiederherstellung | offen | Noch nicht geprüft. |
 | Exportdownload | offen | Noch nicht geprüft. |
 
+## Durchführungsnotiz 2026-07-16
+
+Die Arbeitsfreigabe wurde erteilt. In dieser Containerumgebung sind jedoch weder Chromium/Chrome noch Firefox noch `xdg-open` als startbarer Browser vorhanden. Deshalb wurde keine echte Sichtprüfung ausgeführt und kein offener Browserpunkt als erledigt markiert. Nächster sinnvoller Schritt bleibt die Prüfung auf einem Rechner mit sichtbarer Chromium- und Firefox-Installation.
+
 ## Prüfschritte Chromium
 
 | Schritt | Erwartung | Ergebnis |
