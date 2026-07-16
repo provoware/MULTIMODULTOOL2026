@@ -1,0 +1,36 @@
+{
+  "id": "code-entwicklung",
+  "name": "Code & Entwicklung",
+  "version": "1.0.0",
+  "type": "code",
+  "description": "Code, Projekttitel, Status, Dateiexport und Entwicklungsnotizen.",
+  "entry": {
+    "html": null,
+    "css": null,
+    "js": null
+  },
+  "permissions": [
+    "local-storage",
+    "file-import",
+    "file-export"
+  ],
+  "storage": {
+    "scope": "module",
+    "backupRequired": true
+  },
+  "validation": {
+    "maxInputBytes": 2000000,
+    "allowedFileExtensions": [
+      ".js",
+      ".ts",
+      ".html",
+      ".css",
+      ".json",
+      ".py",
+      ".sh",
+      ".sql",
+      ".md",
+      ".txt"
+    ]
+  }
+}

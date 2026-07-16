@@ -1,0 +1,27 @@
+{
+  "id": "schnell-text-speicher",
+  "name": "Schnell-Text-Speicher",
+  "version": "1.0.0",
+  "type": "quicktext",
+  "description": "Schnelle Texteingabe mit validiertem TXT-Dateiexport.",
+  "entry": {
+    "html": null,
+    "css": null,
+    "js": null
+  },
+  "permissions": [
+    "local-storage",
+    "file-import",
+    "file-export"
+  ],
+  "storage": {
+    "scope": "module",
+    "backupRequired": true
+  },
+  "validation": {
+    "maxInputBytes": 2000000,
+    "allowedFileExtensions": [
+      ".txt"
+    ]
+  }
+}

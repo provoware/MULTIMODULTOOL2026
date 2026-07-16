@@ -29,5 +29,20 @@
     "backupBeforeRiskyImport": true,
     "validateBeforeSave": true,
     "plainLanguageErrors": true
-  }
+  },
+  "defaultModuleManifests": [
+    "../modules/workflow-zentrale/module.manifest.json",
+    "../modules/monatskalender/module.manifest.json",
+    "../modules/todo-liste/module.manifest.json",
+    "../modules/projektboard/module.manifest.json",
+    "../modules/schnell-text-speicher/module.manifest.json",
+    "../modules/editor/module.manifest.json",
+    "../modules/code-entwicklung/module.manifest.json",
+    "../modules/aktivitaetsprotokoll/module.manifest.json",
+    "../modules/modul-werkstatt/module.manifest.json",
+    "../modules/einstellungen/module.manifest.json",
+    "../modules/fokus-timer/module.manifest.json",
+    "../modules/schnelllinks/module.manifest.json",
+    "../modules/notizen/module.manifest.json"
+  ]
 }

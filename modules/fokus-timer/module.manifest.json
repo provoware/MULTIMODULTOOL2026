@@ -1,0 +1,24 @@
+{
+  "id": "fokus-timer",
+  "name": "Fokus-Timer",
+  "version": "1.0.0",
+  "type": "timer",
+  "description": "Pomodoro-Timer für konzentrierte Arbeit.",
+  "entry": {
+    "html": null,
+    "css": null,
+    "js": null
+  },
+  "permissions": [
+    "local-storage",
+    "timer"
+  ],
+  "storage": {
+    "scope": "module",
+    "backupRequired": false
+  },
+  "validation": {
+    "maxInputBytes": 0,
+    "allowedFileExtensions": []
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "id": "todo-liste",
+  "name": "Todo-Liste",
+  "version": "1.0.0",
+  "type": "tasks",
+  "description": "Aufgaben, Prioritäten, Fälligkeiten, Filter und TXT-Export.",
+  "entry": {
+    "html": null,
+    "css": null,
+    "js": null
+  },
+  "permissions": [
+    "local-storage",
+    "file-export"
+  ],
+  "storage": {
+    "scope": "module",
+    "backupRequired": true
+  },
+  "validation": {
+    "maxInputBytes": 2000000,
+    "allowedFileExtensions": [
+      ".txt"
+    ]
+  }
+}
