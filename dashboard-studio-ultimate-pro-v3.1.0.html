@@ -1691,6 +1691,7 @@
           <button class="menu-button" data-menu="moduleMenu">Module</button>
           <div id="moduleMenu" class="menu-dropdown">
             <button data-command="createModule">Modul erstellen</button>
+            <button data-command="loadModuleManifests">Manifest-Module laden</button>
             <button data-command="openCommandPalette">Befehlssuche öffnen</button>
             <button data-command="openSettings">Einstellungen einsetzen</button>
             <button data-command="activateAll">Alle aktivieren</button>
@@ -1743,6 +1744,7 @@
         <div id="moduleList" class="module-list"></div>
 
         <button id="createModuleLarge" class="primary-button">＋ Eigenes Modul erstellen</button>
+        <button id="loadManifestModules" class="ghost-button">↻ Manifest-Module laden</button>
       </div>
 
       <div class="sidebar-footer">
@@ -1950,6 +1952,7 @@
       const MAX_EXPORT_TEXT_LENGTH = 10_000_000;
       const MAX_STORAGE_BYTES = 4_500_000;
       const ALLOWED_TYPES = ["overview", "calendar", "notes", "tasks", "projectboard", "stats", "quicktext", "editor", "code", "settings", "timer", "bookmarks", "activity", "modulebuilder", "mother", "registry", "debugging", "custom"];
+      const APP_MANIFEST_PATH = "manifests/MULTIMODULTOOL2026_02_AppManifest.json";
       const MODULE_CREATION_TYPES = ["overview", "calendar", "notes", "tasks", "projectboard", "stats", "quicktext", "editor", "code", "timer", "bookmarks", "activity", "custom"];
       const MODULE_CATEGORIES = [
         { id: "system", label: "Systemmodule", types: ["mother", "registry", "debugging", "settings", "modulebuilder", "activity"] },
@@ -4011,6 +4014,75 @@
         toast(result.edited ? "Modul aktualisiert" : result.placed ? "Modul erstellt und eingeblendet" : "Modul erstellt; Raster ist voll");
       }
 
+      async function loadManifestModules() {
+        saveStatus.textContent = "Lade Modulmanifeste …";
+        try {
+          const appManifest = await fetchJson(APP_MANIFEST_PATH, "App-Manifest");
+          const paths = Array.isArray(appManifest.defaultModuleManifests) ? appManifest.defaultModuleManifests : [];
+          if (!paths.length) throw new Error("Keine Modulmanifeste im App-Manifest eingetragen.");
+          const manifestBase = new URL(APP_MANIFEST_PATH, globalThis.location.href);
+          const results = await Promise.allSettled(paths.map(path => loadModuleManifest(path, manifestBase)));
+          const loaded = results.filter(result => result.status === "fulfilled" && result.value).length;
+          const failed = results.length - loaded;
+          if (loaded) {
+            saveState("Manifest-Module geladen");
+            renderAll();
+          }
+          const message = `${loaded} Manifest-Module übernommen${failed ? `, ${failed} übersprungen` : ""}.`;
+          saveStatus.textContent = message;
+          toast(message);
+        } catch (error) {
+          handleAppError(error, {
+            area: "Modul-Loader",
+            userMessage: "Modulmanifeste konnten nicht geladen werden.",
+            cause: "Der Browser blockiert lokale Dateien oder das App-Manifest ist nicht erreichbar.",
+            solution: "Bitte über ./scripts/start-local.sh oder einen lokalen Webserver öffnen und erneut laden.",
+            changed: "Es wurde nichts gespeichert oder überschrieben."
+          });
+        }
+      }
+
+      async function loadModuleManifest(path, manifestBase) {
+        const resolvedPath = new URL(path, manifestBase).href;
+        const manifest = await fetchJson(resolvedPath, `Modulmanifest ${path}`);
+        const module = moduleFromManifest(manifest);
+        const existing = state.modules.find(item => item.manifestId === manifest.id || item.name === module.name);
+        if (existing) {
+          Object.assign(existing, { ...module, id: existing.id, active: existing.active, content: existing.content });
+          return existing;
+        }
+        state.modules.push(module);
+        logAction(`Manifest-Modul geladen: ${module.name}`, "Modul-Loader");
+        return module;
+      }
+
+      async function fetchJson(path, label) {
+        const response = await fetch(path, { cache: "no-store" });
+        if (!response.ok) throw new Error(`${label} nicht erreichbar (${response.status}).`);
+        return parseJsonConfig(await response.text(), label);
+      }
+
+      function moduleFromManifest(manifest) {
+        const id = cleanText(manifest?.id, 64);
+        const name = cleanText(manifest?.name, 42);
+        const type = ALLOWED_TYPES.includes(manifest?.type) ? manifest.type : "custom";
+        const description = cleanText(manifest?.description, 240);
+        if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id) || !name || description.length < 10) {
+          throw new Error("Ein Modulmanifest enthält ungültige Pflichtfelder.");
+        }
+        return {
+          id: newId(), manifestId: id, name, type, description,
+          color: colorFromText(id), active: false, category: moduleCategoryId({ name, type, description }),
+          content: normalizeContent(type)
+        };
+      }
+
+      function colorFromText(text) {
+        const palette = ["#38bdf8", "#22c55e", "#f59e0b", "#8b5cf6", "#f43f5e", "#14b8a6", "#d946ef"];
+        const sum = Array.from(text).reduce((total, char) => total + char.charCodeAt(0), 0);
+        return palette[sum % palette.length];
+      }
+
       function openModuleBuilder() {
         let builder = state.modules.find(item => item.type === "modulebuilder");
         if (!builder) {
@@ -4241,6 +4313,7 @@
 
         document.getElementById("addModuleButton").addEventListener("click", openModuleBuilder);
         document.getElementById("createModuleLarge").addEventListener("click", openModuleBuilder);
+        document.getElementById("loadManifestModules").addEventListener("click", loadManifestModules);
         document.getElementById("emptyCreateButton").addEventListener("click", openModuleBuilder);
         document.getElementById("newTabButton").addEventListener("click", createWorkspace);
         document.getElementById("arrangeButton").addEventListener("click", arrangeWindows);
@@ -4385,6 +4458,7 @@
           zoomOut: () => changeFontScale(-0.05),
           resetLayout: resetWindowLayout,
           createModule: openModuleBuilder,
+          loadModuleManifests: loadManifestModules,
           activateAll: () => {
             let placedCount = 0;
             state.modules.forEach(module => {
