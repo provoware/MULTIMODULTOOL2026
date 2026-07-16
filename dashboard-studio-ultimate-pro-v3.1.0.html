@@ -784,7 +784,9 @@
       position: absolute;
       inset: 50% auto auto 50%;
       transform: translate(-50%, -50%);
-      width: min(660px, calc(100% - 40px));
+      width: min(820px, calc(100% - 40px));
+      max-height: calc(100% - 40px);
+      overflow: auto;
       text-align: center;
       padding: 30px;
       border: 1px solid var(--line);
@@ -817,6 +819,34 @@
     }
 
     .empty-step strong { display: block; color: var(--text); margin-bottom: 4px; }
+
+    .dashboard-start-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 18px 0;
+      text-align: left;
+    }
+
+    .dashboard-start-card {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255,255,255,0.04);
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .dashboard-start-card strong {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--text);
+    }
+
+    .dashboard-start-card ul {
+      margin: 0;
+      padding-left: 18px;
+    }
 
     .calendar-shell {
       display: flex;
@@ -1147,7 +1177,7 @@
         min-width: 100%;
         grid-template-columns: repeat(3, minmax(132px, 1fr));
       }
-      .empty-steps { grid-template-columns: 1fr; }
+      .empty-steps, .dashboard-start-grid { grid-template-columns: 1fr; }
       .panel-window.maximized { left: 10px; }
     }
 
@@ -1892,6 +1922,12 @@
         <div id="emptyState" class="empty-state">
           <h1>Modularer Arbeitsbereich</h1>
           <p>Der Arbeitsbereich startet leer. Aktivieren Sie links ein Modul oder erstellen Sie ein eigenes Modul. Es wird automatisch in das erste freie Feld des 3×3-Rasters eingesetzt; es wurde noch nichts gespeichert oder verändert.</p>
+          <div class="dashboard-start-grid" aria-label="Startübersicht">
+            <div class="dashboard-start-card"><strong>Lokaler Speicherort</strong><span id="dashboardStoragePath">Wird geprüft …</span></div>
+            <div class="dashboard-start-card"><strong>Datum und Uhrzeit</strong><span id="dashboardDateTime">Wird geladen …</span></div>
+            <div class="dashboard-start-card"><strong>Letzte 5 Schritte</strong><ul id="dashboardRecentSteps"><li>Noch keine Schritte vorhanden.</li></ul></div>
+            <div class="dashboard-start-card"><strong>Allgemeine Einstellungen</strong><span id="dashboardSettingsSummary">Wird geladen …</span></div>
+          </div>
           <button id="emptyCreateButton" class="primary-button">Erstes Modul erstellen</button>
           <div class="empty-steps">
             <div class="empty-step"><strong>1. Aktivieren</strong>Module links einschalten; die Einblendung erfolgt automatisch.</div>
@@ -2063,6 +2099,7 @@
       const MAX_IMPORT_BYTES = 8_000_000;
       const MAX_EXPORT_TEXT_LENGTH = 10_000_000;
       const MAX_STORAGE_BYTES = 4_500_000;
+      const DEFAULT_LOCAL_STORAGE_PATH = "MULTIMODULTOOL2026/dashboard-data";
       const ALLOWED_TYPES = ["overview", "calendar", "notes", "tasks", "projectboard", "stats", "quicktext", "editor", "code", "settings", "timer", "bookmarks", "activity", "modulebuilder", "mother", "registry", "debugging", "custom"];
       const APP_MANIFEST_PATH = "manifests/MULTIMODULTOOL2026_02_AppManifest.json";
       const MODULE_CREATION_TYPES = ["overview", "calendar", "notes", "tasks", "projectboard", "stats", "quicktext", "editor", "code", "timer", "bookmarks", "activity", "custom"];
@@ -2276,6 +2313,11 @@
       });
 
       let startupStorageNotice = null;
+      let defaultStorageStatus = {
+        path: DEFAULT_LOCAL_STORAGE_PATH,
+        state: "checking",
+        message: "Standardspeicher wird geprüft …"
+      };
       let state = loadState();
       if (!state.activeWorkspaceId || !state.workspaces.some(w => w.id === state.activeWorkspaceId)) {
         state.activeWorkspaceId = state.workspaces[0].id;
@@ -2309,8 +2351,9 @@
 
       initialize();
 
-      function initialize() {
+      async function initialize() {
         document.getElementById("appVersion").textContent = `v${APP_VERSION}`;
+        await ensureDefaultLocalStoragePath();
         createGrid();
         repairLegacyActivePlacements();
         applyVisualSettings();
@@ -2319,6 +2362,36 @@
         renderAll();
         reportStartupStorageNotice();
         timerTickHandle = window.setInterval(updateRunningTimers, 1000);
+      }
+
+      async function ensureDefaultLocalStoragePath() {
+        try {
+          if (!navigator.storage?.getDirectory) {
+            defaultStorageStatus = {
+              path: `Browser-Speicher: ${STORAGE_KEY}`,
+              state: "fallback",
+              message: "Privater Datei-Speicher nicht verfügbar; Browser-Speicher wird genutzt."
+            };
+            logAction("Standardspeicher geprüft: Browser-Speicher genutzt", "Speicherung");
+            return;
+          }
+          const root = await navigator.storage.getDirectory();
+          const projectDir = await root.getDirectoryHandle("MULTIMODULTOOL2026", { create: true });
+          await projectDir.getDirectoryHandle("dashboard-data", { create: true });
+          defaultStorageStatus = {
+            path: `OPFS: ${DEFAULT_LOCAL_STORAGE_PATH}`,
+            state: "ready",
+            message: "Standardspeicher ist lokal vorhanden oder wurde erstellt."
+          };
+          logAction("Standardspeicher geprüft: lokaler Speicherort bereit", "Speicherung");
+        } catch (error) {
+          defaultStorageStatus = {
+            path: `Browser-Speicher: ${STORAGE_KEY}`,
+            state: "fallback",
+            message: "Lokaler Datei-Speicher konnte nicht erstellt werden; Browser-Speicher bleibt aktiv."
+          };
+          logDebugEvent("WARN", "Speicherung", "Standardspeicher-Fallback aktiv", cleanText(error.message, 180), "Browser-Speicher nutzen oder App über lokalen Server starten.", "Nutzdaten bleiben unverändert");
+        }
       }
 
       function loadState() {
@@ -2438,8 +2511,42 @@
         renderSidebar();
         renderTabs();
         renderWorkspace();
+        renderDashboardStartInfo();
         updateToolbarState();
         updateHistoryButtons();
+      }
+
+      function renderDashboardStartInfo() {
+        const storagePath = document.getElementById("dashboardStoragePath");
+        const dateTime = document.getElementById("dashboardDateTime");
+        const recentSteps = document.getElementById("dashboardRecentSteps");
+        const settingsSummary = document.getElementById("dashboardSettingsSummary");
+        if (!storagePath || !dateTime || !recentSteps || !settingsSummary) return;
+
+        storagePath.textContent = `${defaultStorageStatus.path} · ${defaultStorageStatus.message}`;
+        dateTime.textContent = new Date().toLocaleString("de-DE");
+
+        const steps = (state.activityLog || []).slice(0, 5);
+        recentSteps.innerHTML = "";
+        if (!steps.length) {
+          const item = document.createElement("li");
+          item.textContent = "Noch keine Schritte vorhanden.";
+          recentSteps.appendChild(item);
+        } else {
+          steps.forEach(step => {
+            const item = document.createElement("li");
+            item.textContent = `${new Date(step.time).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}: ${step.message}`;
+            recentSteps.appendChild(item);
+          });
+        }
+
+        settingsSummary.textContent = [
+          `Farbschema: ${typeLabel(state.theme)}`,
+          `Autosave: ${state.autosaveDelay} ms`,
+          `Backups: ${state.autoBackup ? "Ein" : "Aus"}`,
+          `Raster: ${state.gridVisible ? "Sichtbar" : "Aus"}`,
+          `Andocken: ${state.snapEnabled ? "Ein" : "Aus"}`
+        ].join(" · ");
       }
 
       function createGrid() {
@@ -3652,6 +3759,7 @@
             settingToggle("Animationen reduzieren", "reduceMotion", state.reduceMotion)
           ]),
           settingsCard("Speicherung & Sicherheit", [
+            settingInfo("Standardspeicherort", `${defaultStorageStatus.path} · ${defaultStorageStatus.message}`),
             settingRange("Autosave-Verzögerung", "autosaveDelay", state.autosaveDelay, 100, 3000, 50),
             settingToggle("Automatische Backups", "autoBackup", state.autoBackup),
             settingRange("Backup-Intervall", "backupEvery", state.backupEvery, 1, 100, 1),
@@ -5631,6 +5739,13 @@
         return settingRow(label, button);
       }
 
+      function settingInfo(label, text) {
+        const info = document.createElement("span");
+        info.className = "pro-meta";
+        info.textContent = text;
+        return settingRow(label, info);
+      }
+
       function resetVisualSettings() {
         const defaults = defaultState();
         ["sidebarWidth", "compact", "highContrast", "reduceMotion", "fontScale", "workspaceDensity", "autoModuleFit", "gridVisible", "theme", "accentColor", "editorWrap", "codeWrap"].forEach(key => state[key] = defaults[key]);
@@ -5982,6 +6097,7 @@
       }
 
       function updateRunningTimers() {
+        renderDashboardStartInfo();
         let changed = false;
         let finished = false;
         state.modules.filter(module => module.type === "timer").forEach(module => {
