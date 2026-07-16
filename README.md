@@ -5,26 +5,26 @@ Lokales Dashboard-Werkzeug als Single-File-HTML-App. Die Anwendung soll ohne Ins
 ## Aktueller Status
 
 - Startdatei: `dashboard-studio-ultimate-pro-v3.1.0.html`
-- Arbeitsmodell: Browser direkt öffnen oder Startskript verwenden
+- Arbeitsmodell: empfohlenes Startskript mit lokalem Server; direkter Datei-Start nur als eingeschränkter Rückfall
 - Entwicklungsfortschritt: 85 % (Details siehe `todo.txt`)
 - Modulziel: spätere manifestbasierte Module unter `modules/`
 - Wichtige Regel: mittelgroße, sichere Änderungen vor großen Umbauten
 
 ## Start
 
-Die Anwendung kann per Startskript geöffnet werden:
+Die Anwendung sollte per Startskript geöffnet werden. Das Skript prüft die wichtigsten Projektdateien, sucht einen freien lokalen Port, startet einen kleinen lokalen Python-Server und öffnet die App im Browser:
 
 ```sh
 ./scripts/start-local.sh
 ```
 
-Alternativ kann die Datei direkt im Browser geöffnet werden:
+Alternativ kann die Datei direkt im Browser geöffnet werden. Das ist nur ein eingeschränkter Rückfall, weil Browser beim Datei-Start ausgelagerte Manifest-, Modul- und Startdaten-Dateien blockieren können:
 
 ```text
 dashboard-studio-ultimate-pro-v3.1.0.html
 ```
 
-Es ist kein Build-Schritt und keine Installation nötig.
+Es ist kein Build-Schritt nötig. Für das empfohlene Startskript wird nur ein vorhandenes `python3` oder `python` verwendet.
 
 ## Daten und Backups
 
@@ -40,7 +40,7 @@ Wichtige Hinweise:
 
 ## Modulstrategie
 
-Ja, Module können künftig separate Dateien sein. Die laufende Version bleibt zuerst als stabile Single-File-HTML-App bestehen. Über **Module → Manifest-Module laden** oder den Button in der Seitenleiste kann die App das App-Manifest lesen und gültige Modulmanifeste ergänzend in die lokale Modulübersicht übernehmen. Beim direkten Öffnen per `file://` kann der Browser diesen Zugriff blockieren; dann bitte das Startskript oder einen lokalen Webserver verwenden.
+Ja, Module können künftig separate Dateien sein. Die laufende Version bleibt zuerst als stabile Single-File-HTML-App bestehen. Über **Module → Manifest-Module laden** oder den Button in der Seitenleiste kann die App das App-Manifest lesen und gültige Modulmanifeste ergänzend in die lokale Modulübersicht übernehmen. Beim direkten Öffnen per `file://` kann der Browser diesen Zugriff blockieren; deshalb startet `./scripts/start-local.sh` automatisch einen lokalen Server und öffnet die App über `http://127.0.0.1`.
 
 Neue oder ausgelagerte Module sollen nach dem Modulstandard beschrieben werden:
 
