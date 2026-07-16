@@ -314,6 +314,9 @@
     .quick-action-card:hover { border-color: var(--line-strong); background: rgba(255,255,255,.065); }
     .quick-action-card strong { color: var(--text-strong); }
     .quick-action-card span { color: var(--muted); font-size: .78rem; line-height: 1.35; }
+    .quick-info-store { display: grid; gap: 7px; padding: 10px; border: 1px solid var(--line); border-radius: 13px; background: rgba(255,255,255,.04); }
+    .quick-info-store input { width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: rgba(15,23,42,.72); color: var(--text-strong); }
+    .quick-info-store small { color: var(--muted); line-height: 1.35; }
 
     .sidebar-header {
       height: var(--tabbar-h);
@@ -2210,7 +2213,7 @@
       const APP_MANIFEST_PATH = "manifests/MULTIMODULTOOL2026_02_AppManifest.json";
       const MODULE_CREATION_TYPES = ["overview", "calendar", "notes", "tasks", "projectboard", "stats", "quicktext", "editor", "code", "timer", "bookmarks", "activity", "custom"];
       const WORK_MODULE_TYPES = ["notes", "calendar", "quicktext", "tasks", "projectboard", "bookmarks", "editor", "code", "modulebuilder", "overview"];
-      const WORK_VISIBLE_NAMES = ["textbausteine", "genre"];
+      const WORK_VISIBLE_NAMES = ["textbausteine", "genre", "audio", "bild", "datei", "favoriten"];
       const DEVELOPER_MODULE_TYPES = ["mother", "registry", "debugging", "settings", "activity", "timer", "stats", "custom"];
       const MODULE_CATEGORIES = [
         { id: "arbeiten", label: "Arbeiten & Aufgaben", types: WORK_MODULE_TYPES, match: ["arbeit", "projekt", "workflow", "termin", "aufgabe", "notiz", "text"] },
@@ -2376,6 +2379,39 @@
           category: "ideen",
           content: { text: "" }
         },
+
+        {
+          id: newId(), name: "Audio-Playlist", type: "custom", color: "#22d3ee",
+          description: "Lokale Audioplaylist mit editierbaren Listennamen",
+          active: false,
+          category: "arbeiten",
+          manifestId: "audio-playlist",
+          content: { entry: moduleEntry("audio-playlist") }
+        },
+        {
+          id: newId(), name: "Bildvorschau", type: "custom", color: "#84cc16",
+          description: "Lokale Bildvorschau mit Vor- und Zurück-Navigation",
+          active: false,
+          category: "arbeiten",
+          manifestId: "bildvorschau",
+          content: { entry: moduleEntry("bildvorschau") }
+        },
+        {
+          id: newId(), name: "Dateinamensuche", type: "custom", color: "#facc15",
+          description: "Dateinamen in einem gewählten lokalen Ordner durchsuchen",
+          active: false,
+          category: "arbeiten",
+          manifestId: "dateinamensuche",
+          content: { entry: moduleEntry("dateinamensuche") }
+        },
+        {
+          id: newId(), name: "Favoriten-Ablage", type: "custom", color: "#fb7185",
+          description: "Persistente Favoritenliste für Dateien, Audios, Texte, Bilder und Videos",
+          active: false,
+          category: "arbeiten",
+          manifestId: "favoriten-ablage",
+          content: { entry: moduleEntry("favoriten-ablage") }
+        },
         {
           id: newId(), name: "Provoware GenreTool Pro", type: "custom", color: "#ec4899",
           description: "Songs-Untermodul für Genre-, Stimmungs-, Stil- und Themenkombinationen", active: false,
@@ -2383,7 +2419,7 @@
           manifestId: "provoware-genretool-pro",
           content: {
             brief: "Verwaltet eindeutige GenreTool-Einträge und kombiniert Kategorien ohne Duplikate.",
-            entry: genreToolEntry()
+            entry: moduleEntry("provoware-genretool-pro")
           }
         }
       ];
@@ -2717,14 +2753,38 @@
           ["Schnelllink öffnen", "Link-Sammlung einblenden.", () => openModuleType("bookmarks")],
           ["Einstellungen", "Darstellung und Sicherheit anpassen.", openSettingsModule]
         ];
-        target.replaceChildren(...actions.map(([title, text, action]) => {
+        const actionButtons = actions.map(([title, text, action]) => {
           const button = document.createElement("button");
           button.type = "button";
           button.className = "quick-action-card";
           button.innerHTML = `<strong>${escapeHtml(title)}</strong><span>${escapeHtml(text)}</span>`;
           button.addEventListener("click", action);
           return button;
-        }));
+        });
+        target.replaceChildren(...actionButtons, createQuickInfoStore());
+      }
+
+      function createQuickInfoStore() {
+        const key = "MULTIMODULTOOL2026/Tool_Informationsspeicher";
+        const box = document.createElement("div");
+        box.className = "quick-info-store";
+        box.innerHTML = `<strong>Informationsspeicher</strong><input type="text" maxlength="500" placeholder="Satz für Tool_Informationsspeicher.txt"><div class="pro-actions"><button class="primary-button small-button" type="button">Eingabe speichern</button><button class="small-button" type="button">TXT öffnen</button></div><small>Pfad/Datei: ${escapeHtml(DEFAULT_LOCAL_STORAGE_PATH)}/Tool_Informationsspeicher.txt</small>`;
+        const input = box.querySelector("input");
+        const [saveButton, exportButton] = box.querySelectorAll("button");
+        saveButton.addEventListener("click", () => {
+          const text = cleanText(input.value, 500);
+          if (!text) return toast("Bitte zuerst einen Satz eingeben. Nichts wurde gespeichert.");
+          const lines = JSON.parse(localStorage.getItem(key) || "[]");
+          lines.push(`[${new Date().toLocaleString("de-DE")}] ${text}`);
+          localStorage.setItem(key, JSON.stringify(lines.slice(-1000)));
+          input.value = "";
+          toast("Eintrag mit Zeitstempel gespeichert. TXT kann über den Button exportiert werden.");
+        });
+        exportButton.addEventListener("click", () => {
+          const lines = JSON.parse(localStorage.getItem(key) || "[]");
+          saveTextFile(`${lines.join("\n")}\n`, "Tool_Informationsspeicher.txt", "text/plain");
+        });
+        return box;
       }
 
       function groupModulesByCategory(modules) {
@@ -5486,6 +5546,13 @@
             module.manifestId = "provoware-genretool-pro";
             module.content = { ...module.content, entry: genreToolEntry() };
           }
+        });
+        defaultModules.filter(module => module.type === "custom" && module.manifestId).forEach(templateModule => {
+          if (output.modules.some(module => module.manifestId === templateModule.manifestId)) return;
+          const migrated = structuredClone(templateModule);
+          migrated.id = newId();
+          migrated.active = false;
+          output.modules.push(migrated);
         });
         if (!settingsModules.length) {
           const template = structuredClone(defaultModules.find(module => module.type === "settings"));

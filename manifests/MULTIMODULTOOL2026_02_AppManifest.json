@@ -48,7 +48,11 @@
     "../modules/schnelllinks/module.manifest.json",
     "../modules/notizen/module.manifest.json",
     "../modules/provoware-genretool-pro/module.manifest.json",
-    "../modules/systemmodule-buendel/module.manifest.json"
+    "../modules/systemmodule-buendel/module.manifest.json",
+    "../modules/audio-playlist/module.manifest.json",
+    "../modules/bildvorschau/module.manifest.json",
+    "../modules/dateinamensuche/module.manifest.json",
+    "../modules/favoriten-ablage/module.manifest.json"
   ],
   "registeredModules": [
     {
@@ -125,6 +129,26 @@
       "id": "systemmodule-buendel",
       "version": "1.0.0",
       "manifest": "../modules/systemmodule-buendel/module.manifest.json"
+    },
+    {
+      "id": "audio-playlist",
+      "version": "1.0.0",
+      "manifest": "../modules/audio-playlist/module.manifest.json"
+    },
+    {
+      "id": "bildvorschau",
+      "version": "1.0.0",
+      "manifest": "../modules/bildvorschau/module.manifest.json"
+    },
+    {
+      "id": "dateinamensuche",
+      "version": "1.0.0",
+      "manifest": "../modules/dateinamensuche/module.manifest.json"
+    },
+    {
+      "id": "favoriten-ablage",
+      "version": "1.0.0",
+      "manifest": "../modules/favoriten-ablage/module.manifest.json"
     }
   ]
 }

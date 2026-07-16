@@ -25,13 +25,21 @@ on_signal() {
 trap cleanup EXIT
 trap on_signal HUP INT TERM
 
+say_ok() { printf '%s 🟢 OK: %s\n' "$LOG_PREFIX" "$1"; }
+say_warn() { printf '%s 🟡 Hinweis: %s\n' "$LOG_PREFIX" "$1"; }
+say_fail() { printf '%s 🔴 Fehler: %s\n' "$LOG_PREFIX" "$1" >&2; }
+
 fail() {
-  printf '%s Fehler: %s\n' "$LOG_PREFIX" "$1" >&2
+  say_fail "$1"
   exit 1
 }
 
 check_file() {
-  [ -f "$ROOT_DIR/$1" ] || fail "Pflichtdatei fehlt: $1"
+  if [ -f "$ROOT_DIR/$1" ]; then
+    say_ok "Gefunden: $1"
+  else
+    fail "Pflichtdatei fehlt: $1. Bitte Repository vollständig herunterladen oder die fehlende Datei wiederherstellen. Es wurde nichts verändert."
+  fi
 }
 
 python_is_supported() {
@@ -138,15 +146,17 @@ check_file "modules/provoware-genretool-pro/module.js"
 check_file "modules/provoware-genretool-pro/genres_db.json"
 
 PYTHON_BIN=$(find_python)
+say_ok "Python-Laufzeit gefunden: $PYTHON_BIN"
 validate_start_port
+say_ok "Gewünschter Startport ist gültig: $START_PORT"
 PORT=$(pick_port)
 APP_URL="http://$HOST:$PORT/$APP_FILE"
 
-printf '%s Prüfung abgeschlossen: Startdatei, Schema, Manifeste und GenreTool-Dateien sind vorhanden.\n' "$LOG_PREFIX"
+say_ok "Abhängigkeitsprüfung abgeschlossen: Startdatei, Schema, Manifeste und geprüfte Moduldateien sind vorhanden."
 if [ "$PORT" != "$START_PORT" ]; then
-  printf '%s Hinweis: Port %s ist belegt. Es wird der freie Alternativport %s verwendet. Es wurde nichts überschrieben.\n' "$LOG_PREFIX" "$START_PORT" "$PORT"
+  say_warn "Port $START_PORT ist belegt. Es wird der freie Alternativport $PORT verwendet. Es wurde nichts überschrieben."
 fi
-printf '%s Lokaler Server wird auf %s gestartet. Beenden mit Strg+C.\n' "$LOG_PREFIX" "$APP_URL"
+say_ok "Lokaler Server wird auf $APP_URL gestartet. Beenden mit Strg+C."
 
 cd "$ROOT_DIR"
 "$PYTHON_BIN" -m http.server "$PORT" --bind "$HOST" &
@@ -156,6 +166,6 @@ if ! wait_for_server "$PORT"; then
   fail "Der lokale Server ist nicht korrekt gestartet. Bitte vorherige Terminalausgaben prüfen."
 fi
 
-printf '%s Server ist erreichbar: %s\n' "$LOG_PREFIX" "$APP_URL"
+say_ok "Server ist erreichbar: $APP_URL"
 open_browser "$APP_URL"
 wait "$SERVER_PID"

@@ -1,0 +1,29 @@
+{
+  "id": "audio-playlist",
+  "name": "Audio-Playlist",
+  "version": "1.0.0",
+  "type": "custom",
+  "description": "Editierbare lokale Audioplaylist mit direktem Umbenennen in der Liste.",
+  "entry": {
+    "html": "module.html",
+    "css": "module.css",
+    "js": "module.js"
+  },
+  "permissions": [
+    "file-import"
+  ],
+  "storage": {
+    "scope": "module",
+    "backupRequired": false
+  },
+  "validation": {
+    "maxInputBytes": 8000000,
+    "allowedFileExtensions": [
+      ".mp3",
+      ".wav",
+      ".ogg",
+      ".m4a",
+      ".flac"
+    ]
+  }
+}

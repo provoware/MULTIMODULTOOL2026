@@ -1,0 +1,36 @@
+{
+  "id": "favoriten-ablage",
+  "name": "Favoriten-Ablage",
+  "version": "1.0.0",
+  "type": "custom",
+  "description": "Persistente Favoritenliste für Dateien, Audios, Texte, Bilder und Videos zur Mehrfachverwendung.",
+  "entry": {
+    "html": "module.html",
+    "css": "module.css",
+    "js": "module.js"
+  },
+  "permissions": [
+    "local-storage"
+  ],
+  "storage": {
+    "scope": "module",
+    "backupRequired": false
+  },
+  "validation": {
+    "maxInputBytes": 8000000,
+    "allowedFileExtensions": [
+      ".txt",
+      ".md",
+      ".png",
+      ".jpg",
+      ".jpeg",
+      ".gif",
+      ".webp",
+      ".mp3",
+      ".wav",
+      ".mp4",
+      ".webm",
+      ".pdf"
+    ]
+  }
+}
