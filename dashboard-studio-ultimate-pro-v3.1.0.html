@@ -1895,6 +1895,30 @@
         return globalThis.crypto?.randomUUID?.() || `id-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
       }
 
+
+      const storageService = {
+        readPrimary() {
+          return localStorage.getItem(STORAGE_KEY) || readFirstExistingStorageValue(LEGACY_STORAGE_KEYS);
+        },
+        writePrimary(serializedState) {
+          localStorage.setItem(STORAGE_KEY, serializedState);
+        },
+        clearPrimaryAndLegacy() {
+          localStorage.removeItem(STORAGE_KEY);
+          LEGACY_STORAGE_KEYS.forEach(key => localStorage.removeItem(key));
+        },
+        readBackup() {
+          return localStorage.getItem(BACKUP_KEY) || readFirstExistingStorageValue(LEGACY_BACKUP_KEYS);
+        },
+        writeBackup(serializedBackup) {
+          localStorage.setItem(BACKUP_KEY, serializedBackup);
+        }
+      };
+
+      function readFirstExistingStorageValue(keys) {
+        return keys.map(key => localStorage.getItem(key)).find(Boolean);
+      }
+
       const defaultModules = [
         {
           id: newId(), name: "Workflow-Zentrale", type: "overview", color: "#0ea5e9",
@@ -2040,13 +2064,13 @@
 
       function loadState() {
         try {
-          const raw = localStorage.getItem(STORAGE_KEY) || LEGACY_STORAGE_KEYS.map(key => localStorage.getItem(key)).find(Boolean);
+          const raw = storageService.readPrimary();
           if (!raw) return defaultState();
           return normalizeState(parseJsonConfig(raw, "Gespeicherte Konfiguration"));
         } catch (error) {
           console.warn("Gespeicherte Konfiguration konnte nicht geladen werden:", error);
           try {
-            const backup = localStorage.getItem(BACKUP_KEY) || LEGACY_BACKUP_KEYS.map(key => localStorage.getItem(key)).find(Boolean);
+            const backup = storageService.readBackup();
             if (backup) {
               const parsedBackup = parseJsonConfig(backup, "Lokales Backup");
               return normalizeState(parsedBackup.state || parsedBackup);
@@ -2068,7 +2092,7 @@
             state.saveCount = (Number(state.saveCount) || 0) + 1;
             const serialized = JSON.stringify(state);
             if (new Blob([serialized]).size > MAX_STORAGE_BYTES) throw new Error("Lokaler Speicherumfang überschritten");
-            localStorage.setItem(STORAGE_KEY, serialized);
+            storageService.writePrimary(serialized);
             saveStatus.textContent = `${message} · ${new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}`;
             if (state.autoBackup && state.saveCount % clamp(Number(state.backupEvery) || 10, 1, 100) === 0) {
               createLocalBackup(false);
@@ -2097,7 +2121,7 @@
           placedIds.add(module.id);
         }
         state.placementRepairVersion = 2;
-        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (_) {}
+        try { storageService.writePrimary(JSON.stringify(state)); } catch (_) {}
       }
 
       function renderAll() {
@@ -4208,8 +4232,7 @@
         pushHistory("Dashboard zurücksetzen");
         state = defaultState();
         state.activeWorkspaceId = state.workspaces[0].id;
-        localStorage.removeItem(STORAGE_KEY);
-        LEGACY_STORAGE_KEYS.forEach(key => localStorage.removeItem(key));
+        storageService.clearPrimaryAndLegacy();
         applyVisualSettings();
         renderAll();
         saveState();
@@ -4700,7 +4723,7 @@
       function createLocalBackup(showToast = true) {
         try {
           const backup = { createdAt: new Date().toISOString(), appVersion: APP_VERSION, state: normalizeState(structuredClone(state)) };
-          localStorage.setItem(BACKUP_KEY, JSON.stringify(backup));
+          storageService.writeBackup(JSON.stringify(backup));
           if (showToast) toast("Lokales Backup erstellt");
           return true;
         } catch (error) {
@@ -4712,7 +4735,7 @@
 
       function restoreLocalBackup() {
         try {
-          const raw = localStorage.getItem(BACKUP_KEY) || LEGACY_BACKUP_KEYS.map(key => localStorage.getItem(key)).find(Boolean);
+          const raw = storageService.readBackup();
           if (!raw) return toast("Kein lokales Backup vorhanden");
           const parsed = JSON.parse(raw);
           const restored = normalizeState(parsed.state || parsed);
