@@ -1788,11 +1788,11 @@
     </div>
   </div>
 
-  <div id="importModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
+  <div id="importModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="importModalTitle">
     <div class="modal">
       <div class="modal-header">
-        <strong>Konfiguration importieren</strong>
-        <button class="icon-button" data-close-modal="importModal">×</button>
+        <strong id="importModalTitle">Konfiguration importieren</strong>
+        <button class="icon-button" data-close-modal="importModal" aria-label="Importfenster schließen">×</button>
       </div>
       <div class="modal-body">
         <div class="module-placeholder">
@@ -3777,6 +3777,16 @@
 
       let lastModalFocus = null;
 
+      function getFocusableElements(container) {
+        return [...container.querySelectorAll('button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [href], [tabindex]:not([tabindex="-1"])')]
+          .filter(element => element.offsetParent !== null);
+      }
+
+      function focusModal(modal, selector = null) {
+        const target = selector ? modal.querySelector(selector) : getFocusableElements(modal)[0];
+        setTimeout(() => target?.focus(), 0);
+      }
+
       function openModuleModal(moduleId = null) {
         const modal = document.getElementById("moduleModal");
         const form = document.getElementById("moduleForm");
@@ -3794,7 +3804,7 @@
         modal.classList.add("open");
         modal.setAttribute("aria-hidden", "false");
         document.body.classList.add("modal-open");
-        setTimeout(() => form.elements.name.focus(), 0);
+        focusModal(modal, "#moduleName");
       }
 
       function closeModal(id, restoreFocus = true) {
@@ -3804,6 +3814,7 @@
         modal.setAttribute("aria-hidden", "true");
         if (!document.querySelector(".modal-backdrop.open")) document.body.classList.remove("modal-open");
         if (restoreFocus && lastModalFocus?.isConnected) lastModalFocus.focus();
+        if (restoreFocus) lastModalFocus = null;
       }
 
       function closeAllModals(restoreFocus = true) {
@@ -3813,6 +3824,7 @@
         });
         document.body.classList.remove("modal-open");
         if (restoreFocus && lastModalFocus?.isConnected) lastModalFocus.focus();
+        if (restoreFocus) lastModalFocus = null;
       }
 
       function readModulePayload(form) {
@@ -4987,7 +4999,7 @@
         modal.classList.add("open");
         modal.setAttribute("aria-hidden", "false");
         document.body.classList.add("modal-open");
-        if (focusSelector) setTimeout(() => modal.querySelector(focusSelector)?.focus(), 0);
+        focusModal(modal, focusSelector);
       }
 
       function openCommandPalette() {
@@ -5089,7 +5101,7 @@
 
       function trapModalFocus(event) {
         if (event.key !== "Tab" || !event.currentTarget.classList.contains("open")) return;
-        const focusable = [...event.currentTarget.querySelectorAll('button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [href], [tabindex]:not([tabindex="-1"])')].filter(element => element.offsetParent !== null);
+        const focusable = getFocusableElements(event.currentTarget);
         if (!focusable.length) return;
         const first = focusable[0]; const last = focusable.at(-1);
         if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }

@@ -1,0 +1,23 @@
+{
+  "id": "systemmodule-buendel",
+  "name": "Systemmodule-Bündel",
+  "version": "1.0.0",
+  "type": "custom",
+  "description": "Bündelt die bestehenden Systemmodule Muttermodul, Registry, Debugging, Einstellungen und Modul-Werkstatt als klare Übergangsgruppe.",
+  "entry": {
+    "html": null,
+    "css": null,
+    "js": null
+  },
+  "permissions": [
+    "local-storage"
+  ],
+  "storage": {
+    "scope": "workspace",
+    "backupRequired": true
+  },
+  "validation": {
+    "maxInputBytes": 0,
+    "allowedFileExtensions": []
+  }
+}

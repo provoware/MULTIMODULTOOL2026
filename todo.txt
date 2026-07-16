@@ -7,16 +7,18 @@ Priorität 1 – Notwendige Korrekturen
 - Vor großen Importen prüfen, ob Browser-Speicherplatz ausreicht, damit ein Import nicht erst beim späteren Speichern scheitert.
 
 Priorität 2 – Qualitätsverbesserungen
-- Manifest-basierten Modul-Loader planen: Manifest lesen, Pflichtfelder prüfen und ungültige Module verständlich ablehnen.
+- Manifest-basierten Modul-Loader als Konzept dokumentieren: Manifest lesen, Pflichtfelder prüfen und ungültige Module verständlich ablehnen.
+- Systemmodule-Bündel später aus der HTML-Datei in echte Moduldateien überführen, sobald der Loader existiert.
 - Manifest-Prüfung mit `python3 tests/validate_module_manifests.py` bei Moduländerungen ausführen.
 - Die große HTML-Datei schrittweise in kleine Bereiche zerlegen: Styles, Standarddaten, Speicherlogik, Modul-Renderer und Hilfsfunktionen.
 - Kleine Testdatei für reine Hilfsfunktionen ergänzen: Datumsprüfung, Dateinamen-Bereinigung, URL-Normalisierung, Textbegrenzung und Zustandsnormalisierung.
-- README mit Startanleitung, Datenspeicherung, Backup-Verhalten und bekannten Browser-Grenzen ergänzen.
+- README mit Datenspeicherung, Backup-Verhalten und bekannten Browser-Grenzen ergänzen.
 
 Priorität 3 – GUI-/UX-Verbesserungen
 - Import-Dialog um eine kurze Checkliste ergänzen: JSON einfügen, Größe prüfen, Backup wird erstellt, danach importieren.
 - Statusbereich deutlicher machen, wenn ein Backup erstellt, wiederhergestellt oder abgelehnt wurde.
 - Für gefährliche Aktionen einheitliche Bestätigungstexte verwenden.
+- Barrierefreiheit verbessern: Tastaturbedienung für Modulplatzierung ergänzen und Fokusverhalten in Browsern manuell prüfen.
 
 Priorität 4 – Performance-Verbesserungen
 - Häufig wiederholte Modul-Suchen in Render-Pfaden prüfen und bei Bedarf über eine Map zwischenspeichern.
