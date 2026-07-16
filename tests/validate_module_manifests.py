@@ -11,6 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 MODULE_ROOT = ROOT / "modules"
 EXAMPLE_MANIFEST = ROOT / "manifests" / "MULTIMODULTOOL2026_03_ExampleModule.manifest.json"
+APP_MANIFEST = ROOT / "manifests" / "MULTIMODULTOOL2026_02_AppManifest.json"
 
 REQUIRED_KEYS = {
     "id",
@@ -129,6 +130,49 @@ def manifest_paths() -> list[tuple[Path, Path | None]]:
     return [(EXAMPLE_MANIFEST, None), *module_manifests]
 
 
+def validate_registered_modules() -> list[str]:
+    data = load_json(APP_MANIFEST)
+    registered = data.get("registeredModules")
+    default_paths = data.get("defaultModuleManifests")
+    errors: list[str] = []
+
+    require(isinstance(default_paths, list), errors, "defaultModuleManifests muss eine Liste sein")
+    require(isinstance(registered, list) and registered, errors, "registeredModules braucht mindestens ein Modul")
+    if not isinstance(default_paths, list) or not isinstance(registered, list):
+        return errors
+
+    registry_by_manifest: dict[str, dict] = {}
+    seen_ids: set[str] = set()
+    for item in registered:
+        if not isinstance(item, dict):
+            errors.append("registeredModules enthaelt einen ungueltigen Eintrag")
+            continue
+        module_id = item.get("id")
+        version = item.get("version")
+        manifest = item.get("manifest")
+        require(isinstance(module_id, str) and ID_PATTERN.fullmatch(module_id), errors, "registeredModules.id ist keine kleine Bindestrich-ID")
+        require(isinstance(version, str) and VERSION_PATTERN.fullmatch(version), errors, "registeredModules.version folgt nicht x.y.z")
+        require(isinstance(manifest, str) and manifest.endswith("/module.manifest.json"), errors, "registeredModules.manifest verweist nicht auf ein Modulmanifest")
+        if isinstance(module_id, str):
+            require(module_id not in seen_ids, errors, f"registeredModules enthaelt die id doppelt: {module_id}")
+            seen_ids.add(module_id)
+        if isinstance(manifest, str):
+            require(manifest not in registry_by_manifest, errors, f"registeredModules enthaelt den Manifestpfad doppelt: {manifest}")
+            registry_by_manifest[manifest] = item
+
+    require(set(default_paths) == set(registry_by_manifest), errors, "registeredModules muss dieselben Modulpfade wie defaultModuleManifests enthalten")
+    for manifest in default_paths:
+        item = registry_by_manifest.get(manifest)
+        manifest_path = (APP_MANIFEST.parent / manifest).resolve()
+        if item is None or not manifest_path.is_file():
+            continue
+        module_data = load_json(manifest_path)
+        require(item.get("id") == module_data.get("id"), errors, f"registeredModules.id passt nicht zu {manifest}")
+        require(item.get("version") == module_data.get("version"), errors, f"registeredModules.version passt nicht zu {manifest}")
+
+    return errors
+
+
 def main() -> int:
     failures = []
     for path, module_dir in manifest_paths():
@@ -138,6 +182,13 @@ def main() -> int:
             errors = [str(exc)]
         if errors:
             failures.append((path, errors))
+
+    try:
+        registry_errors = validate_registered_modules()
+    except ValueError as exc:
+        registry_errors = [str(exc)]
+    if registry_errors:
+        failures.append((APP_MANIFEST, registry_errors))
 
     if failures:
         for path, errors in failures:
