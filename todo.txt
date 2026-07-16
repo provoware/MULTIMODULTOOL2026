@@ -8,6 +8,7 @@ Fortschritt gesamt: 92 %
 - [ ] Speicherprüfung zusätzlich in Chromium und Firefox ausführen und Ergebnis mit Screenshot oder kurzem Prüfprotokoll dokumentieren.
 
 ## Erledigt
+- [x] Audit-Dokumentationsbereinigung wurde am 2026-07-16 abgeschlossen: `AGENTS.md` nennt den lokalen Serverstart, Qualitäts-Gates sind repariert und die Entwicklerdokumentation beschreibt die vorhandene Tastaturplatzierung korrekt.
 - [x] Darstellungsautomatik wurde am 2026-07-16 verbessert: Schriftgröße reicht jetzt bis 150 %, Bereichsgröße ist steuerbar und Module passen Abstände, Zeilenhöhe und Zoom lesbarer an.
 - [x] Arbeitsbereich-Gruppierung wurde am 2026-07-16 verbessert: Das 3×3-Raster skaliert flexibler, schwebende Fenster bleiben nach Größenänderungen sichtbar und Rasterfelder/Module haben verständlichere Bedienhinweise.
 - [x] Nutzerfeedback wurde am 2026-07-16 weiter vereinheitlicht: Toast-Meldungen zeigen jetzt intuitive Statussymbole und Laufzeitfehler nennen Grund, Lösung und Speicherstatus im Debug-Protokoll.
