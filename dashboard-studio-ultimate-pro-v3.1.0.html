@@ -204,10 +204,10 @@
       align-items: center;
       gap: 7px;
       padding: 6px 10px;
-      border: 1px solid var(--line);
+      border: 1px solid var(--line-strong);
       border-radius: 999px;
-      color: var(--muted);
-      background: rgba(255, 255, 255, 0.035);
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.06);
       font-size: 0.82rem;
       white-space: nowrap;
     }
@@ -406,7 +406,7 @@
       box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--module-color) 22%, transparent);
     }
 
-    .module-card.inactive { opacity: 0.64; }
+    .module-card.inactive { opacity: 0.78; }
 
     .module-color {
       width: 11px;
@@ -428,7 +428,8 @@
 
     .module-meta {
       color: var(--muted);
-      font-size: 0.75rem;
+      font-size: 0.76rem;
+      font-weight: 650;
       margin-top: 3px;
     }
 
@@ -1364,6 +1365,7 @@
     .activity-pro { display: grid; grid-template-rows: auto minmax(0,1fr); gap: 10px; min-height: 100%; }
     .activity-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .activity-list { display: grid; align-content: start; gap: 7px; overflow: auto; }
+    .activity-limit-note { color: var(--muted); font-size: .72rem; line-height: 1.45; }
     .activity-item { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 9px; padding: 9px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255,255,255,.025); }
     .activity-time { color: var(--muted); font-size: .7rem; white-space: nowrap; }
     .activity-message { overflow-wrap: anywhere; }
@@ -2846,16 +2848,24 @@
         const categories = ["all", ...new Set(state.activityLog.map(item => item.category).filter(Boolean))];
         const shell = document.createElement("div"); shell.className = "activity-pro";
         shell.innerHTML = `<div class="activity-toolbar"><select class="pro-select" data-activity="filter">${categories.map(category => `<option value="${escapeHtml(category)}" ${category === data.filter ? "selected" : ""}>${category === "all" ? "Alle Kategorien" : escapeHtml(category)}</option>`).join("")}</select><button class="small-button" data-activity="export">TXT exportieren</button><button class="danger-button small-button" data-activity="clear">Leeren</button></div><div class="activity-list"></div>`;
-        const items = state.activityLog.filter(item => data.filter === "all" || item.category === data.filter).slice(0, data.limit);
+        const filteredItems = state.activityLog.filter(item => data.filter === "all" || item.category === data.filter);
+        const items = filteredItems.slice(0, data.limit);
+        const hiddenCount = Math.max(0, filteredItems.length - items.length);
         const list = shell.querySelector(".activity-list");
         if (!items.length) list.innerHTML = '<div class="module-placeholder">Noch keine protokollierten Aktionen.</div>';
+        if (hiddenCount) {
+          const note = document.createElement("div");
+          note.className = "activity-limit-note";
+          note.textContent = `${items.length} von ${filteredItems.length} Einträgen sichtbar. Der TXT-Export enthält weiterhin alle passenden Einträge.`;
+          list.appendChild(note);
+        }
         items.forEach(item => {
           const row = document.createElement("div"); row.className = "activity-item";
           row.innerHTML = `<div class="activity-time">${new Date(item.time).toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" })}</div><div><div class="activity-category">${escapeHtml(item.category)}</div><div class="activity-message">${escapeHtml(item.message)}</div></div>`;
           list.appendChild(row);
         });
         shell.querySelector('[data-activity="filter"]').addEventListener("change", event => { data.filter = event.target.value; saveState(); renderWorkspace(); });
-        shell.querySelector('[data-activity="export"]').addEventListener("click", () => { const output = state.activityLog.map(item => `${new Date(item.time).toLocaleString("de-DE")} [${item.category}] ${item.message}`).join("\n"); saveTextFile(output || "Keine Einträge", `aktivitaetsprotokoll-${toDateKey(new Date())}.txt`, "text/plain"); });
+        shell.querySelector('[data-activity="export"]').addEventListener("click", () => { const output = filteredItems.map(item => `${new Date(item.time).toLocaleString("de-DE")} [${item.category}] ${item.message}`).join("\n"); saveTextFile(output || "Keine Einträge", `aktivitaetsprotokoll-${toDateKey(new Date())}.txt`, "text/plain"); });
         shell.querySelector('[data-activity="clear"]').addEventListener("click", () => { if (state.confirmDestructive && !confirm("Aktivitätsprotokoll wirklich leeren?")) return; state.activityLog = []; saveState(); renderWorkspace(); toast("Aktivitätsprotokoll geleert"); });
         container.appendChild(shell);
       }
@@ -4063,7 +4073,13 @@
           }
           const message = `${loaded} Manifest-Module übernommen${failed ? `, ${failed} übersprungen` : ""}.`;
           saveStatus.textContent = message;
-          toast(message);
+          toast(feedbackText({
+            title: message,
+            cause: failed ? "Mindestens ein Modulmanifest war nicht erreichbar oder ungültig." : "Alle eingetragenen Modulmanifeste wurden geprüft.",
+            solution: failed ? "Bitte Manifestpfad, Pflichtfelder und erlaubte Einstiegspunkt-Dateien prüfen." : "Keine Aktion nötig; neue Module stehen in der Modulübersicht bereit.",
+            changed: loaded ? "Gültige Module wurden gespeichert; ungültige Einträge wurden übersprungen." : "Nichts gespeichert; Modulübersicht bleibt unverändert.",
+            level: failed ? "warning" : "success"
+          }));
         } catch (error) {
           handleAppError(error, {
             area: "Modul-Loader",
@@ -4100,8 +4116,14 @@
         const name = cleanText(manifest?.name, 42);
         const type = ALLOWED_TYPES.includes(manifest?.type) ? manifest.type : "custom";
         const description = cleanText(manifest?.description, 240);
-        if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id) || !name || description.length < 10) {
-          throw new Error("Ein Modulmanifest enthält ungültige Pflichtfelder.");
+        if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id)) {
+          throw new Error("Modul-ID fehlt oder nutzt unerlaubte Zeichen. Erlaubt sind kleine Buchstaben, Zahlen und Bindestriche. Nichts wurde gespeichert.");
+        }
+        if (!name) {
+          throw new Error("Modulname fehlt. Bitte im Manifest ein kurzes Namensfeld ergänzen. Nichts wurde gespeichert.");
+        }
+        if (description.length < 10) {
+          throw new Error("Modulbeschreibung ist zu kurz. Bitte kurz Zweck und Nutzen des Moduls beschreiben. Nichts wurde gespeichert.");
         }
         return {
           id: newId(), manifestId: id, name, type, description,

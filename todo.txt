@@ -1,6 +1,6 @@
 # TODO
 
-Fortschritt gesamt: 70 %
+Fortschritt gesamt: 74 %
 
 ## Offen
 - [ ] Kontraste gezielt verbessern, ohne das bestehende Design komplett umzubauen.
@@ -8,20 +8,20 @@ Fortschritt gesamt: 70 %
 - [ ] Kontraständerungen in mindestens einem Chromium- und einem Firefox-basierten Browser visuell prüfen.
 - [ ] Systemmodule-Bündel später aus der HTML-Datei in echte Moduldateien überführen, sobald der Loader existiert.
 - [ ] Die große HTML-Datei schrittweise in kleine Bereiche zerlegen: Styles, Standarddaten, Speicherlogik, Modul-Renderer und Hilfsfunktionen.
-- [ ] Kleine Testdatei für reine Hilfsfunktionen bei Bedarf weiter ausbauen, sobald weitere reine Logik identifiziert ist.
 - [ ] README bei jeder echten Struktur-, Bedien- oder Speicheränderung kurz aktualisieren.
 - [ ] Release-Checkliste nach der ersten vollständigen manuellen Browserprüfung mit Datum und Ergebnis verfeinern.
-- [ ] Textbausteine im Schnell-Text-Speicher bei weiteren Iterationen gezielt ergänzen, ohne die Moduldatei aufzublähen.
 - [ ] Bei weiterem Wachstum des Schnell-Text-Speichers eine kleine Moduldatei statt README-Erweiterung planen.
 - [ ] Schnell-Text-Speicher-CSS später visuell im echten Loader prüfen, sobald HTML und CSS gemeinsam geladen werden.
 - [ ] Tastaturbedienung für Modulplatzierung ergänzen und Fokusverhalten in Browsern manuell prüfen.
-- [ ] Schriftkontraste für Statuschips, deaktivierte Module und kleine Metatexte nach visueller Prüfung weiter feinjustieren.
-- [ ] Aktivitätsprotokoll und große Textmodule bei sehr vielen Einträgen begrenzen oder seitenweise anzeigen.
-- [ ] Fehlermeldungen für ungültige Module nach dem Projektstandard formulieren.
 - [ ] Performance-Hotspots prüfen und nur belegte Engstellen optimieren.
 - [ ] Schnell-Text-Speicher im späteren Loader mit `module.html` und `module.css` gemeinsam anzeigen und Kontrast sowie Abstände visuell prüfen.
 
 ## Erledigt
+- [x] Hilfslogik-Tests wurden am 2026-07-16 um Modul-Fallbacktexte und Manifest-Basisvalidierung erweitert.
+- [x] Schnell-Text-Speicher wurde am 2026-07-16 gezielt um sechs kurze Bausteine für Listenbegrenzung, Meldungen, TODO-Abschluss und Statusdarstellung ergänzt.
+- [x] Schriftkontraste für Statuschips, deaktivierte Modulkarten und kleine Modul-Metatexte wurden am 2026-07-16 gezielt nachgeschärft, ohne das Design umzubauen.
+- [x] Aktivitätsprotokoll begrenzt am 2026-07-16 lange Ansichten sichtbar und erklärt ausgeblendete Einträge; der TXT-Export bleibt vollständig für den gewählten Filter.
+- [x] Fehlermeldungen für ungültige Modulmanifeste nennen am 2026-07-16 Pflichtfeld, Ursache, nächsten Schritt und Speicherstatus verständlicher.
 - [x] Offene Entwicklung wurde am 2026-07-16 in drei getrennte Phasen ergänzt: Loader-Prototyp ohne Ausführung, gezielte Modul-Auslagerung und abgesicherter Rückbaupfad.
 - [x] Leere Zustände in der Haupt-App wurden am 2026-07-16 geprüft und handlungsorientierter formuliert: Debug-Ereignisse, Termine, Code- oder Entwicklungsvorhaben, Schnelllinks und Aufgaben.
 - [x] Eingabe-Platzhalter in der Haupt-App wurden am 2026-07-16 geprüft und bei Modul-Erstellung, Import und Befehlssuche durch sichtbare Hilfetexte abgesichert.
