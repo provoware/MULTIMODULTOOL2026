@@ -4,7 +4,7 @@ Diese Checkliste beschreibt die kleinste sichere Freigabeprüfung für die lokal
 
 ## 1. Vorbereitung
 
-- Aktuellen Stand in `README.md`, `todo.txt` und dem neuesten Release-Status-Protokoll unter `docs/` prüfen.
+- Aktuellen Stand in `README.md`, `todo.txt`, dem neuesten Release-Status-Protokoll unter `docs/` und `docs/BROWSER_RELEASE_PROTOCOL_2026-07-16.md` prüfen.
 - Sicherstellen, dass keine privaten Daten in `data/`, `imports/`, `exports/` oder `logs/` liegen.
 - Offene Risiken aus `todo.txt` lesen und entscheiden, ob sie die Freigabe blockieren.
 
@@ -38,7 +38,7 @@ Diese Checkliste beschreibt die kleinste sichere Freigabeprüfung für die lokal
 
 ## 6. Sicht- und Kontrastprüfung
 
-Stand 2026-07-16: Die App wurde für Tastaturplatzierung und sichtbare Fokuszustände vorbereitet. Eine echte Chromium-/Firefox-Sichtprüfung muss auf einer Browserinstallation nachgeholt werden; im Container waren Snap-Browser und Playwright-Browserdownloads blockiert. Das aktuelle Release-Kandidaten-Protokoll liegt in `docs/RELEASE_STATUS_2026-07-16.md`. Die vollständige Speicher-/Importprüfung bleibt ein eigener Freigabeschritt und darf nicht durch diese Sichtprüfung ersetzt werden.
+Stand 2026-07-16: Die App wurde für Tastaturplatzierung und sichtbare Fokuszustände vorbereitet. Eine echte Chromium-/Firefox-Sichtprüfung muss auf einer Browserinstallation nachgeholt werden; im Container waren Snap-Browser und Playwright-Browserdownloads blockiert. Das aktuelle Release-Kandidaten-Protokoll liegt in `docs/RELEASE_STATUS_2026-07-16.md`; die ausfüllbare Browser-Vorlage liegt in `docs/BROWSER_RELEASE_PROTOCOL_2026-07-16.md`. Die vollständige Speicher-/Importprüfung bleibt ein eigener Freigabeschritt und darf nicht durch diese Sichtprüfung ersetzt werden.
 
 ## 7. Freigabeentscheidung
 
@@ -50,4 +50,4 @@ Eine lokale Freigabe ist möglich, wenn:
 - keine privaten Daten im Commit enthalten sind,
 - und die Änderung ohne Build-Schritt nutzbar bleibt.
 
-Wenn einer dieser Punkte offen ist, wird keine Freigabe markiert. Stattdessen wird der Grund in `todo.txt` dokumentiert.
+Wenn einer dieser Punkte offen ist, wird keine Freigabe markiert. Stattdessen wird der Grund in `todo.txt` dokumentiert. Die Browserfreigabe darf nur als erledigt markiert werden, wenn das Browser-Freigabeprotokoll vollständig ausgefüllt ist.
