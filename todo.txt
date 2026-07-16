@@ -1,6 +1,6 @@
 # TODO
 
-Fortschritt gesamt: 82 %
+Fortschritt gesamt: 83 %
 
 ## Offen
 - [ ] Kontraständerungen auf einer echten Chromium- und Firefox-Installation visuell nachprüfen; die Container-Prüfung am 2026-07-16 war durch Snap-/Download-Sperren blockiert.
@@ -8,6 +8,7 @@ Fortschritt gesamt: 82 %
 - [ ] Schnell-Text-Speicher-CSS später visuell im echten Loader prüfen, sobald HTML und CSS gemeinsam geladen werden.
 
 ## Erledigt
+- [x] Doppelte Root-Startdaten `genres_db.json` wurden am 2026-07-16 entfernt; die geprüfte kanonische Kopie liegt weiter unter `modules/provoware-genretool-pro/`, und der GenreTool-Test verhindert neue Root-Duplikate.
 - [x] Systemmodule-Bündel hat am 2026-07-16 echte, lesende `module.html`- und `module.css`-Dateien erhalten; die Single-File-App bleibt als Rückbaupfad maßgeblich.
 - [x] HTML-Auslagerung wurde am 2026-07-16 in `docs/HTML_AUSLAGERUNGSPLAN.md` in prüfbare Schnittschritte zerlegt: Styles, Standarddaten, Speicherlogik, Modul-Renderer und Hilfsfunktionen.
 - [x] Schnell-Text-Speicher nutzt am 2026-07-16 eine kleine `preview.html`, die `module.html` und `module.css` gemeinsam lädt; weiteres Wachstum muss nicht mehr über README-Erweiterungen geplant werden.
