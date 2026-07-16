@@ -22,6 +22,9 @@
     "bookmarks",
     "activity",
     "modulebuilder",
+    "mother",
+    "registry",
+    "debugging",
     "custom"
   ],
   "safetyRules": {
