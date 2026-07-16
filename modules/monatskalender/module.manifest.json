@@ -1,0 +1,23 @@
+{
+  "id": "monatskalender",
+  "name": "Monatskalender",
+  "version": "1.0.0",
+  "type": "calendar",
+  "description": "Dynamische Monatsansicht mit lokal gespeicherten Terminen.",
+  "entry": {
+    "html": null,
+    "css": null,
+    "js": null
+  },
+  "permissions": [
+    "local-storage"
+  ],
+  "storage": {
+    "scope": "module",
+    "backupRequired": false
+  },
+  "validation": {
+    "maxInputBytes": 0,
+    "allowedFileExtensions": []
+  }
+}

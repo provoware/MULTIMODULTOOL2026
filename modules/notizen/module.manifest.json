@@ -1,0 +1,26 @@
+{
+  "id": "notizen",
+  "name": "Notizen",
+  "version": "1.0.0",
+  "type": "notes",
+  "description": "Einfache lokale Arbeitsnotizen.",
+  "entry": {
+    "html": null,
+    "css": null,
+    "js": null
+  },
+  "permissions": [
+    "local-storage"
+  ],
+  "storage": {
+    "scope": "module",
+    "backupRequired": false
+  },
+  "validation": {
+    "maxInputBytes": 2000000,
+    "allowedFileExtensions": [
+      ".txt",
+      ".md"
+    ]
+  }
+}

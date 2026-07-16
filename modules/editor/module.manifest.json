@@ -1,0 +1,29 @@
+{
+  "id": "editor",
+  "name": "Editor",
+  "version": "1.0.0",
+  "type": "editor",
+  "description": "Dokumenteditor mit Titel, Markdown-Vorschau und Datei-Export.",
+  "entry": {
+    "html": null,
+    "css": null,
+    "js": null
+  },
+  "permissions": [
+    "local-storage",
+    "file-import",
+    "file-export"
+  ],
+  "storage": {
+    "scope": "module",
+    "backupRequired": true
+  },
+  "validation": {
+    "maxInputBytes": 2000000,
+    "allowedFileExtensions": [
+      ".txt",
+      ".md",
+      ".html"
+    ]
+  }
+}

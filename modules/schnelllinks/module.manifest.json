@@ -1,0 +1,23 @@
+{
+  "id": "schnelllinks",
+  "name": "Schnelllinks",
+  "version": "1.0.0",
+  "type": "bookmarks",
+  "description": "Validierte http- und https-Links für den Workflow.",
+  "entry": {
+    "html": null,
+    "css": null,
+    "js": null
+  },
+  "permissions": [
+    "local-storage"
+  ],
+  "storage": {
+    "scope": "module",
+    "backupRequired": false
+  },
+  "validation": {
+    "maxInputBytes": 0,
+    "allowedFileExtensions": []
+  }
+}

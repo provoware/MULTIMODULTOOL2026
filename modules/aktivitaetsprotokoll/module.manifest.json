@@ -1,0 +1,23 @@
+{
+  "id": "aktivitaetsprotokoll",
+  "name": "Aktivitätsprotokoll",
+  "version": "1.0.0",
+  "type": "activity",
+  "description": "Nachvollziehbares lokales Protokoll wichtiger Struktur- und Workflow-Aktionen.",
+  "entry": {
+    "html": null,
+    "css": null,
+    "js": null
+  },
+  "permissions": [
+    "local-storage"
+  ],
+  "storage": {
+    "scope": "workspace",
+    "backupRequired": false
+  },
+  "validation": {
+    "maxInputBytes": 0,
+    "allowedFileExtensions": []
+  }
+}

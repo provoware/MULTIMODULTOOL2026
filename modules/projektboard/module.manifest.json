@@ -1,0 +1,23 @@
+{
+  "id": "projektboard",
+  "name": "Projektboard",
+  "version": "1.0.0",
+  "type": "projectboard",
+  "description": "Kanban-Board für Vorhaben, Prioritäten, Fälligkeiten und Status.",
+  "entry": {
+    "html": null,
+    "css": null,
+    "js": null
+  },
+  "permissions": [
+    "local-storage"
+  ],
+  "storage": {
+    "scope": "module",
+    "backupRequired": false
+  },
+  "validation": {
+    "maxInputBytes": 0,
+    "allowedFileExtensions": []
+  }
+}

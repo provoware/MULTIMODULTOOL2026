@@ -1,0 +1,23 @@
+{
+  "id": "modul-werkstatt",
+  "name": "Modul-Werkstatt",
+  "version": "1.0.0",
+  "type": "modulebuilder",
+  "description": "Module direkt im Dashboard erstellen, aktivieren, öffnen und bearbeiten.",
+  "entry": {
+    "html": null,
+    "css": null,
+    "js": null
+  },
+  "permissions": [
+    "local-storage"
+  ],
+  "storage": {
+    "scope": "workspace",
+    "backupRequired": true
+  },
+  "validation": {
+    "maxInputBytes": 0,
+    "allowedFileExtensions": []
+  }
+}

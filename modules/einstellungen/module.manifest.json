@@ -1,0 +1,23 @@
+{
+  "id": "einstellungen",
+  "name": "Einstellungen",
+  "version": "1.0.0",
+  "type": "settings",
+  "description": "Darstellung, Verhalten, Autosave, Backups und Sicherheit.",
+  "entry": {
+    "html": null,
+    "css": null,
+    "js": null
+  },
+  "permissions": [
+    "local-storage"
+  ],
+  "storage": {
+    "scope": "workspace",
+    "backupRequired": true
+  },
+  "validation": {
+    "maxInputBytes": 0,
+    "allowedFileExtensions": []
+  }
+}
