@@ -1,6 +1,6 @@
 # TODO
 
-Fortschritt gesamt: 97 %
+Fortschritt gesamt: 98 %
 
 ## Offen
 - [ ] Kontraständerungen auf einer echten Chromium- und Firefox-Installation visuell nachprüfen; die Container-Prüfung am 2026-07-16 war durch Snap-/Download-Sperren blockiert.
@@ -8,6 +8,7 @@ Fortschritt gesamt: 97 %
 - [ ] Speicherprüfung zusätzlich in Chromium und Firefox ausführen und Ergebnis mit Screenshot oder kurzem Prüfprotokoll dokumentieren.
 
 ## Erledigt
+- [x] Release-Vorprüfung wurde am 2026-07-16 vervollständigt: Schnelltext-Prüfung und Startskript-Test sind jetzt im lokalen Release-Status, im CI-Gate und im Release-Gate-Validator enthalten, ohne die offene Browserfreigabe als erledigt zu markieren.
 - [x] Vertrauensgrenze für manifestbasierte JavaScript-Module wurde am 2026-07-16 dokumentiert: `module.js` gilt vorerst nur für interne Repository-Module; Drittmodule brauchen eine eigene Vertrauensprüfung.
 - [x] CI-Release-Gate wurde am 2026-07-16 ergänzt: `.github/workflows/release-gate.yml` führt die vorhandenen statischen Release-Prüfungen bei Pull Requests und Pushes aus, ohne die offene Browserfreigabe als erledigt zu markieren.
 - [x] Release-Gate gleicht am 2026-07-16 den Fortschrittswert dynamisch zwischen README und todo.txt ab, statt eine alte Prozentzahl hart zu erwarten.

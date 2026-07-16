@@ -31,6 +31,8 @@ REQUIRED_CHECK_COMMANDS = (
     "python3 tests/test_html_helpers.py",
     "python3 tests/validate_genres_module.py",
     "python3 tests/validate_module_previews.py",
+    "python3 tests/validate_quicktext_snippets.py",
+    "python3 tests/test_start_local.py",
     "python3 tests/scan_performance_hotspots.py",
     "python3 tests/validate_release_gate.py",
 )
