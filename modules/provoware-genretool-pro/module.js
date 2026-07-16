@@ -48,6 +48,7 @@
     avoidRecent: q('[data-role="avoid-recent"]'),
     favoritesFirst: q('[data-role="favorites-first"]'),
     autoCopy: q('[data-role="auto-copy"]'),
+    stats: q('[data-role="stats"]'),
     results: q('[data-role="results"]'),
     history: q('[data-role="history"]'),
     importInput: q('[data-role="import"]'),
@@ -105,6 +106,7 @@
       category,
       term,
       favorite: Boolean(raw?.favorite),
+      usedCount: Math.max(0, Number(raw?.usedCount) || 0),
       source: raw?.source === "custom" ? "custom" : "seed",
       createdAt: cleanTerm(raw?.createdAt) || new Date().toISOString()
     };
@@ -208,7 +210,7 @@
       if (!term || hasTerm(term)) { skipped += 1; continue; }
       state.items.push({
         id: newId(), category: normalizedCategory, term: cleanTerm(term),
-        favorite: false, source, createdAt: new Date().toISOString()
+        favorite: false, usedCount: 0, source, createdAt: new Date().toISOString()
       });
       added += 1;
     }
@@ -245,7 +247,7 @@
     els.list.innerHTML = visible.length ? visible.map(item => `
       <article class="genretool__item" data-id="${escapeHtml(item.id)}">
         <div class="genretool__row">
-          <div class="genretool__item-main"><strong>${escapeHtml(item.term)}</strong><span class="genretool__chip">${escapeHtml(CATEGORY_LABELS[item.category])}</span></div>
+          <div class="genretool__item-main"><strong>${escapeHtml(item.term)}</strong><span class="genretool__chip">${escapeHtml(CATEGORY_LABELS[item.category])}</span><span class="genretool__chip">${item.usedCount || 0}× genutzt</span></div>
           <div class="genretool__item-actions">
             <button type="button" class="genretool__secondary" data-item-action="favorite">${item.favorite ? "★" : "☆"}</button>
             <button type="button" class="genretool__secondary" data-item-action="copy">Kopieren</button>
@@ -279,36 +281,43 @@
     return item;
   }
 
-  function buildResult(previous = null) {
-    const categories = selectedCategories();
+  function buildCategoryList(category, amount, recent) {
     const used = new Set();
-    const recent = new Set(state.recentTerms);
-    return {
-      id: previous?.id || newId(),
-      parts: categories.map(category => {
-        const locked = previous?.parts?.find(part => part.category === category && part.locked);
-        if (locked) { used.add(normalizeKey(locked.term)); return locked; }
-        const item = pickItem(category, used, recent);
-        return { category, term: item?.term || "Kein Eintrag", itemId: item?.id || "", locked: false };
-      })
-    };
+    const items = [];
+    for (let index = 0; index < amount; index += 1) {
+      const item = pickItem(category, used, recent);
+      if (!item) break;
+      items.push({ id: item.id, term: item.term });
+    }
+    return { category, items };
   }
 
   function resultText(result) {
-    return result.parts.map(part => `${CATEGORY_LABELS[part.category]}: ${part.term}`).join(" | ");
+    const terms = result.items.map(item => item.term).join(", ");
+    return `${CATEGORY_LABELS[result.category]}: ${terms || "Keine Einträge verfügbar"}`;
+  }
+
+  function statsByCategory() {
+    return CATEGORY_DEFS.map(([category, label]) => {
+      const items = state.items.filter(item => item.category === category);
+      const total = items.reduce((sum, item) => sum + (item.usedCount || 0), 0);
+      const top = [...items].sort((a, b) => (b.usedCount || 0) - (a.usedCount || 0))[0];
+      return { category, label, count: items.length, total, top };
+    });
+  }
+
+  function renderStats() {
+    els.stats.innerHTML = statsByCategory().map(stat => `
+      <div class="genretool__stat"><strong>${escapeHtml(stat.label)}</strong><span>${stat.count} Begriffe · ${stat.total}× gezogen</span><small>Top: ${escapeHtml(stat.top?.term || "noch keiner")} (${stat.top?.usedCount || 0}×)</small></div>
+    `).join("");
   }
 
   function renderResults() {
     els.results.innerHTML = currentResults.length ? currentResults.map((result, resultIndex) => `
       <article class="genretool__result" data-result-index="${resultIndex}">
-        <div class="genretool__row"><strong>Ergebnis ${resultIndex + 1}</strong><button type="button" class="genretool__secondary" data-result-action="copy">Kopieren</button></div>
-        <div class="genretool__parts">${result.parts.map((part, partIndex) => `
-          <div class="genretool__part ${part.locked ? "is-locked" : ""}">
-            <span><strong>${escapeHtml(CATEGORY_LABELS[part.category])}:</strong> ${escapeHtml(part.term)}</span>
-            <button type="button" class="genretool__secondary" data-result-action="lock" data-part-index="${partIndex}">${part.locked ? "🔒" : "🔓"}</button>
-          </div>`).join("")}</div>
-        <button type="button" class="genretool__secondary" data-result-action="reroll">Offene Teile neu würfeln</button>
-      </article>`).join("") : '<div class="genretool__empty">Noch keine Ergebnisse erzeugt.</div>';
+        <div class="genretool__row"><strong>${escapeHtml(CATEGORY_LABELS[result.category])}</strong><button type="button" class="genretool__secondary" data-result-action="copy">Kopieren</button></div>
+        <p class="genretool__comma-list">${escapeHtml(result.items.map(item => item.term).join(", ") || "Keine Einträge verfügbar")}</p>
+      </article>`).join("") : '<div class="genretool__empty">Noch keine Listen erzeugt.</div>';
   }
 
   function renderHistory() {
@@ -323,6 +332,7 @@
 
   function renderAll() {
     renderArchive();
+    renderStats();
     renderResults();
     renderHistory();
     renderButtons();
@@ -503,14 +513,17 @@
     const categories = selectedCategories();
     if (!categories.length) return setStatus("Mindestens eine Kategorie auswählen.", "error");
     if (!categories.some(category => state.items.some(item => item.category === category))) return setStatus("Für die Auswahl fehlen Begriffe.", "error");
-    const amount = Math.min(12, Math.max(1, Number(els.resultCount.value) || 1));
-    currentResults = Array.from({ length: amount }, () => buildResult());
+    const amount = Math.min(50, Math.max(1, Number(els.resultCount.value) || 1));
+    const recent = new Set(state.recentTerms);
+    currentResults = categories.map(category => buildCategoryList(category, amount, recent));
+    const pickedIds = currentResults.flatMap(result => result.items.map(item => item.id));
     const texts = currentResults.map(resultText);
     snapshot();
-    state.history.unshift(...texts.map(text => ({ id: newId(), text, createdAt: new Date().toISOString() })));
+    state.items.forEach(item => { if (pickedIds.includes(item.id)) item.usedCount = (item.usedCount || 0) + 1; });
+    state.history.unshift({ id: newId(), text: texts.join(" | "), createdAt: new Date().toISOString() });
     state.history = state.history.slice(0, HISTORY_LIMIT);
-    state.recentTerms = currentResults.flatMap(result => result.parts.map(part => normalizeKey(part.term))).filter(Boolean).slice(-100);
-    persist(`${amount} Kombinationen erzeugt.`);
+    state.recentTerms = currentResults.flatMap(result => result.items.map(item => normalizeKey(item.term))).filter(Boolean).slice(-100);
+    persist(`${amount} Begriffe je gewählter Kategorie erzeugt.`);
     if (els.autoCopy.checked) await copyText(texts.join("\n"));
   });
 
@@ -519,27 +532,18 @@
     if (!button) return;
     const index = Number(button.closest("[data-result-index]")?.dataset.resultIndex);
     const result = currentResults[index];
-    if (!result) return;
-    const action = button.dataset.resultAction;
-    if (action === "copy") return copyText(resultText(result));
-    if (action === "lock") {
-      const part = result.parts[Number(button.dataset.partIndex)];
-      if (part) part.locked = !part.locked;
-    }
-    if (action === "reroll") currentResults[index] = buildResult(result);
-    renderResults();
-    setStatus("Mixer-Ergebnis angepasst. Archiv unverändert.");
+    if (result) copyText(resultText(result));
   });
 
   q('[data-action="copy-all"]').addEventListener("click", () => {
     if (!currentResults.length) return setStatus("Keine Ergebnisse zum Kopieren.", "error");
     copyText(currentResults.map(resultText).join("\n"));
   });
-  q('[data-action="unlock-all"]').addEventListener("click", () => {
-    currentResults.forEach(result => result.parts.forEach(part => { part.locked = false; }));
-    renderResults();
-    setStatus("Alle Sperren gelöst.");
-  });
+
+  qa("[data-quick-count]").forEach(button => button.addEventListener("click", () => {
+    els.resultCount.value = button.dataset.quickCount;
+    setStatus(`${button.dataset.quickCount} Begriffe je Kategorie eingestellt.`);
+  }));
 
   els.history.addEventListener("click", event => {
     const button = event.target.closest("button[data-history-id]");
