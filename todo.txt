@@ -1,194 +1,69 @@
-Dashboard Studio Ultimate Pro – TODO und Fortschritt
-Stand: 2026-07-16
-Aktueller Startpunkt: dashboard-studio-ultimate-pro-v3.1.0.html
-Arbeitsweise: lokal im Browser, ohne Build-Schritt, ohne externe Laufzeit-Abhängigkeiten.
+# TODO
 
-Fortschritt gesamt: 61 %
-Berechnung: erledigte Grundlagen und Standards zählen 40 %, laufende Qualitäts- und UX-Arbeit 35 %, Modul-Auslagerung und Tests 25 %.
-Aktualisierungsregel: Bei jeder Iteration Stand, Prozentwert, erledigte Punkte, offene Punkte und bekannte Grenzen prüfen und anpassen.
+## Offen
+- [ ] README als schnelle Einstiegs- und Orientierungshilfe aktuell halten.
+- [ ] Release-Checkliste bei Freigabekandidaten gegen die tatsächlich geprüften Schritte abgleichen.
+- [ ] Manifestprüfungen schrittweise an das Loader-Konzept angleichen, ohne die HTML-App umzubauen.
+- [ ] Kontraste gezielt verbessern, ohne das bestehende Design komplett umzubauen.
+- [ ] Offene Entwicklung in Phasen planen, damit jede Iteration klein, prüfbar und rückbaubar bleibt.
+- [ ] Speicher-/Importpfad im Browser anhand der Release-Checkliste manuell prüfen: Standardstart, kaputte localStorage-Daten, Backup-Wiederherstellung und JSON-Import.
+- [ ] Vor großen Importen prüfen, ob Browser-Speicherplatz ausreicht, damit ein Import nicht erst beim späteren Speichern scheitert.
+- [ ] Kontraständerungen in mindestens einem Chromium- und einem Firefox-basierten Browser visuell prüfen.
+- [ ] CSS-Klasse `.module-placeholder` in `dashboard-studio-ultimate-pro-v3.1.0.html` prüfen; entscheiden, welche Leerzustände echte Platzhalter bleiben dürfen und welche durch konkrete Modulansichten ersetzt werden sollen.
+- [ ] Dynamische Fallback-Ausgabe für freie Module in `dashboard-studio-ultimate-pro-v3.1.0.html` prüfen (`module.description || "Freies, erweiterbares Modul"`).
+- [ ] Leere Zustände in `dashboard-studio-ultimate-pro-v3.1.0.html` prüfen, zum Beispiel Debug-Ereignisse, Termine, Code- oder Entwicklungsvorhaben, Schnelllinks und Aufgaben.
+- [ ] Eingabe-Platzhalter in Formularen in `dashboard-studio-ultimate-pro-v3.1.0.html` prüfen; sicherstellen, dass sie nur Beispiele sind und keine notwendigen Feldbeschriftungen ersetzen.
+- [ ] Eingabe-Platzhalter für Begriffe und Suche in `modules/provoware-genretool-pro/module.html` prüfen; sicherstellen, dass Pflichtangaben auch ohne Platzhalter verständlich bleiben.
+- [ ] Sentinel-Prüfung auf `PLACEHOLDER` in `tests/validate_genres_module.py` bei Moduländerungen erneut ausführen.
+- [ ] Harte Ersetzungswerte für Fortschritt/TODO in `scripts/apply_hardening_iteration.py` prüfen; entscheiden, ob das Skript archiviert, aktualisiert oder als einmaliges Hilfsskript markiert werden soll.
+- [ ] Systemmodule-Bündel später aus der HTML-Datei in echte Moduldateien überführen, sobald der Loader existiert.
+- [ ] Manifest-Prüfung mit `python3 tests/validate_module_manifests.py` bei künftigen Moduländerungen erneut ausführen.
+- [ ] Die große HTML-Datei schrittweise in kleine Bereiche zerlegen: Styles, Standarddaten, Speicherlogik, Modul-Renderer und Hilfsfunktionen.
+- [ ] Kleine Testdatei für reine Hilfsfunktionen bei Bedarf weiter ausbauen, sobald weitere reine Logik identifiziert ist.
+- [ ] README bei jeder echten Struktur-, Bedien- oder Speicheränderung kurz aktualisieren.
+- [ ] Release-Checkliste nach der ersten vollständigen manuellen Browserprüfung mit Datum und Ergebnis verfeinern.
+- [ ] Textbausteine im Schnell-Text-Speicher bei weiteren Iterationen gezielt ergänzen, ohne die Moduldatei aufzublähen.
+- [ ] Bei weiterem Wachstum des Schnell-Text-Speichers eine kleine Moduldatei statt README-Erweiterung planen.
+- [ ] Schnell-Text-Speicher-CSS später visuell im echten Loader prüfen, sobald HTML und CSS gemeinsam geladen werden.
+- [ ] Import-Dialog um eine kurze Checkliste ergänzen: JSON einfügen, Größe prüfen, Backup wird erstellt, danach importieren.
+- [ ] Statusbereich deutlicher machen, wenn ein Backup erstellt, wiederhergestellt oder abgelehnt wurde.
+- [ ] Für gefährliche Aktionen einheitliche Bestätigungstexte verwenden.
+- [ ] Tastaturbedienung für Modulplatzierung ergänzen und Fokusverhalten in Browsern manuell prüfen.
+- [ ] Schriftkontraste für Statuschips, deaktivierte Module und kleine Metatexte nach visueller Prüfung weiter feinjustieren.
+- [ ] Häufig wiederholte Modul-Suchen in Render-Pfaden prüfen und bei Bedarf über eine Map zwischenspeichern.
+- [ ] Aktivitätsprotokoll und große Textmodule bei sehr vielen Einträgen begrenzen oder seitenweise anzeigen.
+- [ ] Timer-Speicherung drosseln, damit laufende Timer den lokalen Speicher nicht unnötig oft schreiben.
+- [ ] Minimalen Loader-Prototyp planen, ohne die bestehende HTML-Datei umzubenennen oder ein Build-System einzuführen.
+- [ ] Fehlermeldungen für ungültige Module nach dem Projektstandard formulieren.
+- [ ] Ein kleines, fachlich klares Modul als Muster weiter auslagern.
+- [ ] Rückbaupfad für ausgelagerte Module festhalten, falls die Auslagerung Probleme verursacht.
+- [ ] Performance-Hotspots prüfen und nur belegte Engstellen optimieren.
+- [ ] Schnell-Text-Speicher im späteren Loader mit `module.html` und `module.css` gemeinsam anzeigen und Kontrast sowie Abstände visuell prüfen.
 
-Erledigt
-- Projektstruktur und Ordnerzwecke sind in AGENTS.md festgelegt.
-- Single-File-HTML-App ist weiterhin der stabile Startpunkt.
-- App-Manifest, Modulmanifest-Schema und Beispielmanifest sind vorhanden.
-- Systemmodule-Bündel ist als künftiger Modul-Kandidat beschrieben.
-- Startskript für lokales Öffnen ist dokumentiert.
-- Entwicklerhinweise liegen in docs/DEVELOPER_GUIDE.md.
-- Kontrastbasis der Oberfläche wurde verbessert: hellere Standardtexte, stärkere Linien und klarere Eingabeflächen.
-- Manifest-Loader-Konzept ist als vorbereitende Dokumentation in docs/MANIFEST_LOADER_KONZEPT.md ergänzt.
-- Manifestprüfung wurde am 2026-07-16 mit `python3 tests/validate_module_manifests.py` erfolgreich ausgeführt: 16 Modulmanifeste geprüft.
-- Manifestprüfer wurde an die im Schema erlaubten Modultypen `mother`, `registry` und `debugging` angeglichen.
-- Kleine Hilfslogik-Prüfung für Datum, sichere Dateinamen und URL-Normalisierung wurde ergänzt.
-- Hilfslogik-Tests wurden um Textbegrenzung und Aufgaben-Zustandsnormalisierung erweitert.
-- Schnell-Text-Speicher hat eine kleine README mit je einem nutzbaren Textbaustein für Coding, Prompting, Vibecoding, KI-Bildgenerierung, KI-Musikgenerierung und KI-Contentcreation.
-- Schnell-Text-Speicher wurde um je einen weiteren nutzbaren Textbaustein pro Kategorie ergänzt.
-- Release-Checkliste für lokale Freigabeprüfungen wurde in docs/RELEASE_CHECKLIST.md ergänzt.
-- Schnell-Text-Speicher wurde für die aktuelle Iteration erneut um je einen Textbaustein pro Kategorie erweitert.
-- Export- und Backup-Meldungen wurden strukturierter formuliert: Ereignis, Grund, Lösung und Speicherstatus werden nun bei den direkt betroffenen Hinweisen angezeigt.
-- Platzhalter-Fundstellen wurden am 2026-07-16 per gezielter Textsuche ermittelt und als nummerierte Abarbeitungsliste aufgenommen.
-- Manifestprüfung kontrolliert nun bei Modulmanifesten zusätzlich, ob die Manifest-ID zum Modulordner passt und deklarierte Einstiegspunkt-Dateien vorhanden sind.
-- Schnell-Text-Speicher wurde in dieser Iteration um je einen weiteren Textbaustein pro Kategorie ergänzt.
-- AGENTS.md legt nun mittelgroße, sicher begrenzte Iterationen als bevorzugten Arbeitsumfang fest und fordert einen benannten Effizienzgewinn pro Iteration.
-- README-Fortschritt wurde auf 59 % angehoben, weil Arbeitsumfang, Effizienzregeln und Iterationsabschluss klarer geregelt sind.
-- Schnell-Text-Speicher wurde für die aktuelle Iteration erneut um je einen Textbaustein pro Kategorie ergänzt.
-- Schnell-Text-Speicher wurde als kleiner Modul-Kandidat ausgewählt; eine erste `module.html` ist vorhanden und im Manifest verknüpft.
-- README-Fortschritt wurde auf 60 % angehoben, weil ein konkreter Modulbaustein nun per Manifestprüfung absicherbar ist.
-- Schnell-Text-Speicher wurde in dieser Iteration erneut um je einen Textbaustein pro Kategorie ergänzt.
-- Schnell-Text-Speicher hat eine gekapselte `module.css`, die im Manifest verknüpft ist und die erste Modulansicht ohne Änderung der Haupt-App lesbarer macht.
-- Schnell-Text-Speicher wurde für diese Iteration erneut um je einen Textbaustein pro Kategorie ergänzt.
-
-In Arbeit
-- README als schnelle Einstiegs- und Orientierungshilfe aktuell halten.
-- Release-Checkliste bei Freigabekandidaten gegen die tatsächlich geprüften Schritte abgleichen.
-- TODO-Datei als Fortschrittsübersicht mit offenen, erledigten und bekannten Punkten pflegen.
-- Manifestprüfungen schrittweise an das Loader-Konzept angleichen, ohne die HTML-App umzubauen.
-- Kontraste gezielt verbessern, ohne das bestehende Design komplett umzubauen.
-- Offene Entwicklung in Phasen planen, damit jede Iteration klein, prüfbar und rückbaubar bleibt.
-
-Priorität 1 – Notwendige Korrekturen
-- Speicher-/Importpfad im Browser anhand der Release-Checkliste manuell prüfen: Standardstart, kaputte localStorage-Daten, Backup-Wiederherstellung und JSON-Import.
-- Vor großen Importen prüfen, ob Browser-Speicherplatz ausreicht, damit ein Import nicht erst beim späteren Speichern scheitert.
-- Kontraständerungen in mindestens einem Chromium- und einem Firefox-basierten Browser visuell prüfen.
-
-Priorität 1a – Platzhalter strukturiert abarbeiten
-1. `dashboard-studio-ultimate-pro-v3.1.0.html`: CSS-Klasse `.module-placeholder` prüfen; entscheiden, welche Leerzustände echte Platzhalter bleiben dürfen und welche durch konkrete Modulansichten ersetzt werden sollen.
-2. `dashboard-studio-ultimate-pro-v3.1.0.html`: Dynamische Fallback-Ausgabe für freie Module prüfen (`module.description || "Freies, erweiterbares Modul"`); bei Bedarf klarere Nutzerinformation oder Modulstandard ergänzen.
-3. `dashboard-studio-ultimate-pro-v3.1.0.html`: Leere Zustände wie „Noch keine Debug-Ereignisse“, „Keine Termine“, „Noch kein Code- oder Entwicklungsvorhaben“, „Noch keine Schnelllinks“ und „Noch keine Aufgaben“ prüfen; nur dort ändern, wo Nutzer einen nächsten Schritt brauchen.
-4. `dashboard-studio-ultimate-pro-v3.1.0.html`: Eingabe-Platzhalter in Formularen prüfen; sicherstellen, dass sie nur Beispiele sind und keine notwendigen Feldbeschriftungen ersetzen.
-5. `modules/provoware-genretool-pro/module.html`: Eingabe-Platzhalter für Begriffe und Suche prüfen; sicherstellen, dass Pflichtangaben auch ohne Platzhalter verständlich bleiben.
-6. `tests/validate_genres_module.py`: Sentinel-Prüfung auf `PLACEHOLDER` beibehalten und bei Moduländerungen erneut ausführen, damit `module.js` nicht versehentlich durch einen Stub ersetzt wird.
-7. `scripts/apply_hardening_iteration.py`: Harte Ersetzungswerte für Fortschritt/TODO prüfen; entscheiden, ob das Skript archiviert, aktualisiert oder als einmaliges Hilfsskript markiert werden soll.
-
-Priorität 2 – Qualitätsverbesserungen
-- Systemmodule-Bündel später aus der HTML-Datei in echte Moduldateien überführen, sobald der Loader existiert.
-- Manifest-Prüfung mit `python3 tests/validate_module_manifests.py` bei künftigen Moduländerungen erneut ausführen.
-- Die große HTML-Datei schrittweise in kleine Bereiche zerlegen: Styles, Standarddaten, Speicherlogik, Modul-Renderer und Hilfsfunktionen.
-- Kleine Testdatei für reine Hilfsfunktionen bei Bedarf weiter ausbauen, sobald weitere reine Logik identifiziert ist.
-- README bei jeder echten Struktur-, Bedien- oder Speicheränderung kurz aktualisieren.
-- Release-Checkliste nach der ersten vollständigen manuellen Browserprüfung mit Datum und Ergebnis verfeinern.
-- Textbausteine im Schnell-Text-Speicher bei weiteren Iterationen gezielt ergänzen, ohne die Moduldatei aufzublähen; bei weiterem Wachstum eine kleine Moduldatei statt README-Erweiterung planen.
-- Schnell-Text-Speicher-CSS später visuell im echten Loader prüfen, sobald HTML und CSS gemeinsam geladen werden.
-
-Priorität 3 – GUI-/UX-Verbesserungen
-- Import-Dialog um eine kurze Checkliste ergänzen: JSON einfügen, Größe prüfen, Backup wird erstellt, danach importieren.
-- Statusbereich deutlicher machen, wenn ein Backup erstellt, wiederhergestellt oder abgelehnt wurde.
-- Für gefährliche Aktionen einheitliche Bestätigungstexte verwenden.
-- Barrierefreiheit verbessern: Tastaturbedienung für Modulplatzierung ergänzen und Fokusverhalten in Browsern manuell prüfen.
-- Schriftkontraste für Statuschips, deaktivierte Module und kleine Metatexte nach visueller Prüfung weiter feinjustieren.
-
-Priorität 4 – Performance-Verbesserungen
-- Häufig wiederholte Modul-Suchen in Render-Pfaden prüfen und bei Bedarf über eine Map zwischenspeichern.
-- Aktivitätsprotokoll und große Textmodule bei sehr vielen Einträgen begrenzen oder seitenweise anzeigen.
-- Timer-Speicherung drosseln, damit laufende Timer den lokalen Speicher nicht unnötig oft schreiben.
-
-Phasenplan der offenen Entwicklung
-
-Phase 1 – Stabilität und Datensicherheit
-Ziel: Bestehende Single-File-App zuverlässig halten, bevor Module ausgelagert werden.
-Schritte:
-1. Speicher-/Importpfad im Browser prüfen und Ergebnis mit Datum dokumentieren.
-2. Fehler- und Erfolgsmeldungen für Import, Export, Backup und Wiederherstellung vereinheitlichen.
-3. Vor großen Importen eine Speicherplatz- und Größenprüfung entwerfen und danach minimal einbauen.
-4. Riskante Speicheraktionen mit klarer Bestätigung, Abbruchmöglichkeit und verständlicher Folgeinformation absichern.
-Akzeptanzkriterien:
-- Standardstart, defekter Speicherzustand, Backup-Wiederherstellung und JSON-Import sind manuell geprüft.
-- Nutzermeldungen nennen Ursache, Folge und nächste Handlung in einfacher Sprache.
-- Kein Import überschreibt Daten still oder scheitert erst unklar beim späteren Speichern.
-
-Phase 2 – Bedienbarkeit und Barrierearmut
-Ziel: Oberfläche klarer, besser lesbar und auch per Tastatur zuverlässiger machen.
-Schritte:
-1. Kontraständerungen in Chromium und Firefox visuell prüfen.
-2. Kleine Metatexte, Statuschips und deaktivierte Zustände nur nach Prüfung gezielt nachjustieren.
-3. Import-Dialog mit kurzer Checkliste ergänzen.
-4. Tastaturbedienung und Fokusverhalten für Modulplatzierung prüfen und kleine Lücken schließen.
-Akzeptanzkriterien:
-- Wichtige Zustände sind ohne Suchen erkennbar.
-- Dialoge erklären vor riskanten Aktionen, was passiert und was nicht verändert wird.
-- Bedienung bleibt ohne optischen Komplettumbau vertraut.
-
-Phase 3 – Manifest-Loader vorbereiten
-Ziel: Modul-Auslagerung erst konzeptionell sichern, dann klein umsetzen.
-Schritte:
-1. Loader-Konzept in `docs/MANIFEST_LOADER_KONZEPT.md` ist erstellt: Manifest lesen, Pflichtfelder prüfen, Fehler melden, Modul ablehnen.
-2. Bestehendes Manifest-Schema gegen Beispielmanifest prüfen. Erledigt am 2026-07-16 über die vorhandene Manifestprüfung.
-3. Minimalen Loader-Prototyp planen, ohne die bestehende HTML-Datei umzubenennen oder ein Build-System einzuführen.
-4. Fehlermeldungen für ungültige Module nach dem Projektstandard formulieren.
-Akzeptanzkriterien:
-- Loader-Verhalten ist dokumentiert, bevor Code ausgelagert wird.
-- Ungültige Module können verständlich abgelehnt werden.
-- Bestehender Browser-Start bleibt unverändert nutzbar.
-
-Phase 4 – Erste kontrollierte Modul-Auslagerung
-Ziel: Ein kleines, fachlich klares Modul als Muster auslagern.
-Schritte:
-1. Geeigneten Modul-Kandidaten mit geringer Kopplung auswählen.
-2. Modulordner nach `modules/<kleine-id-mit-bindestrichen>/` anlegen.
-3. `module.manifest.json` und nur notwendige Moduldateien erstellen.
-4. Manifestprüfung ausführen und Ergebnis in dieser Liste dokumentieren.
-5. Rückbaupfad festhalten, falls die Auslagerung Probleme verursacht.
-Akzeptanzkriterien:
-- Modul erfüllt genau eine fachliche Aufgabe.
-- Manifest passt zum Schema.
-- App bleibt lokal ohne Build-Schritt startbar.
-
-Phase 5 – Testbare Hilfslogik extrahieren
-Ziel: Wiederverwendbare Logik sicherer machen, ohne große Architekturänderung.
-Schritte:
-1. Kleine reine Hilfsfunktionen identifizieren: Datum, Dateiname, URL, Textlänge, Zustand.
-2. Funktionen nur extrahieren, wenn dadurch Lesbarkeit oder Testbarkeit steigt.
-3. Kleine direkte Tests ergänzen. Aktueller Stand: Textbegrenzung, Aufgaben-Zustand, Datum, Dateiname und URL sind abgedeckt.
-4. Keine GUI- oder Speicherlogik in Hilfstests vermischen.
-Akzeptanzkriterien:
-- Tests prüfen klare Eingaben und Ausgaben.
-- Funktionen bleiben klein und verständlich.
-- Keine neuen externen Abhängigkeiten entstehen.
-
-Phase 6 – Performance und Wartbarkeit
-Ziel: Spürbare Langsamkeit vermeiden und die große Datei schrittweise beherrschbarer machen.
-Schritte:
-1. Wiederholte Modul-Suchen in Render-Pfaden messen oder begründet prüfen.
-2. Bei Bedarf Map-Zwischenspeicher klein und lokal einführen.
-3. Aktivitätsprotokoll und große Textmodule auf Begrenzung oder Seitenanzeige vorbereiten.
-4. Timer-Speicherung drosseln, ohne Datenverlust zu riskieren.
-5. Styles, Standarddaten, Speicherlogik, Modul-Renderer und Hilfsfunktionen nur in kleinen Schritten trennen.
-Akzeptanzkriterien:
-- Keine unnötigen Dauerschleifen oder blockierenden GUI-Aktionen.
-- Große Datenmengen führen zu verständlichen Grenzen statt unklarem Verhalten.
-- Jede Trennung bleibt einzeln prüfbar und rückbaubar.
-
-Schritteplan für die nächsten Iterationen
-1. Erledigt am 2026-07-16: Import-Meldungen mit Export-/Backup-Meldungen verglichen und nur fehlende Angaben zu Grund, Lösung oder Speicherstatus ergänzt.
-2. Erledigt am 2026-07-16: Platzhalter-Fundstellen per `rg` ermittelt und als nummerierte Abarbeitungsliste in Priorität 1 aufgenommen.
-3. Offen: Speicher-/Importpfad in einem echten interaktiven Browser anhand `docs/RELEASE_CHECKLIST.md` vollständig manuell prüfen; diese Agent-Umgebung hatte keine verfügbare Browser-GUI.
-4. Erledigt am 2026-07-16: Loader-Konzept gegen erste Prüffunktion abgeglichen; Modulordner-ID und vorhandene Einstiegspunkt-Dateien werden jetzt geprüft, ohne die HTML-App umzubauen.
-5. Erledigt am 2026-07-16: Schnell-Text-Speicher als kleinen Modul-Kandidaten ausgewählt, `module.html` ergänzt und über das Manifest verknüpft; Rückbau wäre das Entfernen der Datei und das Zurücksetzen von `entry.html` auf `null`.
-6. Erledigt am 2026-07-16: Für Schnell-Text-Speicher eine kleine gekapselte `module.css` ergänzt und im Manifest verknüpft; Rückbau wäre das Entfernen der CSS-Datei und das Zurücksetzen von `entry.css` auf `null`.
-7. Iteration: Performance-Hotspots prüfen und nur belegte Engstellen optimieren.
-
-Bekannte Grenzen
-- Die App ist noch eine große HTML-Datei; Änderungen sollen deshalb klein und gezielt bleiben.
-- Die neue Entry-Dateiprüfung gilt nur für echte Modulordner unter `modules/`; das Beispielmanifest unter `manifests/` bleibt ein abstraktes Schema-Beispiel.
-- Browser-Speicher ist je nach Browser und Gerät begrenzt.
-- Prozentwert ist eine gepflegte Projektschätzung, keine automatisch berechnete Kennzahl.
-- Schnell-Text-Speicher enthält aktuell mehrere dokumentierte Startbausteine, eine erste statische Modul-HTML-Datei und gekapselte CSS-Gestaltung, ist aber noch nicht als eigenständige Laufzeitoberfläche verdrahtet.
-- Manuelle Browserprüfung vom 2026-07-16: Release-Checkliste gelesen, Speicher-/Importpfad in dieser Umgebung aber nicht vollständig interaktiv ausführbar, weil keine Browser-GUI verfügbar war. Nicht als Freigabeprüfung gewertet.
-- Visuelle Prüfungen ersetzen keine vollständige Barrierefreiheitsprüfung.
-- Der Phasenplan ist eine Arbeitsreihenfolge und ersetzt keine technische Spezifikation für einzelne Patches.
-
-Bewusste Nicht-Änderungen dieser Iteration
-- Keine komplette Architektur-Umstellung.
-- Keine neuen externen Abhängigkeiten.
-- Keine optischen Massenänderungen.
-- Keine Umbenennung der bestehenden HTML-Datei.
-- Kein Build-System.
-- Keine Änderung an Import-Datenformat oder Speicherformat.
-- Keine direkte Entfernung von Platzhalter-Ausgaben; sie wurden nur erfasst und priorisiert.
-- Kein Einbau eines dynamischen Manifest-Loaders in die HTML-App; ergänzt wurde nur die vorhandene Prüffunktion.
-- Keine vollständige Browserfreigabe, weil diese Umgebung keine interaktive Browser-GUI bereitgestellt hat.
-- Keine neue Laufzeitlogik für den Schnell-Text-Speicher; ergänzt wurden gekapselte Modulgestaltung und weitere dokumentierte Textbausteine.
-- Keine Abschwächung der Sicherheitsregeln zugunsten größerer Patches; mittelgroß bleibt planungs-, risiko- und prüfpflichtig.
-
-Empfohlene nächste Schritte
-1. Schnell-Text-Speicher im späteren Loader mit `module.html` und `module.css` gemeinsam anzeigen und Kontrast sowie Abstände visuell prüfen.
-2. Speicher-/Importpfad auf einem Arbeitsplatz mit echter Browser-GUI manuell prüfen: Start, Testdaten speichern, Export ausführen, kleinen JSON-Import mit Backup-Hinweis testen und Ergebnis hier dokumentieren.
+## Erledigt
+- [x] Projektstruktur und Ordnerzwecke sind in `AGENTS.md` festgelegt.
+- [x] Single-File-HTML-App ist weiterhin der stabile Startpunkt.
+- [x] App-Manifest, Modulmanifest-Schema und Beispielmanifest sind vorhanden.
+- [x] Systemmodule-Bündel ist als künftiger Modul-Kandidat beschrieben.
+- [x] Startskript für lokales Öffnen ist dokumentiert.
+- [x] Entwicklerhinweise liegen in `docs/DEVELOPER_GUIDE.md`.
+- [x] Kontrastbasis der Oberfläche wurde verbessert: hellere Standardtexte, stärkere Linien und klarere Eingabeflächen.
+- [x] Manifest-Loader-Konzept ist als vorbereitende Dokumentation in `docs/MANIFEST_LOADER_KONZEPT.md` ergänzt.
+- [x] Manifestprüfung wurde am 2026-07-16 mit `python3 tests/validate_module_manifests.py` erfolgreich ausgeführt: 16 Modulmanifeste geprüft.
+- [x] Manifestprüfer wurde an die im Schema erlaubten Modultypen `mother`, `registry` und `debugging` angeglichen.
+- [x] Kleine Hilfslogik-Prüfung für Datum, sichere Dateinamen und URL-Normalisierung wurde ergänzt.
+- [x] Hilfslogik-Tests wurden um Textbegrenzung und Aufgaben-Zustandsnormalisierung erweitert.
+- [x] Schnell-Text-Speicher hat eine kleine README mit je einem nutzbaren Textbaustein für Coding, Prompting, Vibecoding, KI-Bildgenerierung, KI-Musikgenerierung und KI-Contentcreation.
+- [x] Schnell-Text-Speicher wurde mehrfach um weitere nutzbare Textbausteine pro Kategorie ergänzt.
+- [x] Release-Checkliste für lokale Freigabeprüfungen wurde in `docs/RELEASE_CHECKLIST.md` ergänzt.
+- [x] Export- und Backup-Meldungen wurden strukturierter formuliert: Ereignis, Grund, Lösung und Speicherstatus werden nun bei den direkt betroffenen Hinweisen angezeigt.
+- [x] Platzhalter-Fundstellen wurden am 2026-07-16 per gezielter Textsuche ermittelt und als nummerierte Abarbeitungsliste aufgenommen.
+- [x] Manifestprüfung kontrolliert nun bei Modulmanifesten zusätzlich, ob die Manifest-ID zum Modulordner passt und deklarierte Einstiegspunkt-Dateien vorhanden sind.
+- [x] `AGENTS.md` legt mittelgroße, sicher begrenzte Iterationen als bevorzugten Arbeitsumfang fest und fordert einen benannten Effizienzgewinn pro Iteration.
+- [x] README-Fortschritt wurde auf 59 % angehoben, weil Arbeitsumfang, Effizienzregeln und Iterationsabschluss klarer geregelt sind.
+- [x] Schnell-Text-Speicher wurde als kleiner Modul-Kandidat ausgewählt; eine erste `module.html` ist vorhanden und im Manifest verknüpft.
+- [x] README-Fortschritt wurde auf 60 % angehoben, weil ein konkreter Modulbaustein nun per Manifestprüfung absicherbar ist.
+- [x] Schnell-Text-Speicher hat eine gekapselte `module.css`, die im Manifest verknüpft ist und die erste Modulansicht ohne Änderung der Haupt-App lesbarer macht.
+- [x] Import-Meldungen wurden am 2026-07-16 mit Export-/Backup-Meldungen verglichen und nur fehlende Angaben zu Grund, Lösung oder Speicherstatus ergänzt.
+- [x] Loader-Konzept wurde am 2026-07-16 gegen erste Prüffunktion abgeglichen; Modulordner-ID und vorhandene Einstiegspunkt-Dateien werden jetzt geprüft, ohne die HTML-App umzubauen.
+- [x] Für Schnell-Text-Speicher wurde am 2026-07-16 eine kleine gekapselte `module.css` ergänzt und im Manifest verknüpft.
