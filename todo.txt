@@ -3,11 +3,13 @@
 Fortschritt gesamt: 99 %
 
 ## Offen
+- [ ] Optionalen automatischen Browser-Smoke-Test auf einem Rechner mit installiertem Playwright, Chromium und Firefox streng ausführen: `python3 tests/browser_release_smoke.py --browser chromium --require-browser` und `python3 tests/browser_release_smoke.py --browser firefox --require-browser`; Ergebnis anschließend im Browser-Freigabeprotokoll ergänzen.
 - [ ] Kontraständerungen auf einer echten Chromium- und Firefox-Installation visuell nachprüfen; die Container-Prüfung am 2026-07-16 war durch Snap-/Download-Sperren blockiert.
 - [ ] Echte Browser-Freigabe anhand von `docs/RELEASE_STATUS_2026-07-16.md` manuell prüfen; Ergebnisse in `docs/BROWSER_RELEASE_PROTOCOL_2026-07-16.md` dokumentieren: Chromium-Start, Firefox-Start, Backup-Wiederherstellung, JSON-Import und Exportdatei-Download.
 - [ ] Speicherprüfung zusätzlich in Chromium und Firefox ausführen und Ergebnis in `docs/BROWSER_RELEASE_PROTOCOL_2026-07-16.md` mit Screenshot-Hinweis oder kurzer Notiz dokumentieren.
 
 ## Erledigt
+- [x] Automatisierbarer Browser-Smoke-Test wurde am 2026-07-16 ergänzt: `tests/browser_release_smoke.py` kann Chromium/Firefox-Start, Speicherprüfung, Backup-Wiederherstellung, kleinen JSON-Import und Exportdownload mit Playwright prüfen, ohne die sichtbare Freigabe vorzutäuschen.
 - [x] Browser-Freigabevorprüfung wurde am 2026-07-16 nach erteilter Arbeitsfreigabe dokumentiert: Im Container fehlen Chromium/Chrome, Firefox und `xdg-open`, deshalb bleibt die echte Sichtfreigabe offen und wird nicht vorgetäuscht.
 - [x] Release-Gate prüft am 2026-07-16 zusätzlich die Browser-Freigabevorlage, damit offene Chromium-/Firefox-, Speicher- und Datenprüfungen nicht versehentlich als abgeschlossen erscheinen.
 - [x] Fehlerhandling, Farbschemas und Hilfe wurden am 2026-07-16 gezielt verbessert: drei zusätzliche Themes sind auswählbar, leere/ungültige JSON-Imports melden konkrete Reparaturschritte, und eine JSON-/Config-Reparaturhilfe mit Beispiel liegt unter `docs/` und `imports/`.
