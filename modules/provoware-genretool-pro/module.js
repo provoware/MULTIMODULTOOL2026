@@ -1,5 +1,6 @@
 (() => {
   const STORAGE_KEY = "multimodultool2026.provoware-genretool-pro.v1";
+  const SEED_URL = "genres_db.json";
   const MAX_ITEMS = 1800;
   const CATEGORIES = {
     genre: "Genre",
@@ -49,8 +50,9 @@
   }
   function setStatus(message) { els.status.textContent = message; }
   function cleanTerm(value) { return value.trim().replace(/\s+/g, " ").slice(0, 80); }
-  function exists(category, term, ignoreId = "") {
-    return state.items.some((item) => item.id !== ignoreId && item.category === category && item.term.toLowerCase() === term.toLowerCase());
+  function exists(term, ignoreId = "") {
+    const normalized = term.toLowerCase();
+    return state.items.some((item) => item.id !== ignoreId && item.term.toLowerCase() === normalized);
   }
   function createId() { return `gt-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`; }
   function download(name, text) {
@@ -67,7 +69,7 @@
     const cleaned = cleanTerm(term);
     if (!cleaned) return "Der Begriff ist leer. Nichts wurde gespeichert.";
     if (state.items.length >= MAX_ITEMS) return "Das Archiv ist voll. Nichts wurde gespeichert.";
-    if (exists(category, cleaned)) return "Doppelter Begriff in dieser Kategorie. Nichts wurde gespeichert.";
+    if (exists(cleaned)) return "Doppelter Begriff in der Datenbank. Nichts wurde gespeichert.";
     state.items.push({ id: createId(), category, term: cleaned, favorite, createdAt: new Date().toISOString() });
     return "";
   }
@@ -131,6 +133,28 @@
     return { parts };
   }
   function addHistory(text) { state.history.unshift(`${new Date().toLocaleString()}: ${text}`); state.history = state.history.slice(0, 100); }
+
+  function seedRows(data) {
+    const aliases = { genres: "genre", moods: "mood", styles: "style", effects: "effect", themes: "theme", special: "special" };
+    return Object.entries(data?.data || {}).flatMap(([key, values]) => {
+      const category = aliases[key] || key;
+      return Array.isArray(values) ? values.map((term) => ({ category, term })) : [];
+    });
+  }
+
+  async function loadSeedIfEmpty() {
+    if (state.items.length) return render();
+    try {
+      const response = await fetch(SEED_URL, { cache: "no-store" });
+      if (!response.ok) throw new Error("Seed-Datei nicht erreichbar");
+      const rows = seedRows(await response.json());
+      rows.forEach((row) => addItem(row.category, row.term));
+      save(`${state.items.length} Startbegriffe geladen und lokal gespeichert.`);
+    } catch {
+      setStatus("Startdaten konnten nicht geladen werden. Bitte Modul über einen lokalen Server öffnen oder eine Datei importieren. Nichts wurde gespeichert.");
+      render();
+    }
+  }
   function copyText(text) {
     navigator.clipboard.writeText(text).then(() => setStatus("Text wurde kopiert. Daten wurden nicht verändert."), () => setStatus("Kopieren fehlgeschlagen. Bitte Text manuell markieren. Daten wurden nicht verändert."));
   }
@@ -155,7 +179,7 @@
       const value = prompt("Begriff bearbeiten", item.term);
       const term = cleanTerm(value || "");
       if (!term) return setStatus("Bearbeitung abgebrochen. Nichts wurde gespeichert.");
-      if (exists(item.category, term, item.id)) return setStatus("Doppelter Begriff. Nichts wurde gespeichert.");
+      if (exists(term, item.id)) return setStatus("Doppelter Begriff in der Datenbank. Nichts wurde gespeichert.");
       snapshot(); item.term = term; save("Eintrag bearbeitet und lokal gespeichert."); return;
     }
     if (button.dataset.action === "delete" && !confirm("Eintrag wirklich löschen? Es wird vorher ein Undo-Punkt erstellt.")) return setStatus("Löschen abgebrochen. Nichts wurde verändert.");
@@ -214,5 +238,5 @@
     rows.forEach((row) => { if (!addItem(row.category || els.category.value, row.term || row.name || row.value || "")) added += 1; });
     return added;
   }
-  render();
+  loadSeedIfEmpty();
 })();

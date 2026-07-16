@@ -10,7 +10,7 @@ Das Modul verwaltet eine lokale, eindeutig bereinigte Datenbank für musikalisch
 
 ## Funktionsumfang
 
-- Datenbank mit bis zu 1.800 eindeutigen Einträgen.
+- Mitgelieferte Datenbank mit 1.800 datenbankweit eindeutigen Einträgen.
 - Einträge suchen, ergänzen, bearbeiten, löschen und favorisieren.
 - Einträge nach Kategorien verwalten: Genre, Stimmung, Stil, Effekt, Thema und Besonderheit.
 - Kategorien mischen und mehrere Zufallsergebnisse auf einmal erzeugen.
@@ -27,11 +27,12 @@ Das Modul verwaltet eine lokale, eindeutig bereinigte Datenbank für musikalisch
 - `module.html`: lokale Moduloberfläche.
 - `module.css`: gekapselte Modulgestaltung.
 - `module.js`: lokale Logik mit eigenem Speicherbereich.
+- `genres_db.json`: mitgelieferte Startdatenbank mit 1.800 Begriffen.
 
 ## Speicher und Sicherheit
 
-Das Modul nutzt ausschließlich den eigenen lokalen Speicherbereich `multimodultool2026.provoware-genretool-pro.v1`. Doppelte Begriffe werden je Kategorie verhindert. Importdateien über 8 MB werden abgelehnt. Lösch- und Reset-Aktionen verlangen eine sichtbare Bestätigung und erstellen vorher einen Undo-Punkt.
+Das Modul nutzt ausschließlich den eigenen lokalen Speicherbereich `multimodultool2026.provoware-genretool-pro.v1`. Doppelte Begriffe werden datenbankweit verhindert. Importdateien über 8 MB werden abgelehnt. Lösch- und Reset-Aktionen verlangen eine sichtbare Bestätigung und erstellen vorher einen Undo-Punkt.
 
 ## Bekannte Grenze
 
-Das Modul ist dateibasiert vorbereitet. Die Hauptanwendung besitzt noch keinen dynamischen Modul-Loader, der `module.html`, `module.css` und `module.js` automatisch lädt.
+Das Modul ist dateibasiert vorbereitet. Die Hauptanwendung besitzt noch keinen dynamischen Modul-Loader, der `module.html`, `module.css`, `module.js` und `genres_db.json` automatisch lädt. Beim direkten Öffnen per `file://` können Browser das Laden der Startdaten blockieren; dann bitte über einen lokalen Server öffnen oder importieren.
