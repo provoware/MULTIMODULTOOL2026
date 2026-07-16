@@ -1,14 +1,14 @@
 # TODO
 
-Fortschritt gesamt: 87 %
+Fortschritt gesamt: 88 %
 
 ## Offen
 - [ ] Kontraständerungen auf einer echten Chromium- und Firefox-Installation visuell nachprüfen; die Container-Prüfung am 2026-07-16 war durch Snap-/Download-Sperren blockiert.
 - [ ] Echte Browser-Freigabe anhand von `docs/RELEASE_STATUS_2026-07-16.md` manuell prüfen: Chromium-Start, Firefox-Start, Backup-Wiederherstellung, JSON-Import und Exportdatei-Download.
 - [ ] Speicherprüfung zusätzlich in Chromium und Firefox ausführen und Ergebnis mit Screenshot oder kurzem Prüfprotokoll dokumentieren.
-- [ ] Schnell-Text-Speicher-CSS später visuell im echten Loader prüfen, sobald HTML und CSS gemeinsam geladen werden.
 
 ## Erledigt
+- [x] Schnell-Text-Speicher-Preview wird am 2026-07-16 statisch gegen die Manifest-Einstiegspunkte geprüft; HTML und CSS müssen gemeinsam geladen werden, ohne eine echte Browser-Sichtfreigabe vorzutäuschen.
 - [x] Speicherprüfung und Fallbackmeldung wurden am 2026-07-16 robuster formuliert: Speichergrößen werden einheitlich lesbar angezeigt, fehlende Browser-Schätzungen klar benannt und Module ohne Ansicht nennen nun den konkreten Manifest-Schritt.
 - [x] Release-Kandidaten-Protokoll wurde am 2026-07-16 ergänzt: lokale Vorprüfungen, technische Startprüfung und offene echte Browserfreigabe sind getrennt dokumentiert.
 - [x] Startskript startet am 2026-07-16 automatisch einen lokalen Backendserver, prüft die wichtigsten GenreTool-Dateien und öffnet die App über `http://127.0.0.1`, damit ausgelagerte Moduldateien nicht mehr durch `file://` blockiert werden.
