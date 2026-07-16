@@ -2104,6 +2104,14 @@
           description: "Einfache lokale Arbeitsnotizen", active: false,
           category: "ideen",
           content: { text: "" }
+        },
+        {
+          id: newId(), name: "Provoware GenreTool Pro", type: "custom", color: "#ec4899",
+          description: "Songs-Untermodul für Genre-, Stimmungs-, Stil- und Themenkombinationen", active: false,
+          category: "songs",
+          content: {
+            brief: "Verwaltet eindeutige GenreTool-Einträge und kombiniert Kategorien ohne Duplikate."
+          }
         }
       ];
 
@@ -2470,7 +2478,7 @@
           </header>
           <div class="panel-zoom-popover" role="group" aria-label="Zoom für ${escapeHtml(module.name)}">
             <button type="button" class="small-button" data-zoom-step="-0.05" title="Verkleinern">−</button>
-            <input type="range" min="0.7" max="1.6" step="0.05" value="${placement.zoom}" aria-label="Modulzoom" />
+            <input type="range" min="0.5" max="1.6" step="0.05" value="${placement.zoom}" aria-label="Modulzoom" />
             <button type="button" class="small-button" data-zoom-step="0.05" title="Vergrößern">＋</button>
             <div class="zoom-readout"><span>Individueller Modulzoom</span><output>${formatZoom(placement.zoom)}</output><button type="button" class="small-button" data-zoom-reset>Zurücksetzen</button></div>
           </div>
@@ -3538,7 +3546,7 @@
 
       function normalizeModuleZoom(value) {
         const numeric = Number(value);
-        return Math.round(clamp(Number.isFinite(numeric) ? numeric : 1, 0.7, 1.6) * 20) / 20;
+        return Math.round(clamp(Number.isFinite(numeric) ? numeric : 1, 0.5, 1.6) * 20) / 20;
       }
 
       function formatZoom(value) {
