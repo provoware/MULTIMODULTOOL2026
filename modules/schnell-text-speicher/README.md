@@ -28,6 +28,8 @@ Prüfe ein Manifest wie einen Türsteher: Stimmen Pflichtfelder, Ordnername, erl
 
 Erstelle vor einer Modul-Auslagerung eine Rückbauzeile: Welche Manifestangabe wird geändert, welche neue Datei kann entfernt werden und welche Prüfung beweist den alten stabilen Stand?
 
+Kapsle Modul-CSS immer über eine eindeutige Hauptklasse. Prüfe danach, dass keine globale Überschrift, kein Button und kein Eingabefeld außerhalb des Moduls unbeabsichtigt anders aussieht.
+
 ### Prompting
 
 Plane eine mittelgroße Änderung als Paket: ein Ziel, zwei bis vier zusammenhängende Teilaufgaben, klare Nicht-Ziele und eine gemeinsame Endprüfung. Stoppe, sobald ein Teil unsicher wird.
@@ -50,6 +52,8 @@ Bitte prüfe diese Modulbeschreibung auf Konsistenz: Passt die ID zum Ordner, ze
 Vergleiche alle Stellen, die denselben Kennwert nennen. Liefere Fundorte, abweichende Werte, maßgebliche Quelle und eine minimale Regel, die künftige Abweichungen automatisch verhindert.
 
 Bewerte einen Modul-Kandidaten vor der Auslagerung: fachliche Aufgabe, geringe Kopplung, notwendige Dateien, Rückbaupfad und genau eine passende Prüfung.
+
+Bitte prüfe diese CSS-Ergänzung wie einen sicheren Modulschritt: Ist sie auf den Modulbereich begrenzt, verbessert sie Lesbarkeit und bleibt der Rückbau über Manifest und Datei klar?
 
 ### Vibecoding
 
@@ -74,6 +78,8 @@ Suche zuerst nach einer kleinen Inkonsistenz, die Vertrauen kostet. Korrigiere s
 
 Starte eine Modul-Auslagerung nicht mit dem großen Umbau. Erstelle zuerst eine kleine echte Moduldatei, verknüpfe sie im Manifest und prüfe nur diesen Pfad.
 
+Wenn ein Modul Gestaltung braucht, beginne mit einer gekapselten CSS-Datei statt mit neuer Logik. Sichtbarer Nutzen, kleiner Rückbau und Manifestprüfung reichen für den nächsten sicheren Schritt.
+
 ### KI-Bildgenerierung
 
 Arbeite in mittelgroßen Kreativschritten: erst grobe Richtung, dann ein sichtbarer Qualitätsgewinn, danach gezielte Korrektur. Vermeide spontane Komplettumbauten, wenn ein Detailpatch reicht.
@@ -96,6 +102,8 @@ Erzeuge ein klares Symbolbild für Manifest-Prüfung: Ordner, Häkchen, kleine D
 Visualisiere Datenkonsistenz als zwei Dokumentkarten mit identischer Prozentanzeige, verbunden durch ein geprüftes Häkchen; klare Kontraste, sachliche technische Optik, keine Warnsymbole und kein Kleinsttext.
 
 Erzeuge eine klare Modul-Kachel für Schnelltexte: kompakte Karten, geordnete Notizzettel, ruhige Blautöne, deutliche Leseflächen, keine privaten Inhalte und kein Kleinsttext.
+
+Gestalte eine schmale Vorschau für gekapseltes Modul-CSS: ein einzelner heller Rahmen im dunklen Dashboard, drei klare Karten, ruhige Akzente, keine Logos und kein lesbarer Fließtext.
 
 ### KI-Musikgenerierung
 
@@ -120,6 +128,8 @@ Erzeuge einen 12-sekündigen Prüfklang: zwei synchrone Pulse, kurzer heller Bes
 
 Beschreibe einen ruhigen Textbaustein-Loop: 64 Sekunden, weiche Tasten, leiser Puls, kurze helle Markierungen für geprüfte Abschnitte, keine Stimme und nahtlos wiederholbar.
 
+Erzeuge einen 45-sekündigen Modul-Styling-Loop: dezenter Bass, klare Klicks für Prüfschritte, warme Fläche, keine Stimme, kein dramatischer Aufbau und ein sauberer Abschluss.
+
 ### KI-Contentcreation
 
 Schreibe ein kompaktes Iterationsprotokoll: gebündelte Teilaufgaben, erreichter Effizienzgewinn, geprüfte Dateien, unveränderte Grenzen und zwei nächste Schritte.
@@ -142,3 +152,5 @@ Schreibe eine kurze Prüferklärung für Nicht-Techniker: Ein Manifest ist der S
 Schreibe eine knappe Änderungsnotiz zur Datenkonsistenz: vorherige Abweichung, festgelegter gemeinsamer Wert, neue automatische Prüfung und ausdrücklich unveränderte Laufzeitfunktion.
 
 Schreibe eine knappe Modul-Vorbereitungsnotiz: ausgewählter Kandidat, neue Datei, Manifest-Verweis, Rückbauweg, geprüfte Grenze und unveränderte Haupt-App.
+
+Schreibe eine kurze Styling-Notiz für ein Modul: welche Klasse kapselt die Gestaltung, welche Lesbarkeit verbessert wurde, welche App-Bereiche unverändert bleiben und welche Prüfung das absichert.
