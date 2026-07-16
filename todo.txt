@@ -1,14 +1,15 @@
 # TODO
 
-Fortschritt gesamt: 85 %
+Fortschritt gesamt: 87 %
 
 ## Offen
 - [ ] Kontraständerungen auf einer echten Chromium- und Firefox-Installation visuell nachprüfen; die Container-Prüfung am 2026-07-16 war durch Snap-/Download-Sperren blockiert.
-- [ ] Echte Browser-Freigabe anhand der Release-Checkliste manuell prüfen: Standardstart, Backup-Wiederherstellung, JSON-Import und Exportdatei-Download.
+- [ ] Echte Browser-Freigabe anhand von `docs/RELEASE_STATUS_2026-07-16.md` manuell prüfen: Chromium-Start, Firefox-Start, Backup-Wiederherstellung, JSON-Import und Exportdatei-Download.
 - [ ] Speicherprüfung zusätzlich in Chromium und Firefox ausführen und Ergebnis mit Screenshot oder kurzem Prüfprotokoll dokumentieren.
 - [ ] Schnell-Text-Speicher-CSS später visuell im echten Loader prüfen, sobald HTML und CSS gemeinsam geladen werden.
 
 ## Erledigt
+- [x] Release-Kandidaten-Protokoll wurde am 2026-07-16 ergänzt: lokale Vorprüfungen, technische Startprüfung und offene echte Browserfreigabe sind getrennt dokumentiert.
 - [x] Startskript startet am 2026-07-16 automatisch einen lokalen Backendserver, prüft die wichtigsten GenreTool-Dateien und öffnet die App über `http://127.0.0.1`, damit ausgelagerte Moduldateien nicht mehr durch `file://` blockiert werden.
 - [x] GenreTool öffnet am 2026-07-16 nicht mehr nur als freie Modul-Platzhalterkarte: die Haupt-App lädt die ausgelagerten HTML-, CSS- und JavaScript-Dateien über den lokalen Modulpfad und erhält bestehende lokale GenreTool-Karten per Migration.
 - [x] Einstellungen haben am 2026-07-16 eine laientaugliche Speicherprüfung erhalten: kurzer Schreibtest, Speicher-Schätzung, Backup-Lesetest und klare Meldung ohne Nutzdatenänderung.
