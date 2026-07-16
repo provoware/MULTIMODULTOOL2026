@@ -68,6 +68,20 @@ function normalizeUrl(value) {
     return "";
   }
 }
+function moduleFallbackText(module) {
+  const description = cleanText(module?.description, 180);
+  if (description) return description;
+  return "Noch keine eigene Ansicht hinterlegt. Bitte Beschreibung ergänzen oder später eine Moduldatei verbinden.";
+}
+function validManifestBasics(manifest) {
+  const id = cleanText(manifest?.id, 64);
+  const name = cleanText(manifest?.name, 42);
+  const description = cleanText(manifest?.description, 240);
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id)) return "id";
+  if (!name) return "name";
+  if (description.length < 10) return "description";
+  return "ok";
+}
 const checks = [
   ["clean text trims and limits", cleanText("  A\n\tB\u0000C  ", 5) === "A B C"],
   ["clean text default limit", cleanText("x".repeat(501)).length === 500],
@@ -82,6 +96,11 @@ const checks = [
   ["url rejects unsupported", normalizeUrl("javascript:alert(1)") === ""],
   ["tasks normalize invalid state", normalizeContent("tasks", { filter: "bad", sort: "bad", items: [{ text: " Aufgabe ", priority: "urgent", due: "2026-02-29" }] }).items[0].priority === "medium"],
   ["tasks drop empty text", normalizeContent("tasks", { items: [{ text: "   " }, { text: "ok" }] }).items.length === 1],
+  ["fallback uses description", moduleFallbackText({ description: "  Eigene Ansicht folgt  " }) === "Eigene Ansicht folgt"],
+  ["fallback explains missing view", moduleFallbackText({}) === "Noch keine eigene Ansicht hinterlegt. Bitte Beschreibung ergänzen oder später eine Moduldatei verbinden."],
+  ["manifest id validation", validManifestBasics({ id: "Bad ID", name: "Test", description: "Beschreibung lang genug" }) === "id"],
+  ["manifest description validation", validManifestBasics({ id: "gutes-modul", name: "Test", description: "kurz" }) === "description"],
+  ["manifest basics pass", validManifestBasics({ id: "gutes-modul", name: "Test", description: "Beschreibung lang genug" }) === "ok"],
 ];
 const failed = checks.filter(([, ok]) => !ok).map(([name]) => name);
 if (failed.length) {
@@ -91,7 +110,7 @@ if (failed.length) {
 console.log(JSON.stringify({ checked: checks.length }));
 '''
 
-REQUIRED_HELPERS = ("function cleanText", "function normalizeContent", "function validDate", "function safeFilename", "function normalizeUrl")
+REQUIRED_HELPERS = ("function cleanText", "function normalizeContent", "function validDate", "function safeFilename", "function normalizeUrl", "function getModuleFallbackText", "function moduleFromManifest")
 
 
 def main() -> int:
@@ -108,7 +127,7 @@ def main() -> int:
         return 1
 
     checked = json.loads(result.stdout)["checked"]
-    print(f"OK: {checked} Hilfslogik-Faelle fuer Text, Zustand, Datum, Dateiname und URL geprueft.")
+    print(f"OK: {checked} Hilfslogik-Faelle fuer Text, Zustand, Datum, Dateiname, URL und Modulvalidierung geprueft.")
     return 0
 
 

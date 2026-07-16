@@ -6,6 +6,8 @@ Dieses Modul sammelt kurze, wiederverwendbare Textbausteine. Die Bausteine sind 
 
 ### Coding
 
+Begrenze lange Listen sichtbar statt Daten zu kürzen: Anzeige klein halten, vollständigen Export erhalten und dem Nutzer klar sagen, wie viele Einträge ausgeblendet sind.
+
 Prüfe einen mittelgroßen Patch wie ein Paket: Teiländerungen einzeln lesen, gemeinsamen Zweck prüfen, unnötige Nebeneffekte markieren und erst danach die Sammelvalidierung starten.
 
 Prüfe die Änderung in kleinen Schritten: erst Eingaben absichern, dann die kleinste passende Funktion ändern, danach nur die direkt betroffene Ausgabe testen. Vermeide globale Umbauten, solange der Fehler lokal begrenzt ist.
@@ -32,6 +34,8 @@ Kapsle Modul-CSS immer über eine eindeutige Hauptklasse. Prüfe danach, dass ke
 
 ### Prompting
 
+Bitte verbessere eine Fehlermeldung nach vier Punkten: Ereignis, Ursache, nächster Schritt und Datenstatus. Ändere dabei keine Funktion, wenn nur der Text unklar ist.
+
 Plane eine mittelgroße Änderung als Paket: ein Ziel, zwei bis vier zusammenhängende Teilaufgaben, klare Nicht-Ziele und eine gemeinsame Endprüfung. Stoppe, sobald ein Teil unsicher wird.
 
 Ermittle Platzhalter nicht nur nach dem Wort „TODO“, sondern auch nach Beispielen, leeren Zuständen, Dummy-Daten und Stubs. Gib je Fundstelle Datei, Zweck, Risiko und nächsten Schritt an.
@@ -56,6 +60,8 @@ Bewerte einen Modul-Kandidaten vor der Auslagerung: fachliche Aufgabe, geringe K
 Bitte prüfe diese CSS-Ergänzung wie einen sicheren Modulschritt: Ist sie auf den Modulbereich begrenzt, verbessert sie Lesbarkeit und bleibt der Rückbau über Manifest und Datei klar?
 
 ### Vibecoding
+
+Wenn fünf kleine TODOs zusammenpassen, bündle sie über einen gemeinsamen Qualitätsgewinn: bessere Lesbarkeit, klarere Prüfung und weniger Wiederholung. Stoppe bei jedem Architekturumbau.
 
 Bitte optimiere eine Arbeitsanweisung auf Effizienz: entferne Wiederholungen, bündle passende Schritte und behalte alle Sicherheits- und Prüfregeln ausdrücklich bei.
 
@@ -82,6 +88,8 @@ Wenn ein Modul Gestaltung braucht, beginne mit einer gekapselten CSS-Datei statt
 
 ### KI-Bildgenerierung
 
+Erzeuge eine sachliche Statuschip-Vorschau: dunkle Oberfläche, gut lesbare helle Pillen, dezente Linien, keine Warnfarben und keine winzigen Beschriftungen.
+
 Arbeite in mittelgroßen Kreativschritten: erst grobe Richtung, dann ein sichtbarer Qualitätsgewinn, danach gezielte Korrektur. Vermeide spontane Komplettumbauten, wenn ein Detailpatch reicht.
 
 Erstelle eine klare Platzhalter-Grafik für einen leeren Modulzustand: freundliche Karte, dezentes Plus-Symbol, kurze visuelle Anleitung, hoher Kontrast, kein echter Text und keine Warnstimmung.
@@ -107,6 +115,8 @@ Gestalte eine schmale Vorschau für gekapseltes Modul-CSS: ein einzelner heller 
 
 ### KI-Musikgenerierung
 
+Beschreibe einen ruhigen Aufräum-Loop für TODO-Abschluss: 72 Sekunden, warmer Puls, leichte Häkchen-Akzente, keine Stimme, kein dramatischer Aufbau.
+
 Beschreibe einen produktiven Iterations-Loop als Musik: 75 Sekunden, moderater Puls, klare kleine Akzente, warme Pads, keine Stimme und ein ruhiger Abschluss nach erfolgreicher Prüfung.
 
 Beschreibe einen kurzen Denkpausen-Loop für Aufräumarbeiten: 60 Sekunden, ruhiger Puls, helle leichte Akkorde, keine Stimme, nicht ablenkend und passend zum strukturierten Prüfen von Listen.
@@ -131,6 +141,8 @@ Beschreibe einen ruhigen Textbaustein-Loop: 64 Sekunden, weiche Tasten, leiser P
 Erzeuge einen 45-sekündigen Modul-Styling-Loop: dezenter Bass, klare Klicks für Prüfschritte, warme Fläche, keine Stimme, kein dramatischer Aufbau und ein sauberer Abschluss.
 
 ### KI-Contentcreation
+
+Schreibe eine kurze Abschlussnotiz für fünf erledigte Aufgaben: je ein Nutzenpunkt, eine geprüfte Grenze, ein unveränderter Bereich und ein konkreter nächster Schritt.
 
 Schreibe ein kompaktes Iterationsprotokoll: gebündelte Teilaufgaben, erreichter Effizienzgewinn, geprüfte Dateien, unveränderte Grenzen und zwei nächste Schritte.
 

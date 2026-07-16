@@ -6,7 +6,7 @@ Lokales Dashboard-Werkzeug als Single-File-HTML-App. Die Anwendung soll ohne Ins
 
 - Startdatei: `dashboard-studio-ultimate-pro-v3.1.0.html`
 - Arbeitsmodell: Browser direkt öffnen oder Startskript verwenden
-- Entwicklungsfortschritt: 70 % (Details siehe `todo.txt`)
+- Entwicklungsfortschritt: 74 % (Details siehe `todo.txt`)
 - Modulziel: spätere manifestbasierte Module unter `modules/`
 - Wichtige Regel: mittelgroße, sichere Änderungen vor großen Umbauten
 
@@ -55,7 +55,7 @@ Ein direkter Umbau der großen HTML-Datei in viele Dateien kann funktionierende 
 
 ## Bedienbarkeit und Kontraste
 
-Die Oberfläche nutzt ein dunkles Standarddesign mit optionalen Darstellungsmodi. Text-, Linien- und Eingabekontraste sollen gut lesbar bleiben. Änderungen am Design sollen gezielt erfolgen und die bestehende Bedienung nicht unnötig verändern.
+Die Oberfläche nutzt ein dunkles Standarddesign mit optionalen Darstellungsmodi. Text-, Linien-, Statuschip- und Eingabekontraste sollen gut lesbar bleiben. Änderungen am Design sollen gezielt erfolgen und die bestehende Bedienung nicht unnötig verändern.
 
 Bei GUI-Änderungen bitte prüfen:
 
