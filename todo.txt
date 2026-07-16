@@ -10,6 +10,7 @@ Fortschritt gesamt: 87 %
 - [ ] Speicherprüfung zusätzlich in Chromium und Firefox ausführen und Ergebnis in `docs/BROWSER_RELEASE_PROTOCOL_2026-07-16.md` mit Screenshot-Hinweis oder kurzer Notiz dokumentieren.
 
 ## Erledigt
+- [x] Optionaler Browser-Smoke-Test unterscheidet am 2026-07-16 klarer zwischen Entwicklungscontainer und Freigabeumgebung: nicht-strenge Läufe dürfen fehlende Playwright-Browser überspringen, während `--require-browser` weiter streng fehlschlägt.
 - [x] Kritischer Laufzeit- und Sicherheits-Hotfix wurde am 2026-07-16 umgesetzt: `moduleEntry()` ist definiert, einfache Modulskripte finden ihre Modulwurzel robust, offensichtliche DOM-XSS-Senken in Dateiwerkzeugen sind entfernt, Blob-URLs werden freigegeben, Dateimengen/-größen begrenzt, Statusbereiche beschriftet und der Chromium-Smoke-Test ist im Release-Gate streng eingebunden.
 - [x] Lokale Dateiwerkzeuge wurden am 2026-07-16 ergänzt: Audio-Playlist, Bildvorschau, Dateinamensuche, Favoriten-Ablage, Quickbar-Informationsspeicher und Startskript-Ampelmeldungen sind ohne neue Abhängigkeiten verfügbar.
 - [x] Automatisierbarer Browser-Smoke-Test wurde am 2026-07-16 ergänzt: `tests/browser_release_smoke.py` kann Chromium/Firefox-Start, Speicherprüfung, Backup-Wiederherstellung, kleinen JSON-Import und Exportdownload mit Playwright prüfen, ohne die sichtbare Freigabe vorzutäuschen.

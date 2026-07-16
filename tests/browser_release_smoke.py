@@ -132,8 +132,10 @@ def main() -> int:
         server.server_close()
 
     if not tried:
-        print("FEHLER: Kein Browser-Smoke-Test wurde ausgeführt.", file=sys.stderr)
-        return 1
+        if args.require_browser:
+            print("FEHLER: Kein Browser-Smoke-Test wurde ausgeführt.", file=sys.stderr)
+            return 1
+        print("SKIP: Kein startbarer Playwright-Browser gefunden; Browser-Freigabe bleibt offen.")
     return 0
 
 
