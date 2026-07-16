@@ -38,6 +38,9 @@ ALLOWED_TYPES = {
     "bookmarks",
     "activity",
     "modulebuilder",
+    "mother",
+    "registry",
+    "debugging",
     "custom",
 }
 ALLOWED_PERMISSIONS = {"local-storage", "file-export", "file-import", "timer", "none"}
