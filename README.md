@@ -6,7 +6,7 @@ Lokales Dashboard-Werkzeug als Single-File-HTML-App. Die Anwendung soll ohne Ins
 
 - Startdatei: `dashboard-studio-ultimate-pro-v3.1.0.html`
 - Arbeitsmodell: empfohlenes Startskript mit lokalem Server; direkter Datei-Start nur als eingeschränkter Rückfall
-- Entwicklungsfortschritt: 93 % (Details siehe `todo.txt`)
+- Entwicklungsfortschritt: 94 % (Details siehe `todo.txt`)
 - Modulziel: spätere manifestbasierte Module unter `modules/`
 - Wichtige Regel: mittelgroße, sichere Änderungen vor großen Umbauten
 
@@ -59,7 +59,7 @@ Ein direkter Umbau der großen HTML-Datei in viele Dateien kann funktionierende 
 
 Die Oberfläche nutzt ein dunkles Standarddesign mit optionalen Darstellungsmodi. Text-, Linien-, Statuschip- und Eingabekontraste sollen gut lesbar bleiben. Die Kontrast- und Fokuszustände wurden am 2026-07-16 gezielt nachgeschärft; die echte Chromium-/Firefox-Sichtprüfung muss auf einer Browserinstallation nachgeholt werden, weil Snap- und Playwright-Browserdownloads im Container blockiert waren. Änderungen am Design sollen weiter gezielt erfolgen und die bestehende Bedienung nicht unnötig verändern.
 
-Für bessere Lesbarkeit lassen sich Schriftgröße und Bereichsgröße in den Einstellungen anpassen. Die automatische Modul-Anpassung bleibt standardmäßig aktiv: größere Bereiche bekommen etwas mehr Luft und Leseschrift, kleine Bereiche brechen Formulare kompakter um, ohne wichtige Bedienfelder zu verstecken.
+Für bessere Lesbarkeit lassen sich Schriftgröße und Bereichsgröße in den Einstellungen anpassen. Die linke Sidebar zeigt nur Arbeits- und Aufgabenmodule; System-, Diagnose- und weitere Sondermodule liegen getrennt im aufklappbaren Entwicklerbereich. Einstellungen sind zusätzlich über den Zahnrad-Button im Dashboard erreichbar, und rechts steht eine einklappbare Schnellfunktionsleiste bereit. Die automatische Modul-Anpassung bleibt standardmäßig aktiv: größere Bereiche bekommen etwas mehr Luft und Leseschrift, kleine Bereiche brechen Formulare kompakter um, ohne wichtige Bedienfelder zu verstecken.
 
 Bei GUI-Änderungen bitte prüfen:
 
