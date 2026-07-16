@@ -3,7 +3,7 @@ Stand: 2026-07-16
 Aktueller Startpunkt: dashboard-studio-ultimate-pro-v3.1.0.html
 Arbeitsweise: lokal im Browser, ohne Build-Schritt, ohne externe Laufzeit-Abhängigkeiten.
 
-Fortschritt gesamt: 52 %
+Fortschritt gesamt: 54 %
 Berechnung: erledigte Grundlagen und Standards zählen 40 %, laufende Qualitäts- und UX-Arbeit 35 %, Modul-Auslagerung und Tests 25 %.
 Aktualisierungsregel: Bei jeder Iteration Stand, Prozentwert, erledigte Punkte, offene Punkte und bekannte Grenzen prüfen und anpassen.
 
@@ -22,15 +22,18 @@ Erledigt
 - Hilfslogik-Tests wurden um Textbegrenzung und Aufgaben-Zustandsnormalisierung erweitert.
 - Schnell-Text-Speicher hat eine kleine README mit je einem nutzbaren Textbaustein für Coding, Prompting, Vibecoding, KI-Bildgenerierung, KI-Musikgenerierung und KI-Contentcreation.
 - Schnell-Text-Speicher wurde um je einen weiteren nutzbaren Textbaustein pro Kategorie ergänzt.
+- Release-Checkliste für lokale Freigabeprüfungen wurde in docs/RELEASE_CHECKLIST.md ergänzt.
+- Schnell-Text-Speicher wurde für die aktuelle Iteration erneut um je einen Textbaustein pro Kategorie erweitert.
 
 In Arbeit
 - README als schnelle Einstiegs- und Orientierungshilfe aktuell halten.
+- Release-Checkliste bei Freigabekandidaten gegen die tatsächlich geprüften Schritte abgleichen.
 - TODO-Datei als Fortschrittsübersicht mit offenen, erledigten und bekannten Punkten pflegen.
 - Kontraste gezielt verbessern, ohne das bestehende Design komplett umzubauen.
 - Offene Entwicklung in Phasen planen, damit jede Iteration klein, prüfbar und rückbaubar bleibt.
 
 Priorität 1 – Notwendige Korrekturen
-- Speicher-/Importpfad im Browser manuell prüfen: Standardstart, kaputte localStorage-Daten, Backup-Wiederherstellung und JSON-Import.
+- Speicher-/Importpfad im Browser anhand der Release-Checkliste manuell prüfen: Standardstart, kaputte localStorage-Daten, Backup-Wiederherstellung und JSON-Import.
 - Für Export kurze Nutzermeldungen vereinheitlichen: Was ist passiert? Warum? Was kann der Nutzer tun? Wurde etwas gespeichert?
 - Vor großen Importen prüfen, ob Browser-Speicherplatz ausreicht, damit ein Import nicht erst beim späteren Speichern scheitert.
 - Kontraständerungen in mindestens einem Chromium- und einem Firefox-basierten Browser visuell prüfen.
@@ -41,6 +44,7 @@ Priorität 2 – Qualitätsverbesserungen
 - Die große HTML-Datei schrittweise in kleine Bereiche zerlegen: Styles, Standarddaten, Speicherlogik, Modul-Renderer und Hilfsfunktionen.
 - Kleine Testdatei für reine Hilfsfunktionen bei Bedarf weiter ausbauen, sobald weitere reine Logik identifiziert ist.
 - README bei jeder echten Struktur-, Bedien- oder Speicheränderung kurz aktualisieren.
+- Release-Checkliste nach der ersten vollständigen manuellen Browserprüfung mit Datum und Ergebnis verfeinern.
 - Textbausteine im Schnell-Text-Speicher bei weiteren Iterationen gezielt ergänzen, ohne die Moduldatei aufzublähen.
 
 Priorität 3 – GUI-/UX-Verbesserungen

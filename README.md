@@ -6,7 +6,7 @@ Lokales Dashboard-Werkzeug als Single-File-HTML-App. Die Anwendung soll ohne Ins
 
 - Startdatei: `dashboard-studio-ultimate-pro-v3.1.0.html`
 - Arbeitsmodell: Browser direkt öffnen oder Startskript verwenden
-- Entwicklungsfortschritt: 52 % (Details siehe `todo.txt`)
+- Entwicklungsfortschritt: 54 % (Details siehe `todo.txt`)
 - Modulziel: spätere manifestbasierte Module unter `modules/`
 - Wichtige Regel: kleine, sichere Änderungen vor großen Umbauten
 
@@ -70,12 +70,14 @@ Wichtige Projektdateien:
 
 - `todo.txt`: offene Punkte, erledigte Punkte, Fortschritt und bekannte Grenzen
 - `docs/DEVELOPER_GUIDE.md`: technische Hinweise zu Struktur, Start, Barrierefreiheit und Entwicklungsabläufen
+- `docs/RELEASE_CHECKLIST.md`: kurze Freigabe-Checkliste für lokale Test- und Weitergabestände
 - `AGENTS.md`: verbindliche Arbeitsregeln für Änderungen in diesem Repository
 
 Relevante Prüfungen nach Änderungen:
 
 - HTML-Syntax prüfen, wenn die Startdatei geändert wurde.
 - Markdown-Dateien kurz auf Struktur und Lesbarkeit prüfen, wenn Dokumentation geändert wurde.
+- Release-Checkliste nutzen, wenn ein lokaler Stand weitergegeben oder als Freigabekandidat markiert werden soll.
 - Manifestprüfung ausführen, wenn Dateien unter `manifests/` oder `modules/` betroffen sind.
 
 ## Nächster sinnvoller Schritt
