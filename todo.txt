@@ -8,6 +8,7 @@ Priorität 1 – Notwendige Korrekturen
 
 Priorität 2 – Qualitätsverbesserungen
 - Manifest-basierten Modul-Loader planen: Manifest lesen, Pflichtfelder prüfen und ungültige Module verständlich ablehnen.
+- Manifest-Prüfung mit `python3 tests/validate_module_manifests.py` bei Moduländerungen ausführen.
 - Die große HTML-Datei schrittweise in kleine Bereiche zerlegen: Styles, Standarddaten, Speicherlogik, Modul-Renderer und Hilfsfunktionen.
 - Kleine Testdatei für reine Hilfsfunktionen ergänzen: Datumsprüfung, Dateinamen-Bereinigung, URL-Normalisierung, Textbegrenzung und Zustandsnormalisierung.
 - README mit Startanleitung, Datenspeicherung, Backup-Verhalten und bekannten Browser-Grenzen ergänzen.
