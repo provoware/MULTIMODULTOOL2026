@@ -12,6 +12,8 @@ Formuliere vor dem Patch eine kurze Risikozeile: Welche Daten könnten betroffen
 
 Erstelle vor einer Freigabe eine knappe Prüfliste: Start, Speichern, Laden, Import, Export, Fehlermeldung und Rückbau. Markiere jeden Punkt mit bestanden, offen oder blockiert.
 
+Verbessere eine Nutzer-Meldung so, dass sie vier Fragen beantwortet: Was ist passiert, warum ist es passiert, was soll ich tun und wurde etwas gespeichert oder verändert?
+
 ### Prompting
 
 Beschreibe zuerst Ziel, gewünschtes Ausgabeformat, Eingabedaten und Ausschlüsse. Bitte danach um Rückfragen nur dann, wenn ohne Antwort ein falsches Ergebnis wahrscheinlich wäre.
@@ -19,6 +21,8 @@ Beschreibe zuerst Ziel, gewünschtes Ausgabeformat, Eingabedaten und Ausschlüss
 Nutze diese Struktur: Rolle, Aufgabe, Kontext, harte Grenzen, gewünschte Prüfschritte und Ausgabeformat. Ergänze am Ende: Wenn etwas unsicher ist, nenne Annahme und Risiko statt zu raten.
 
 Bitte prüfe meinen Entwurf wie ein Release-Reviewer: Nenne zuerst blockierende Fehler, dann kleine Verbesserungen und zuletzt genau die Punkte, die unverändert bleiben sollten.
+
+Formuliere eine Fehlermeldung in einfacher Sprache. Nutze die Reihenfolge: Ereignis, Grund, nächster Schritt, Speicherstatus. Vermeide Schuldzuweisungen und unklare Wörter wie „Fehler 1“.
 
 ### Vibecoding
 
@@ -28,6 +32,8 @@ Baue zuerst den kleinsten sichtbaren Nutzen ein, beschreibe danach die nächste 
 
 Wenn der Stand fast freigabereif ist, ändere nur noch Dinge, die ein echtes Risiko senken. Verschiebe Komfortideen in eine spätere Liste, damit der Release stabil bleibt.
 
+Nimm dir pro Runde nur einen sichtbaren Qualitätsgewinn vor, zum Beispiel bessere Statusmeldungen. Wenn die Funktion schon läuft, ändere Ablauf und Datenformat nicht mit.
+
 ### KI-Bildgenerierung
 
 Erzeuge ein ruhiges, kontrastreiches Vorschaubild mit klar erkennbarem Hauptmotiv, einfacher Lichtführung und wenigen Ablenkungen. Nenne Stil, Kameraperspektive, Farbpalette und was ausdrücklich nicht im Bild erscheinen soll.
@@ -35,6 +41,8 @@ Erzeuge ein ruhiges, kontrastreiches Vorschaubild mit klar erkennbarem Hauptmoti
 Erstelle ein quadratisches Titelbild für ein lokales Dashboard: dunkler Hintergrund, leuchtende Modul-Karten, klare Kanten, freundliche technische Stimmung, keine Logos, keine echten Personen, kein unlesbarer Kleinsttext.
 
 Erzeuge ein schlichtes Release-Banner: ruhige dunkle Fläche, eine klare Checkliste mit Häkchen als Symbolik, dezente blaue Akzente, viel Abstand, keine Markenlogos und kein kleiner Fließtext.
+
+Gestalte eine freundliche Hinweisgrafik für eine lokale Backup-Funktion: sicherer Tresor, kleine Datei-Karte, ruhige Blautöne, klare Symbole, keine Angststimmung, kein winziger Text.
 
 ### KI-Musikgenerierung
 
@@ -44,6 +52,8 @@ Beschreibe einen konzentrierten Arbeits-Loop: 100 BPM, warme Synth-Flächen, lei
 
 Erzeuge eine kurze Release-Fanfare ohne Übertreibung: 20 Sekunden, warme Akkorde, sanfter Puls, heller Abschluss, keine lauten Drums und passend für ein ruhiges Produktvideo.
 
+Erstelle einen ruhigen Sicherheits-Jingle: 30 Sekunden, sanfte Marimba, warmer Bass, dezente Pads, optimistische Auflösung, keine dramatischen Warnklänge und geeignet für Backup-Hinweise.
+
 ### KI-Contentcreation
 
 Schreibe den Inhalt zuerst als kurze Kernbotschaft, dann als Nutzenversprechen und zuletzt als klare Handlungsaufforderung. Halte Sprache einfach, konkret und ohne unnötige Fachbegriffe.
@@ -51,3 +61,5 @@ Schreibe den Inhalt zuerst als kurze Kernbotschaft, dann als Nutzenversprechen u
 Erstelle aus einer technischen Änderung drei Fassungen: eine kurze Nutzerinfo, eine sachliche Release-Notiz und eine interne Prüfliste. Jede Fassung soll klar sagen, was neu ist und was unverändert bleibt.
 
 Schreibe eine Release-Notiz in einfacher Sprache: Was wurde verbessert, welche Nutzer profitieren davon, welche Grenzen bleiben bekannt und welche Prüfung wurde durchgeführt?
+
+Erstelle eine Nutzerinfo für verbesserte Meldungen: Beschreibe kurz, dass Hinweise jetzt Grund, Lösung und Speicherstatus nennen. Nenne auch, dass keine Arbeitsweise geändert wurde.

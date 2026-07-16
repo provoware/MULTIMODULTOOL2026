@@ -4507,7 +4507,13 @@
           saveState("Export protokolliert");
         } catch (error) {
           console.error(error);
-          toast("Export konnte nicht erstellt werden. Bitte Speicherort oder Browser-Rechte prüfen.");
+          toast(feedbackText({
+            title: "Export konnte nicht erstellt werden.",
+            cause: "Der Browser hat das Speichern oder Erstellen der Datei abgelehnt.",
+            solution: "Bitte Speicherort, Download-Rechte oder freien Speicher prüfen und erneut exportieren.",
+            changed: "Nichts gespeichert; die aktuelle Konfiguration bleibt unverändert.",
+            level: "error"
+          }));
         }
       }
 
@@ -4955,13 +4961,25 @@
           } else {
             downloadBlob(blob, safeName);
           }
-          toast(`Datei gespeichert: ${safeName}`);
+          toast(feedbackText({
+            title: `Datei gespeichert: ${safeName}`,
+            cause: "Der Export wurde erfolgreich als lokale Datei angelegt.",
+            solution: "Bitte die Datei an einem sicheren Ort aufbewahren.",
+            changed: "Datei gespeichert; Dashboard-Daten bleiben unverändert.",
+            level: "success"
+          }));
           return true;
         } catch (error) {
           if (error?.name === "AbortError") return false;
           console.error(error);
           downloadBlob(blob, safeName);
-          toast("Browser-Dateidialog nicht verfügbar – Download gestartet");
+          toast(feedbackText({
+            title: "Browser-Dateidialog nicht verfügbar – Download gestartet.",
+            cause: "Der erweiterte Speicherdialog wurde abgelehnt oder vom Browser nicht unterstützt.",
+            solution: "Bitte den Download-Ordner prüfen und die Datei bei Bedarf verschieben.",
+            changed: "Download gestartet; Dashboard-Daten bleiben unverändert.",
+            level: "warning"
+          }));
           return true;
         }
       }
@@ -5157,11 +5175,23 @@
         try {
           const backup = { createdAt: new Date().toISOString(), appVersion: APP_VERSION, state: normalizeState(structuredClone(state)) };
           storageService.writeBackup(JSON.stringify(backup));
-          if (showToast) toast("Lokales Backup erstellt");
+          if (showToast) toast(feedbackText({
+            title: "Lokales Backup erstellt.",
+            cause: "Die aktuelle Konfiguration wurde im Browser-Speicher gesichert.",
+            solution: "Vor riskanten Änderungen zusätzlich einen Datei-Export erstellen.",
+            changed: "Backup gespeichert; Arbeitsstand bleibt aktiv.",
+            level: "success"
+          }));
           return true;
         } catch (error) {
           console.error(error);
-          if (showToast) toast("Backup konnte nicht erstellt werden");
+          if (showToast) toast(feedbackText({
+            title: "Backup konnte nicht erstellt werden.",
+            cause: "Der Browser-Speicher ist nicht verfügbar oder voll.",
+            solution: "Bitte Speicher freigeben oder die Konfiguration als Datei exportieren.",
+            changed: "Kein Backup gespeichert; aktuelle Daten bleiben unverändert.",
+            level: "error"
+          }));
           return false;
         }
       }
@@ -5169,7 +5199,13 @@
       function restoreLocalBackup() {
         try {
           const raw = storageService.readBackup();
-          if (!raw) return toast("Kein lokales Backup vorhanden");
+          if (!raw) return toast(feedbackText({
+            title: "Kein lokales Backup vorhanden.",
+            cause: "Im Browser-Speicher wurde keine lokale Sicherung gefunden.",
+            solution: "Bitte zuerst ein Backup erstellen oder eine Exportdatei importieren.",
+            changed: "Nichts wiederhergestellt; aktuelle Daten bleiben unverändert.",
+            level: "warning"
+          }));
           const parsed = JSON.parse(raw);
           const restored = normalizeState(parsed.state || parsed);
           if (state.confirmDestructive && !confirm(`Backup${parsed.createdAt ? ` vom ${new Date(parsed.createdAt).toLocaleString("de-DE")}` : ""} wiederherstellen?`)) return;
@@ -5179,10 +5215,22 @@
           applyVisualSettings();
           saveState("Backup wiederhergestellt");
           renderAll();
-          toast("Backup wiederhergestellt");
+          toast(feedbackText({
+            title: "Backup wiederhergestellt.",
+            cause: "Die lokale Sicherung wurde gelesen und geprüft.",
+            solution: "Bitte kurz prüfen, ob Module und Inhalte wie erwartet angezeigt werden.",
+            changed: "Aktuelle Konfiguration wurde durch das Backup ersetzt.",
+            level: "success"
+          }));
         } catch (error) {
           console.error(error);
-          toast("Backup ist beschädigt oder nicht kompatibel");
+          toast(feedbackText({
+            title: "Backup ist beschädigt oder nicht kompatibel.",
+            cause: "Die Sicherung konnte nicht gelesen oder nicht in den aktuellen Datenstand übertragen werden.",
+            solution: "Bitte eine andere Sicherung nutzen oder eine gültige Exportdatei importieren.",
+            changed: "Nichts wiederhergestellt; aktuelle Daten bleiben unverändert.",
+            level: "error"
+          }));
         }
       }
 
