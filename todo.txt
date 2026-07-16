@@ -8,6 +8,10 @@ Fortschritt gesamt: 95 %
 - [ ] Speicherprüfung zusätzlich in Chromium und Firefox ausführen und Ergebnis mit Screenshot oder kurzem Prüfprotokoll dokumentieren.
 
 ## Erledigt
+- [x] Startskript meldet am 2026-07-16 einen belegten Wunschport verständlich und nutzt automatisch den nächsten freien Alternativport; der Starttest belegt den Startport gezielt und prüft den Rückfall.
+- [x] Kalenderansicht wurde am 2026-07-16 in Steuerung, Monatsraster und Terminbereich gegliedert; unter dem Kalender stehen Tagesliste und Gesamtübersicht der Termine.
+- [x] Schnell-Text-Speicher zeigt am 2026-07-16 eine klarere statische Modulansicht mit Ablauf, Bereichen und Schnellprüfung vor Export.
+- [x] HTML-Aufsplitterung wurde am 2026-07-16 als sicherer Bereichsschnitt dokumentiert: Styles, Standarddaten, Hilfsfunktionen und Renderer bleiben getrennte Prüfschritte.
 - [x] Untermodule passen sich am 2026-07-16 stärker automatisch an: Das 3×3-Raster nutzt die verfügbare Fläche ohne Arbeitsflächen-Scrollbalken, kleine Panels werden kompakter gezoomt und schwebende Fenster bleiben begrenzt sichtbar.
 - [x] Dashboard-Startübersicht prüft am 2026-07-16 zuerst den lokalen Standardspeicherbereich, zeigt Speicherort, Datum/Uhrzeit, letzte 5 Schritte und allgemeine Einstellungen an.
 - [x] Modulversionen werden am 2026-07-16 im App-Manifest unter `registeredModules` registriert; die Manifestprüfung erkennt fehlende, doppelte oder versionsabweichende Registrierungseinträge.

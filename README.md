@@ -12,7 +12,7 @@ Lokales Dashboard-Werkzeug als Single-File-HTML-App. Die Anwendung soll ohne Ins
 
 ## Start
 
-Die Anwendung sollte per Startskript geöffnet werden. Das Skript prüft die wichtigsten Projektdateien, sucht einen freien lokalen Port, startet einen kleinen lokalen Python-Server und öffnet die App im Browser:
+Die Anwendung sollte per Startskript geöffnet werden. Das Skript prüft die wichtigsten Projektdateien, prüft zuerst den gewünschten lokalen Port, wählt bei Belegung automatisch einen nahen Alternativport, startet einen kleinen lokalen Python-Server und öffnet die App im Browser:
 
 ```sh
 ./scripts/start-local.sh
@@ -54,7 +54,7 @@ Neue oder ausgelagerte Module sollen nach dem Modulstandard beschrieben werden:
 
 ## Warum zuerst Standards?
 
-Ein direkter Umbau der großen HTML-Datei in viele Dateien kann funktionierende Bereiche beschädigen. Die Standards legen deshalb zuerst fest, wie Module sicher benannt, beschrieben, geprüft und später geladen werden.
+Ein direkter Umbau der großen HTML-Datei in viele Dateien kann funktionierende Bereiche beschädigen. Die Standards legen deshalb zuerst fest, wie Module sicher benannt, beschrieben, geprüft und später geladen werden. Die Aufteilung der Hauptdatei ist möglich, soll aber nur bereichsweise erfolgen: zuerst Styles, danach Standarddaten, dann geprüfte Hilfsfunktionen und zuletzt Modul-Renderer.
 
 ## Bedienbarkeit und Kontraste
 

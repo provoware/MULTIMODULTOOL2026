@@ -851,14 +851,15 @@
     }
 
     .calendar-shell {
-      display: flex;
-      flex-direction: column;
+      display: grid;
+      grid-template-rows: auto minmax(190px, 1fr) auto;
       height: 100%;
       min-height: 240px;
       gap: 10px;
     }
 
-    .calendar-toolbar {
+    .calendar-toolbar,
+    .calendar-agenda-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -870,9 +871,8 @@
     .calendar-grid {
       display: grid;
       grid-template-columns: repeat(7, minmax(0, 1fr));
-      grid-template-rows: auto repeat(6, minmax(46px, 1fr));
+      grid-template-rows: auto repeat(6, minmax(40px, 1fr));
       gap: 5px;
-      flex: 1;
       min-height: 0;
     }
 
@@ -917,6 +917,47 @@
       background: var(--module-color);
       margin-top: 5px;
       box-shadow: 0 0 8px color-mix(in srgb, var(--module-color) 65%, transparent);
+    }
+
+    .calendar-agenda {
+      display: grid;
+      gap: 8px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(4, 12, 22, 0.38);
+      max-height: 190px;
+      overflow: auto;
+    }
+
+    .calendar-overview {
+      display: grid;
+      gap: 6px;
+      margin-top: 2px;
+      padding-top: 8px;
+      border-top: 1px solid var(--line);
+    }
+
+    .calendar-overview-list {
+      display: grid;
+      gap: 5px;
+    }
+
+    .calendar-event-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 8px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 10px;
+      background: rgba(255,255,255,0.035);
+    }
+
+    .calendar-event-date {
+      color: var(--muted);
+      font-size: 0.78rem;
+      white-space: nowrap;
     }
 
     .notes-area,
@@ -3330,21 +3371,24 @@
         const shell = document.createElement("div");
         shell.className = "calendar-shell";
         shell.innerHTML = `
-          <div class="calendar-toolbar">
-            <button class="small-button" data-calendar="prev" aria-label="Vorheriger Monat">←</button>
-            <div class="calendar-title"></div>
-            <div class="toolbar-group">
-              <button class="small-button" data-calendar="today">Heute</button>
-              <button class="small-button" data-calendar="next" aria-label="Nächster Monat">→</button>
+          <section class="calendar-part" aria-label="Kalendersteuerung">
+            <div class="calendar-toolbar">
+              <button class="small-button" data-calendar="prev" aria-label="Vorheriger Monat">←</button>
+              <div class="calendar-title"></div>
+              <div class="toolbar-group">
+                <button class="small-button" data-calendar="today">Heute</button>
+                <button class="small-button" data-calendar="next" aria-label="Nächster Monat">→</button>
+              </div>
             </div>
-          </div>
-          <div class="calendar-grid"></div>
-          <div class="pro-meta">Doppelklick auf einen Tag: Termin anlegen · Klick: Termine anzeigen</div>
+          </section>
+          <section class="calendar-part calendar-grid" aria-label="Monatsansicht"></section>
+          <section class="calendar-agenda" aria-label="Termine"></section>
         `;
         container.appendChild(shell);
 
         const title = shell.querySelector(".calendar-title");
         const grid = shell.querySelector(".calendar-grid");
+        const agenda = shell.querySelector(".calendar-agenda");
         const localeMonth = new Intl.DateTimeFormat("de-DE", { month: "long", year: "numeric" }).format(new Date(year, month, 1));
         title.textContent = localeMonth.charAt(0).toUpperCase() + localeMonth.slice(1);
 
@@ -3395,42 +3439,7 @@
           grid.appendChild(day);
         }
 
-        const agenda = document.createElement("div");
-        agenda.className = "pro-shell";
-        const agendaToolbar = document.createElement("div");
-        agendaToolbar.className = "pro-toolbar";
-        const agendaTitle = document.createElement("strong");
-        agendaTitle.textContent = `Termine am ${formatDate(module.content.selectedDate)}`;
-        const addEventButton = createButton("Termin +", "primary-button small-button");
-        addEventButton.addEventListener("click", () => addCalendarEvent(module, module.content.selectedDate));
-        agendaToolbar.append(agendaTitle, addEventButton);
-        agenda.appendChild(agendaToolbar);
-        const selectedEvents = module.content.events.filter(event => event.date === module.content.selectedDate);
-        if (!selectedEvents.length) {
-          const empty = document.createElement("div");
-          empty.className = "pro-meta";
-          empty.textContent = "Keine Termine für diesen Tag.";
-          agenda.appendChild(empty);
-        } else {
-          selectedEvents.forEach(event => {
-            const row = document.createElement("div");
-            row.className = "bookmark-pro-item";
-            const label = document.createElement("span");
-            label.textContent = event.title;
-            const remove = createButton("×", "panel-action close");
-            remove.title = "Termin löschen";
-            remove.addEventListener("click", () => {
-              if (state.confirmDestructive && !confirm(`Termin „${event.title}“ löschen?`)) return;
-              module.content.events = module.content.events.filter(item => item.id !== event.id);
-              saveState();
-              renderWorkspace();
-            });
-            row.append(label, remove);
-            agenda.appendChild(row);
-          });
-        }
-        shell.appendChild(agenda);
-
+        renderCalendarAgenda(agenda, module);
         shell.querySelector('[data-calendar="prev"]').addEventListener("click", () => shiftCalendar(module, -1));
         shell.querySelector('[data-calendar="next"]').addEventListener("click", () => shiftCalendar(module, 1));
         shell.querySelector('[data-calendar="today"]').addEventListener("click", () => {
@@ -3440,6 +3449,55 @@
           module.content.selectedDate = toDateKey(today);
           saveState();
           renderWorkspace();
+        });
+      }
+
+      function renderCalendarAgenda(agenda, module) {
+        const selectedEvents = module.content.events.filter(event => event.date === module.content.selectedDate);
+        const sortedEvents = [...module.content.events].sort((a, b) => a.date.localeCompare(b.date) || a.title.localeCompare(b.title));
+        agenda.innerHTML = `
+          <div class="calendar-agenda-header">
+            <strong>Termine am ${formatDate(module.content.selectedDate)}</strong>
+            <button class="primary-button small-button" data-calendar-add="selected">Termin +</button>
+          </div>
+          <div class="pro-meta">Klick: Tag auswählen · Doppelklick: Termin direkt anlegen</div>
+          <div data-calendar-selected></div>
+          <div class="calendar-overview">
+            <strong>Alle Termine</strong>
+            <div class="calendar-overview-list" data-calendar-overview></div>
+          </div>
+        `;
+        agenda.querySelector('[data-calendar-add="selected"]').addEventListener("click", () => addCalendarEvent(module, module.content.selectedDate));
+        fillCalendarEventList(agenda.querySelector("[data-calendar-selected]"), selectedEvents, module, false);
+        fillCalendarEventList(agenda.querySelector("[data-calendar-overview]"), sortedEvents, module, true);
+      }
+
+      function fillCalendarEventList(target, events, module, showDate) {
+        if (!events.length) {
+          const empty = document.createElement("div");
+          empty.className = "pro-meta";
+          empty.textContent = showDate ? "Noch keine Termine gespeichert." : "Keine Termine für diesen Tag.";
+          target.appendChild(empty);
+          return;
+        }
+        events.forEach(event => {
+          const row = document.createElement("div");
+          row.className = "calendar-event-row";
+          const label = document.createElement("span");
+          label.textContent = event.title;
+          const meta = document.createElement("span");
+          meta.className = "calendar-event-date";
+          meta.textContent = showDate ? formatDate(event.date) : "Heute im Fokus";
+          const remove = createButton("×", "panel-action close");
+          remove.title = "Termin löschen";
+          remove.addEventListener("click", () => {
+            if (state.confirmDestructive && !confirm(`Termin „${event.title}“ löschen?`)) return;
+            module.content.events = module.content.events.filter(item => item.id !== event.id);
+            saveState();
+            renderWorkspace();
+          });
+          row.append(label, meta, remove);
+          target.appendChild(row);
         });
       }
 
