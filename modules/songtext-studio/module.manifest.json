@@ -1,0 +1,27 @@
+{
+  "id": "songtext-studio",
+  "name": "Provoware Songtext-Studio",
+  "version": "1.0.0",
+  "type": "custom",
+  "description": "Lokales Songtextmodul mit Bereichswahl, Vorschau, Hook-Speicher, Archiv, Suche und Ersetzen, Rechtschreibprüfung, Autosave und Statistiken.",
+  "entry": {
+    "html": "module.html",
+    "css": "module.css",
+    "js": "module.js"
+  },
+  "permissions": [
+    "local-storage",
+    "file-export"
+  ],
+  "storage": {
+    "scope": "module",
+    "backupRequired": true
+  },
+  "validation": {
+    "maxInputBytes": 8000000,
+    "allowedFileExtensions": [
+      ".json",
+      ".txt"
+    ]
+  }
+}
