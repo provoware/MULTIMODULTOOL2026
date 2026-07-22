@@ -5,7 +5,6 @@
   root.dataset.initialized = 'true';
 
   const $ = s => root.querySelector(s);
-  const $$ = s => [...root.querySelectorAll(s)];
   const KEY = `mmt2026.songtextStudio.${script?.dataset.moduleRoot || 'songtext-studio'}.v1`;
   const VERSION = '1.0.0';
   const PARTS = [['intro','Intro'],['strophe-1','Strophe 1'],['pre-chorus','Pre-Chorus'],['refrain','Refrain'],['strophe-2','Strophe 2'],['bridge','Bridge'],['outro','Outro']];
@@ -45,8 +44,8 @@
     state.current.status = fields.status.value; state.current.tags = clean(fields.tags.value,240); state.current.updatedAt = now();
     state.fragmentDraft = {title:clean(fields.fragmentTitle.value,100),type:fields.fragmentType.value,text:clean(fields.fragmentText.value,2000),editId:state.fragmentDraft.editId||null};
   };
-  const persist = (reason='Autosave') => {
-    sync(); state.moduleVersion=VERSION; state.lastSavedAt=now();
+  const persist = (reason='Autosave', doSync=true) => {
+    if (doSync) sync(); state.moduleVersion=VERSION; state.lastSavedAt=now();
     try { localStorage.setItem(KEY,JSON.stringify(state)); $('[data-save-state]').textContent=reason; $('[data-save-time]').textContent=new Date(state.lastSavedAt).toLocaleString('de-DE'); tell(`${reason} abgeschlossen. Daten liegen lokal im Browser.`); return true; }
     catch { tell('Speichern fehlgeschlagen. Browser-Speicher prüfen oder Archiv exportieren.','error'); return false; }
   };
@@ -79,14 +78,14 @@
     sync(); if(!state.fragmentDraft.text.trim()) return tell('Bitte zuerst einen Hook oder ein Satzfragment eingeben.','warning');
     const entry={id:state.fragmentDraft.editId||id(),title:state.fragmentDraft.title.trim()||'Baustein',type:state.fragmentDraft.type,text:state.fragmentDraft.text.trim(),updatedAt:now()};
     const i=state.fragments.findIndex(x=>x.id===entry.id); if(i>=0)state.fragments[i]=entry;else state.fragments.unshift(entry);
-    state.fragments=state.fragments.slice(0,200);state.fragmentDraft={title:'',type:'hook',text:'',editId:null};persist('Baustein gespeichert');renderEditor();renderFragments();renderStats();
+    state.fragments=state.fragments.slice(0,200);state.fragmentDraft={title:'',type:'hook',text:'',editId:null};renderEditor();persist('Baustein gespeichert',false);renderFragments();renderStats();
   }
   function addSection() { const input=$('[data-new-section-name]');const label=clean(input.value.trim(),60);if(!label)return tell('Bitte einen Namen für den neuen Bereich eingeben.','warning');const sid=`bereich-${safeName(label).toLowerCase()}-${Date.now().toString(36)}`;state.current.sections.push({id:sid,label,text:'',standard:false});state.settings.activeSection=sid;input.value='';renderSections();renderPreview();persist('Bereich angelegt'); }
   function removeSection() { const part=active();if(!part)return;if(state.current.sections.length<=1)return tell('Mindestens ein Songbereich muss erhalten bleiben.','warning');if(!confirm(`Bereich „${part.label}“ entfernen?`))return;state.current.sections=state.current.sections.filter(x=>x.id!==part.id);state.settings.activeSection=state.current.sections[0].id;renderSections();renderPreview();persist('Bereich entfernt'); }
   function ensureTitle(song) { if(!song.title.trim())song.title=`songs_${dateKey()}`;if(!song.storageName)song.storageName=`${safeName(song.title)}_${stamp()}`; }
   function saveSong() { sync();const song=clone(state.current);ensureTitle(song);song.id=song.id||id();song.revision=(song.revision||0)+1;song.updatedAt=now();const i=state.songs.findIndex(x=>x.id===song.id);if(i>=0)state.songs[i]=song;else state.songs.unshift(song);state.current=clone(song);persist('Song gespeichert');renderEditor();renderArchive();renderStats(); }
-  function newSong() { sync();if(fullText(state.current).trim()&&!confirm('Neuen Song beginnen? Der aktuelle Entwurf bleibt nur erhalten, wenn er gespeichert wurde.'))return;state.current=blankSong();state.settings.activeSection='strophe-1';persist('Neuer Song geöffnet');renderEditor(); }
-  function openSong(songId) { const song=state.songs.find(x=>x.id===songId);if(!song)return;state.current=clone(song);state.settings.activeSection=song.sections[0]?.id||'';persist('Song geöffnet');renderEditor(); }
+  function newSong() { sync();if(fullText(state.current).trim()&&!confirm('Neuen Song beginnen? Der aktuelle Entwurf bleibt nur erhalten, wenn er gespeichert wurde.'))return;state.current=blankSong();state.settings.activeSection='strophe-1';renderEditor();persist('Neuer Song geöffnet',false); }
+  function openSong(songId) { const song=state.songs.find(x=>x.id===songId);if(!song)return;state.current=clone(song);state.settings.activeSection=song.sections[0]?.id||'';renderEditor();persist('Song geöffnet',false); }
   function duplicateSong(songId) { const src=state.songs.find(x=>x.id===songId);if(!src)return;const copy=clone(src);copy.id=id();copy.title=`${src.title} – Kopie`;copy.storageName=`${safeName(copy.title)}_${stamp()}`;copy.createdAt=copy.updatedAt=now();copy.revision=1;state.songs.unshift(copy);persist('Song dupliziert');renderArchive();renderStats(); }
   function deleteSong(songId) { const song=state.songs.find(x=>x.id===songId);if(song&&confirm(`Song „${song.title}“ löschen?`)){state.songs=state.songs.filter(x=>x.id!==songId);persist('Song gelöscht');renderArchive();renderStats();} }
   function compose(song) { const h=[song.title||`songs_${dateKey()}`,song.genre?`Genre: ${song.genre}`:'',song.tags?`Tags: ${song.tags}`:''].filter(Boolean).join('\n');const body=song.sections.filter(x=>x.text.trim()).map(x=>`${x.label}:\n${x.text.trim()}`).join('\n\n');return `${h}\n\n${body}`.trim(); }
@@ -110,7 +109,7 @@
   fields.text.addEventListener('input',renderPreview);[fields.title,fields.genre,fields.status,fields.tags].forEach(x=>x.addEventListener('input',renderPreview));
   root.addEventListener('focusout',e=>{if(e.target.matches?.('[data-persist]')){persist('Autosave');renderArchive();renderStats();}});
   $('[data-save-song]').onclick=saveSong;$('[data-new-song]').onclick=newSong;$('[data-export-song]').onclick=()=>exportSong();$('[data-export-archive]').onclick=exportArchive;
-  $('[data-add-section]').onclick=addSection;$('[data-remove-section]').onclick=removeSection;$('[data-save-fragment]').onclick=saveFragment;$('[data-clear-fragment]').onclick=()=>{state.fragmentDraft={title:'',type:'hook',text:'',editId:null};persist('Bausteinentwurf geleert');renderEditor();};
+  $('[data-add-section]').onclick=addSection;$('[data-remove-section]').onclick=removeSection;$('[data-save-fragment]').onclick=saveFragment;$('[data-clear-fragment]').onclick=()=>{state.fragmentDraft={title:'',type:'hook',text:'',editId:null};renderEditor();persist('Bausteinentwurf geleert',false);};
   $('[data-count-find]').onclick=countFind;$('[data-replace-all]').onclick=replaceAll;
   $('[data-paste-genre]').onclick=async()=>{try{fields.genre.value=clean((await navigator.clipboard.readText()).trim(),220);persist('Genre eingefügt');}catch{tell('Zwischenablage wurde blockiert. Browserberechtigung prüfen oder manuell einfügen.','error');}};
   $('[data-copy-genre]').onclick=async()=>{try{await navigator.clipboard.writeText(fields.genre.value);tell('Genre kopiert.');}catch{tell('Kopieren wurde vom Browser blockiert.','error');}};
