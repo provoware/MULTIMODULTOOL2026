@@ -20,7 +20,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 APP_FILE = "dashboard-studio-ultimate-pro-v3.1.0.html"
 APP_URL = f"http://127.0.0.1:{{port}}/{APP_FILE}"
-STORAGE_KEY = "dashboardStudioUltimatePro.v3.1.state"
+STORAGE_KEY = "dashboard-studio-ultimate-pro-v3-1"
 BROWSERS = ("chromium", "firefox")
 
 
