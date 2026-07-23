@@ -1,0 +1,209 @@
+<div class="songtext-module" data-songtext-studio>
+  <header class="songtext-hero">
+    <div>
+      <p class="songtext-kicker">PROVOWARE · SONGWORKFLOW</p>
+      <h2>Songtext-Studio:</h2>
+      <p>Songbereiche schreiben, Hooks sammeln, Vorschau prüfen und Texte im lokalen Archiv organisieren.</p>
+    </div>
+    <div class="songtext-status-card">
+      <strong data-save-state>Bereit</strong>
+      <span data-save-time>Noch nicht gespeichert</span>
+    </div>
+  </header>
+
+  <section class="songtext-panel">
+    <div class="songtext-panel-head">
+      <div>
+        <h3>Songdaten:</h3>
+        <p>Titel, Genre, Status und Schlagwörter festlegen.</p>
+      </div>
+      <div class="songtext-actions">
+        <button type="button" class="primary-button" data-save-song>Song speichern</button>
+        <button type="button" class="small-button" data-new-song>Neuer Song</button>
+        <button type="button" class="small-button" data-export-song>TXT exportieren</button>
+      </div>
+    </div>
+
+    <div class="songtext-form-grid">
+      <label>Titel:
+        <input type="text" maxlength="160" data-title data-persist placeholder="Ohne Titel wird songs_Datum verwendet">
+      </label>
+      <label>Genre:
+        <span class="songtext-inline-field">
+          <input type="text" maxlength="220" data-genre data-persist placeholder="Genre, Stil, Stimmung">
+          <button type="button" class="small-button" data-paste-genre>Einfügen</button>
+          <button type="button" class="small-button" data-copy-genre>Kopieren</button>
+        </span>
+      </label>
+      <label>Status:
+        <select data-status data-persist>
+          <option value="idee">Idee</option>
+          <option value="entwurf">Entwurf</option>
+          <option value="arbeit">In Arbeit</option>
+          <option value="fertig">Fertig</option>
+          <option value="archiv">Archiv</option>
+        </select>
+      </label>
+      <label>Schlagwörter:
+        <input type="text" maxlength="240" data-tags data-persist placeholder="kritisch, dunkel, satirisch">
+      </label>
+    </div>
+  </section>
+
+  <div class="songtext-main-grid">
+    <section class="songtext-panel songtext-editor-panel">
+      <div class="songtext-panel-head">
+        <div>
+          <h3>Bereichswahl:</h3>
+          <p>Songteil wählen oder einen neuen Bereich ergänzen.</p>
+        </div>
+        <label class="songtext-check">
+          <input type="checkbox" data-spellcheck checked>
+          Browser-Rechtschreibprüfung
+        </label>
+      </div>
+
+      <div class="songtext-section-tools">
+        <label>Aktiver Bereich:
+          <select data-section-select data-persist></select>
+        </label>
+        <label>Neuer Bereich:
+          <input type="text" maxlength="60" data-new-section-name placeholder="Breakdown, Drop, Spoken Word">
+        </label>
+        <button type="button" class="small-button" data-add-section>Bereich anlegen</button>
+        <button type="button" class="danger-button" data-remove-section>Bereich entfernen</button>
+      </div>
+
+      <label class="songtext-editor-label">Songtext:
+        <textarea rows="16" maxlength="200000" spellcheck="true" data-section-text data-persist placeholder="Text für den gewählten Bereich ..."></textarea>
+      </label>
+
+      <div class="songtext-counters" aria-live="polite">
+        <span>Bereich: <strong data-section-words>0</strong> Wörter / <strong data-section-chars>0</strong> Zeichen</span>
+        <span>Song: <strong data-song-words>0</strong> Wörter / <strong data-song-chars>0</strong> Zeichen</span>
+      </div>
+    </section>
+
+    <section class="songtext-panel songtext-preview-panel">
+      <div class="songtext-panel-head">
+        <div>
+          <h3>Songvorschau:</h3>
+          <p>Zusammengefügte Lesefassung aller Bereiche.</p>
+        </div>
+        <label class="songtext-check">
+          <input type="checkbox" data-preview-headings checked>
+          Bereichsnamen anzeigen
+        </label>
+      </div>
+      <pre class="songtext-preview" data-preview>Der Song ist noch leer.</pre>
+    </section>
+  </div>
+
+  <section class="songtext-panel">
+    <div class="songtext-panel-head">
+      <div>
+        <h3>Suchen und Ersetzen:</h3>
+        <p>Im aktuellen Bereich oder im gesamten Song arbeiten.</p>
+      </div>
+      <div class="songtext-result" data-replace-result>0 Treffer</div>
+    </div>
+    <div class="songtext-search-grid">
+      <label>Suchen:
+        <input type="search" maxlength="180" data-find placeholder="Suchtext">
+      </label>
+      <label>Ersetzen durch:
+        <input type="text" maxlength="180" data-replace placeholder="Ersatztext">
+      </label>
+      <label>Bereich:
+        <select data-replace-scope>
+          <option value="section">Aktueller Bereich</option>
+          <option value="song">Gesamter Song</option>
+        </select>
+      </label>
+      <label class="songtext-check songtext-check-boxed">
+        <input type="checkbox" data-case-sensitive>
+        Groß-/Kleinschreibung beachten
+      </label>
+      <button type="button" class="small-button" data-count-find>Treffer zählen</button>
+      <button type="button" class="primary-button" data-replace-all>Alle ersetzen</button>
+    </div>
+  </section>
+
+  <section class="songtext-panel">
+    <div class="songtext-panel-head">
+      <div>
+        <h3>Hooks und Satzfragmente:</h3>
+        <p>Bausteine mit Titel speichern und per Knopfdruck in den aktiven Bereich einsetzen.</p>
+      </div>
+      <div class="songtext-actions">
+        <button type="button" class="primary-button" data-save-fragment>Baustein speichern</button>
+        <button type="button" class="small-button" data-clear-fragment>Felder leeren</button>
+      </div>
+    </div>
+    <div class="songtext-fragment-form">
+      <label>Titel:
+        <input type="text" maxlength="100" data-fragment-title data-persist placeholder="Hook-Titel">
+      </label>
+      <label>Art:
+        <select data-fragment-type data-persist>
+          <option value="hook">Hook</option>
+          <option value="fragment">Satzfragment</option>
+          <option value="reim">Reimidee</option>
+          <option value="claim">Claim</option>
+        </select>
+      </label>
+      <label class="songtext-fragment-text">Text:
+        <textarea rows="4" maxlength="2000" spellcheck="true" data-fragment-text data-persist placeholder="Fragment oder Hook ..."></textarea>
+      </label>
+    </div>
+    <div class="songtext-fragment-list" data-fragment-list></div>
+  </section>
+
+  <section class="songtext-panel">
+    <div class="songtext-panel-head">
+      <div>
+        <h3>Songarchiv:</h3>
+        <p>Gespeicherte Songs suchen, filtern, öffnen, duplizieren, exportieren oder löschen.</p>
+      </div>
+      <div class="songtext-actions">
+        <button type="button" class="small-button" data-export-archive>Archiv als JSON</button>
+      </div>
+    </div>
+    <div class="songtext-archive-tools">
+      <label>Archiv durchsuchen:
+        <input type="search" data-archive-search placeholder="Titel, Genre, Schlagwort oder Text">
+      </label>
+      <label>Status filtern:
+        <select data-archive-status>
+          <option value="all">Alle</option>
+          <option value="idee">Idee</option>
+          <option value="entwurf">Entwurf</option>
+          <option value="arbeit">In Arbeit</option>
+          <option value="fertig">Fertig</option>
+          <option value="archiv">Archiv</option>
+        </select>
+      </label>
+      <label>Sortierung:
+        <select data-archive-sort>
+          <option value="updated-desc">Zuletzt bearbeitet</option>
+          <option value="created-desc">Neueste zuerst</option>
+          <option value="title-asc">Titel A–Z</option>
+          <option value="words-desc">Meiste Wörter</option>
+        </select>
+      </label>
+    </div>
+    <div class="songtext-archive-list" data-archive-list></div>
+  </section>
+
+  <section class="songtext-panel">
+    <div class="songtext-panel-head">
+      <div>
+        <h3>Archivstatistik:</h3>
+        <p>Kompakte Kennzahlen für Songs, Textmenge, Genres und Bausteine.</p>
+      </div>
+    </div>
+    <div class="songtext-stat-grid" data-stat-grid></div>
+  </section>
+
+  <div class="songtext-live-status" role="status" aria-live="polite" data-live-status>Songtext-Studio ist bereit.</div>
+</div>

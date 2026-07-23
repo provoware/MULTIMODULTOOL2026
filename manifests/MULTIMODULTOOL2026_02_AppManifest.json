@@ -48,6 +48,7 @@
     "../modules/schnelllinks/module.manifest.json",
     "../modules/notizen/module.manifest.json",
     "../modules/provoware-genretool-pro/module.manifest.json",
+    "../modules/songtext-studio/module.manifest.json",
     "../modules/systemmodule-buendel/module.manifest.json",
     "../modules/audio-playlist/module.manifest.json",
     "../modules/bildvorschau/module.manifest.json",
@@ -124,6 +125,11 @@
       "id": "provoware-genretool-pro",
       "version": "2.0.0",
       "manifest": "../modules/provoware-genretool-pro/module.manifest.json"
+    },
+    {
+      "id": "songtext-studio",
+      "version": "1.0.0",
+      "manifest": "../modules/songtext-studio/module.manifest.json"
     },
     {
       "id": "systemmodule-buendel",
