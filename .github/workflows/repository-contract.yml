@@ -11,7 +11,7 @@ jobs:
   validate:
     name: Validate Linux project contract
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 18
     env:
       QT_QPA_PLATFORM: offscreen
       PYTHONFAULTHANDLER: "1"
@@ -37,6 +37,12 @@ jobs:
       - name: Papierkorbvertrag ausdrücklich prüfen
         run: python3 -m unittest tests.test_project_trash -v
 
+      - name: Append-only Undo- und Redo-Journal ausdrücklich prüfen
+        run: python3 -m unittest tests.test_undo_redo -v
+
+      - name: Read-only Transaktionsübersicht ausdrücklich prüfen
+        run: python3 -m unittest tests.test_transaction_overview -v
+
       - name: Single-Instance-Vertrag ausdrücklich prüfen
         run: python3 -m unittest tests.test_single_instance -v
 
@@ -46,7 +52,7 @@ jobs:
       - name: Read-only Diagnosevertrag ausdrücklich prüfen
         run: python3 -m unittest tests.test_diagnostics_center -v
 
-      - name: Failpoint-Matrix ausdrücklich prüfen
+      - name: Einstellungs-Failpoint-Matrix ausdrücklich prüfen
         run: python3 -m unittest tests.test_settings_failpoints -v
 
       - name: PySide6 für Offscreen-Test installieren
@@ -55,5 +61,5 @@ jobs:
       - name: Offscreen-GUI-, Diagnose- und Fehlerdialog-Test ausführen
         run: python3 -m unittest tests.test_gui_offscreen -v
 
-      - name: Offscreen-Papierkorbvertrag prüfen
+      - name: Offscreen-Papierkorb- und Transaktionsvertrag prüfen
         run: python3 -m unittest tests.test_gui_trash_contract -v
