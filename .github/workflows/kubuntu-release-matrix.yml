@@ -1,0 +1,62 @@
+name: Kubuntu Release Candidate Matrix
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release-lifecycle:
+    name: Kubuntu ${{ matrix.kubuntu }} install lifecycle
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - kubuntu: "22.04"
+            runner: ubuntu-22.04
+            python: "3.10"
+          - kubuntu: "24.04"
+            runner: ubuntu-24.04
+            python: "3.12"
+    env:
+      QT_QPA_PLATFORM: offscreen
+      PYTHONFAULTHANDLER: "1"
+      SOURCE_DATE_EPOCH: "1704067200"
+
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Minimale Kubuntu-/KDE-Laufzeit installieren
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            kubuntu-desktop python3-venv libegl1 libgl1 \
+            libxkbcommon-x11-0 libxcb-cursor0 xvfb
+
+      - name: Release-Skripte syntaktisch prüfen
+        run: |
+          python3 -m py_compile release/build_release.py release/release_manager.py
+          bash -n release/launcher.sh release/test_lifecycle.sh
+
+      - name: Vollständigen Release-Lebenszyklus prüfen
+        run: bash release/test_lifecycle.sh
+
+      - name: Reproduzierbaren Doppelbuild vergleichen
+        run: |
+          WORK="$(mktemp -d)"
+          python3 -m pip download --dest "$WORK/wheelhouse" -r requirements.txt
+          python3 release/build_release.py --wheelhouse "$WORK/wheelhouse" --output "$WORK/a"
+          python3 release/build_release.py --wheelhouse "$WORK/wheelhouse" --output "$WORK/b"
+          sha256sum "$WORK"/a/*.tar.gz "$WORK"/b/*.tar.gz
+          test "$(sha256sum "$WORK"/a/*.tar.gz | cut -d' ' -f1)" = \
+               "$(sha256sum "$WORK"/b/*.tar.gz | cut -d' ' -f1)"
