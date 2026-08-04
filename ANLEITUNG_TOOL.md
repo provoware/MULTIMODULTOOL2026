@@ -11,97 +11,71 @@ chmod +x start.sh setup.sh
 ./start.sh
 ```
 
-Beim Start werden Linux, Python, PySide6, XDG-Pfade, Einstellungen, Ereignisjournal und privater Single-Instance-Laufzeitpfad geprüft.
+Beim Start werden Linux, Python, PySide6, XDG-Pfade, Einstellungen, Ereignisjournal und Single-Instance-Laufzeitpfad geprüft.
 
-## Sicherer Projektpapierkorb
+## Sicherer langer Lauf
 
-Der spätere Nutzerworkflow muss immer diesen Ablauf verwenden:
+Der technische Laufkern ist entwickelt und automatisiert geprüft. Der spätere Nutzerworkflow verwendet:
 
-1. Projektordner über einen Auswahldialog bestimmen.
-2. Datei oder Ordner auswählen.
-3. Rein lesende Vorschau erzeugen.
-4. Projektgrenze, Mountstatus, Symlinks, Hardlinks, Konflikte, freien Speicher und Wiederherstellbarkeit prüfen.
-5. Aktions-ID, Transaktions-ID, Originalpfad, Papierkorbziel und Manifest anzeigen.
-6. Erst nach Bestätigung atomar in den Projektpapierkorb verschieben.
-7. Ergebnis, Journalabschluss und Wiederherstellungsweg anzeigen.
+1. Projektordner sicher auswählen.
+2. Quellen prüfen und einen unveränderlichen Laufplan erzeugen.
+3. Lauf-ID und Planhash anzeigen.
+4. Vor dem ersten Intent einen atomaren Checkpoint speichern.
+5. Jeden Schritt über Papierkorbmanifest und Undo-/Redo-Journal ausführen.
+6. Abbruchanforderungen nur an sicheren Grenzen bestätigen.
+7. Nach Neustart den gespeicherten Zustand eindeutig fortsetzen oder blockieren.
+
+Interner Speicherort:
 
 ```text
-<Projekt>/.multimodultool2026/
-├── history/actions.jsonl
-└── trash/transactions/<MMTTRASH-ID>/
-    ├── manifest.json
-    └── payload
+<Projekt>/.multimodultool2026/runs/<MMTRUN-ID>/
+├── plan.json
+├── checkpoint.json
+├── run.lock
+└── cancel.request
 ```
 
-Die Anwendung kopiert nicht und löscht anschließend. Ein Mountwechsel wird blockiert.
+## Abbruch
 
-## Undo
+Eine Abbruchanforderung stoppt nicht mitten in einer atomaren Dateioperation. Sie wird vor dem nächsten Intent oder nach einem vollständig bestätigten Schritt übernommen. Der Checkpoint nennt anschließend `cancelled` und die Zahl der abgeschlossenen Schritte.
 
-Undo darf ausschließlich die zuletzt aktive Aktion zurücknehmen:
+## Fortsetzen
 
-1. Journal- und Hashkette prüfen.
-2. `undo-intent` absturzsicher anhängen.
-3. Papierkorbmanifest, Payload und freien Originalpfad prüfen.
-4. Payload atomar zurückverschieben.
-5. `undo` als Abschluss anhängen.
+Ein kontrolliert abgebrochener Lauf kann ausdrücklich fortgesetzt werden. Dabei werden weder Plan noch bereits bestätigte Aktionen neu erzeugt. Checkpoint, Journal, Manifest, Originalpfad und Payload werden gemeinsam geprüft.
 
-Mehrere Undo-Schritte laufen in umgekehrter Ausführungsreihenfolge. Ein erneut angefordertes Undo derselben bereits zurückgenommenen Aktion verändert nichts.
+Mögliche Meldungen:
 
-## Redo
+- **Fortsetzen:** Schritt war noch nicht begonnen.
+- **Abschluss ergänzen:** Datei oder Manifest war bereits vollständig.
+- **Bereits erledigt:** Nur der Checkpoint fehlte.
+- **Blockiert:** Zustände widersprechen sich; keine automatische Reparatur.
 
-Redo darf ausschließlich die nächste zurückgenommene Aktion wiederholen:
+## Prozessende
 
-1. Originalquelle erneut prüfen.
-2. neue Papierkorb-Transaktions-ID erzeugen,
-3. `redo-intent` anhängen,
-4. Quelle atomar in einen neuen Transaktionsordner verschieben,
-5. `redo` anhängen.
-
-Mehrere Redo-Schritte laufen in ursprünglicher Ausführungsreihenfolge. Die Aktions-ID bleibt stabil. Eine neue Aktion wird blockiert, solange eine Redo-Kette vorhanden ist.
-
-## Unterbrochene Aktion
-
-Bleibt durch einen Prozessabbruch ein Intent ohne Abschluss zurück, wird nichts blind wiederholt. Manifest, Payload und Originalpfad werden verglichen. Nur bei eindeutigem Zustand wird das fehlende Abschlussereignis ergänzt. Widersprüchliche Zustände werden blockiert.
-
-## Rein lesende Transaktionsübersicht
-
-Die Übersicht zeigt und filtert:
-
-- `prepared`
-- `trashed`
-- `restored`
-- `damaged`
-
-Sie besitzt keine Schaltfläche zum Wiederherstellen, Reparieren, Löschen, Hochladen oder Exportieren. Beschädigte Zustände werden ausschließlich sichtbar markiert.
+Die Testmatrix beendet den Arbeitsprozess mit echtem Linux-`SIGKILL`. Nach dem Neustart darf genau eine vollständige Transaktion existieren. Die Laufsperre muss erneut verfügbar sein und temporäre Dateien dürfen nicht zurückbleiben.
 
 ## Noch bewusst gesperrt
 
 - grafische Projekt- und Dateiauswahl
-- Massenaktionen
-- Papierkorb leeren
-- dauerhafte Löschung
-- automatisches Verwerfen einer Redo-Kette
-- lange Operationen ohne den noch folgenden Abbruch-/Wiederanlaufvertrag
+- produktive Massenläufe
+- dauerhaftes Löschen
+- automatisches Reparieren widersprüchlicher Checkpoints
+- Ändern eines bestehenden Laufplans
+- Stromausfall-/Hardwarecache-Freigabe
 
-## Zweiter Start und Diagnose
-
-Ein zweiter normaler Start aktiviert die bestehende Instanz. Er darf nur `activate` oder `show-diagnostics` übertragen. Die Diagnosezentrale bleibt rein lesend.
+## Diagnose
 
 ```bash
 python3 -m src.main --show-diagnostics
 ```
 
-## Prüfungen für Entwickler
+Keine Sperre, kein Checkpoint, kein Manifest und kein Payload darf manuell überschrieben oder gelöscht werden. Diagnosekennung sichern und den dokumentierten Datenstand prüfen.
+
+## Entwicklerprüfungen
 
 ```bash
 python3 tools/validate_repository.py
-python3 -m unittest tests.test_project_trash -v
-python3 -m unittest tests.test_undo_redo -v
-python3 -m unittest tests.test_transaction_overview -v
-python3 -m unittest tests.test_single_instance_stress -v
+python3 -m unittest tests.test_run_control -v
+python3 -m unittest tests.test_run_control_sigkill -v
 QT_QPA_PLATFORM=offscreen python3 -m unittest tests.test_gui_trash_contract -v
 ```
-
-## Fehlerfall
-
-Keine Sperrdatei, kein Manifest, kein Payload und keine Journalzeile manuell löschen oder überschreiben. Diagnosekennung sichern, Ursache prüfen und erst nach grüner Vorprüfung fortfahren.
