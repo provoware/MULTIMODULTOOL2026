@@ -13,10 +13,10 @@
 
 ## Fortschritt
 
-- Erledigt: **18**
-- Offen: **44**
+- Erledigt: **19**
+- Offen: **43**
 - Gesamt: **62**
-- Rechnerischer Entwicklungsfortschritt: **29 %**
+- Rechnerischer Entwicklungsfortschritt: **31 %**
 
 ## Erledigte Grundlagen
 
@@ -43,7 +43,7 @@
 ## P0 – Startfähigkeit, Datensicherheit und Releaseblocker
 
 - [x] **P0-001** – PySide6-Installation über einen geführten Linux-Einrichtungsdialog automatisieren. Abhängigkeit: `D-011` | Abnahmekriterium: Frische Kubuntu-Installation startet nach höchstens zwei bestätigten Dialogen. | Risiko: **mittel** | Ergebnis: atomare `.venv`-Einrichtung, KDE-KDialog mit Terminal-Rückfall, System-, Sitzungs-, Rechte- und PySide6-Prüfung.
-- [ ] **P0-002** – XDG-konforme Projekt- und Nutzerdatenpfade strikt vom Programmverzeichnis trennen. Abhängigkeit: `P0-001` | Abnahmekriterium: App nutzt sichere Linux-Benutzerpfade und schreibt nie ungefragt in den Quellbaum. | Risiko: **hoch**
+- [x] **P0-002** – XDG-konforme Projekt- und Nutzerdatenpfade strikt vom Programmverzeichnis trennen. Abhängigkeit: `P0-001` | Abnahmekriterium: App nutzt sichere Linux-Benutzerpfade und schreibt nie ungefragt in den Quellbaum. | Risiko: **hoch** | Ergebnis: zentrale Standardbibliotheks-Pfadschicht für Konfiguration, Daten, Cache, Status, Logs und Sicherungen; Vor-/Nachvalidierung, Modus `0700`, Symlink-, Grenz-, Doppelziel- und Schreibprüfung; GUI-Speicherstatus.
 - [ ] **P0-003** – Transaktionales Einstellungsformat mit Schema, Backup und Rollback einführen. Abhängigkeit: `P0-002` | Abnahmekriterium: Defekte Konfiguration wird erkannt und verlustfrei auf letzte gültige Version zurückgesetzt. | Risiko: **hoch**
 - [ ] **P0-004** – Globalen Fehlerdialog mit Ursache, Folge, Lösung und unverändertem Datenstand erstellen. Abhängigkeit: `D-008` | Abnahmekriterium: Jede unbehandelte Ausnahme wird verständlich protokolliert und beendet die App kontrolliert. | Risiko: **hoch**
 - [ ] **P0-005** – Linux-Single-Instance-Schutz und sichere Übergabe weiterer Startaufrufe implementieren. Abhängigkeit: `P0-002` | Abnahmekriterium: Zweiter Start öffnet das bestehende Fenster statt eine konkurrierende Instanz. | Risiko: **mittel**
@@ -102,7 +102,16 @@
 
 ## Aufnahme neuer Aufgaben
 
-Eine neue Aufgabe wird nur aufgenommen, wenn Linux-Nutzerproblem, betroffene Daten, Doppelungsprüfung, Abhängigkeiten, objektives Abnahmekriterium, Rückfallweg, Pflichtprüfung und betroffene Dokumente bekannt sind.
+Eine neue Aufgabe wird nur aufgenommen, wenn alle Punkte beantwortet sind:
+
+1. Welches konkrete Linux-Nutzerproblem wird gelöst?
+2. Welche Dateien, Daten und bestehenden Funktionen sind betroffen?
+3. Ist die Aufgabe bereits enthalten oder nur anders formuliert?
+4. Welche Vorbedingungen und Abhängigkeiten bestehen?
+5. Woran ist objektiv erkennbar, dass sie fertig ist?
+6. Wie wird Datenverlust verhindert und ein Rückfall ermöglicht?
+7. Welche direkt relevante Prüfung muss grün sein?
+8. Welche Pflichtdokumente müssen angepasst werden?
 
 ## Abschlussformat je Aufgabe
 
