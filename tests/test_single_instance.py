@@ -19,6 +19,7 @@ from src.single_instance import (
     instance_paths,
     resolve_runtime_root,
     validate_launch_request,
+    validate_runtime_root,
 )
 
 
@@ -67,7 +68,7 @@ class SingleInstanceTests(unittest.TestCase):
         )
         os.chmod(self.runtime, 0o755)
         with self.assertRaises(InstanceSecurityError):
-            resolve_runtime_root({"XDG_RUNTIME_DIR": str(self.runtime)}, uid=os.getuid())
+            validate_runtime_root(self.runtime, uid=os.getuid())
 
     def test_second_start_activates_primary_and_delivers_only_allowed_data(self) -> None:
         primary = SingleInstanceCoordinator(self.runtime)
