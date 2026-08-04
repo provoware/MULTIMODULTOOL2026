@@ -13,10 +13,10 @@
 
 ## Fortschritt
 
-- Erledigt: **19**
-- Offen: **43**
-- Gesamt: **62**
-- Rechnerischer Entwicklungsfortschritt: **31 %**
+- Erledigt: **21**
+- Offen: **42**
+- Gesamt: **63**
+- Rechnerischer Entwicklungsfortschritt: **33 %**
 
 ## Erledigte Grundlagen
 
@@ -37,14 +37,15 @@
 - [x] **D-015** – Pflichtdokumente für Anleitung, Änderungen, Risiken, Upgrades und Entwicklung angelegt.
 - [x] **D-016** – Projektumfang verbindlich auf Linux-Desktop, Kubuntu und KDE Plasma begrenzt.
 - [x] **D-017** – Nicht-Linux-Startblocker und maschinenlesbaren Linux-Plattformvertrag ergänzt.
+- [x] **D-018** – Automatisierten Qt-Offscreen-GUI-Smoke-Test für alle neun Layoutzonen, Scrollbarkeit, sichtbare Sicherheitszustände und gesperrte Aktionen in Ubuntu-CI integriert.
 
 ## Offene, priorisierte Aufgaben
 
 ## P0 – Startfähigkeit, Datensicherheit und Releaseblocker
 
 - [x] **P0-001** – PySide6-Installation über einen geführten Linux-Einrichtungsdialog automatisieren. Abhängigkeit: `D-011` | Abnahmekriterium: Frische Kubuntu-Installation startet nach höchstens zwei bestätigten Dialogen. | Risiko: **mittel** | Ergebnis: atomare `.venv`-Einrichtung, KDE-KDialog mit Terminal-Rückfall, System-, Sitzungs-, Rechte- und PySide6-Prüfung.
-- [x] **P0-002** – XDG-konforme Projekt- und Nutzerdatenpfade strikt vom Programmverzeichnis trennen. Abhängigkeit: `P0-001` | Abnahmekriterium: App nutzt sichere Linux-Benutzerpfade und schreibt nie ungefragt in den Quellbaum. | Risiko: **hoch** | Ergebnis: zentrale Standardbibliotheks-Pfadschicht für Konfiguration, Daten, Cache, Status, Logs und Sicherungen; Vor-/Nachvalidierung, Modus `0700`, Symlink-, Grenz-, Doppelziel- und Schreibprüfung; GUI-Speicherstatus.
-- [ ] **P0-003** – Transaktionales Einstellungsformat mit Schema, Backup und Rollback einführen. Abhängigkeit: `P0-002` | Abnahmekriterium: Defekte Konfiguration wird erkannt und verlustfrei auf letzte gültige Version zurückgesetzt. | Risiko: **hoch**
+- [x] **P0-002** – XDG-konforme Projekt- und Nutzerdatenpfade strikt vom Programmverzeichnis trennen. Abhängigkeit: `P0-001` | Abnahmekriterium: App nutzt sichere Linux-Benutzerpfade und schreibt nie ungefragt in den Quellbaum. | Risiko: **hoch** | Ergebnis: zentrale XDG-Pfadschicht für Konfiguration, Daten, Cache, Status, Logs und Sicherungen; Vor-/Nachvalidierung, Modus `0700`, Symlink-, Grenz-, Doppelziel- und Schreibprüfung.
+- [x] **P0-003** – Transaktionales Einstellungsformat mit Schema, Backup und Rollback einführen. Abhängigkeit: `P0-002` | Abnahmekriterium: Defekte Konfiguration wird erkannt und verlustfrei auf letzte gültige Version zurückgesetzt. | Risiko: **hoch** | Ergebnis: `schemaVersion` 1, strenge Feld-/Typ-/Grenzprüfung, Dateien mit `0600`, temporäre Datei mit `fsync`, atomarer Austausch, letzte gültige Sicherung, Quarantäne defekter Dateien, automatischer Rollback oder sichere Standardwerte.
 - [ ] **P0-004** – Globalen Fehlerdialog mit Ursache, Folge, Lösung und unverändertem Datenstand erstellen. Abhängigkeit: `D-008` | Abnahmekriterium: Jede unbehandelte Ausnahme wird verständlich protokolliert und beendet die App kontrolliert. | Risiko: **hoch**
 - [ ] **P0-005** – Linux-Single-Instance-Schutz und sichere Übergabe weiterer Startaufrufe implementieren. Abhängigkeit: `P0-002` | Abnahmekriterium: Zweiter Start öffnet das bestehende Fenster statt eine konkurrierende Instanz. | Risiko: **mittel**
 - [ ] **P0-006** – Papierkorbvertrag für alle späteren destruktiven Dateiaktionen definieren und testen. Abhängigkeit: `P0-002` | Abnahmekriterium: Löschen bedeutet standardmäßig Verschieben in wiederherstellbaren Projektpapierkorb. | Risiko: **hoch**

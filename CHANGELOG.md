@@ -1,50 +1,48 @@
 # CHANGELOG
 
-Alle wesentlichen Änderungen an Code, Struktur, Verhalten, Prüfungen und Dokumentation werden hier chronologisch festgehalten.
+Alle wesentlichen Änderungen an Code, Struktur, Verhalten, Prüfungen und Dokumentation werden chronologisch festgehalten.
 
 ## [Unreleased]
 
 ### Hinzugefügt – 2026-08-04
 
-- zentrale XDG-Pfadschicht `src/xdg_paths.py` für Konfiguration, Nutzerdaten, Cache, Status, Logs und Sicherungen
-- Vor- und Nachvalidierung für absolute Pfade, XDG-Grenzen, Quellbaumtrennung, Symlinks, doppelte Ziele, Verzeichnistypen und Schreibrechte
-- private App-Verzeichnisse mit Modus `0700` und rückstandsfreier Schreibprobe
-- Diagnosemodus `python3 -m src.main --paths-only`
-- sieben Unit-Tests für XDG-Auflösung, Grenzschutz, Symlinkblockade, Rechte und Quellbaumtrennung
-- `docs/XDG_PFADVERTRAG.md`
-- geführter Linux-Einrichtungsassistent `tools/setup_assistant.py`
-- KDE-KDialog mit Terminal-Rückfall für ausdrückliche Bestätigungen
-- `setup.sh` als laiengerechter Einstieg für fehlende Python-Systemkomponenten
-- Prüfung von Python, `venv`, KDE-Sitzung, X11/Wayland, Schreibrechten, `.venv` und PySide6
-- atomarer Aufbau der virtuellen Umgebung über temporären Ordner und Nachprüfung
-- Unit-Tests für Plattform-, Sitzungs-, Bestätigungs-, Pfad- und Symlink-Schutz
-- `docs/GITHUB_ZUGRIFF.md` mit Berechtigungs- und Geheimnisvertrag
+- `src/settings_manager.py` als Standardbibliotheksmodul für versionierte Einstellungen
+- `standards/settings-schema-v1.json` mit strikt verbotenen unbekannten Feldern
+- aktive Datei `settings.json` und letzte gültige Sicherung `settings.last-valid.json`
+- Vorvalidierung von Version, Feldern, Typen, Wertebereichen, Sicherheitswerten, Pfaden, Symlinks und Dateirechten
+- atomarer Schreibweg über temporäre Datei, `fsync`, Nachvalidierung und `os.replace`
+- Quarantäne beschädigter Dateien als `settings.corrupt-<UTC-Zeit>.json`
+- automatischer Rollback aus Sicherung oder sichere Standardwerte
+- rein lesender Diagnosemodus `python3 -m src.main --settings-only`
+- 15 Unit-Tests für Schema, Transaktion, Sicherung, Recovery, Symlinks, Rechte und Fehlerfälle
+- `docs/EINSTELLUNGSVERTRAG.md`
+- automatisierter Qt-Offscreen-GUI-Smoke-Test mit fünf Pflichtprüfungen
 
 ### Geändert – 2026-08-04
 
-- Oberfläche workflow-fokussiert überarbeitet: nummerierte Schritte, sichtbare Sperrzustände, hervorgehobener nächster Schritt und Speicher-/Diagnoseleiste
-- normaler Programmstart bereitet XDG-Verzeichnisse sicher vor; `--validate-only` bleibt rein lesend
-- Repository-Prüfung um XDG-Vertrag, neue Pflichtdateien und Python-Syntax erweitert
-- Fortschritt auf 31 Prozent, 19 erledigte und 43 offene Punkte aktualisiert
-- `start.sh` startet bei unvollständiger Umgebung automatisch den Einrichtungsassistenten
-- Repository-Prüfung kontrolliert Einrichtungs- und GitHub-Zugriffsvertrag
-- GitHub-Rechteprüfung vor Schreibiterationen in `AGENTS.md` verankert
+- `src/main.py` bindet XDG- und Einstellungsprüfung in den Startablauf ein
+- Oberfläche zeigt Einstellungsstatus, Rollback-Bereitschaft und den nächsten P0-Schritt
+- alle neun Layoutzonen besitzen maschinenprüfbare Objekt- und Zonenkennungen
+- Arbeits- und Kontextbereich sind unabhängig scrollbar
+- noch nicht freigegebene Aktionen bleiben sichtbar, erklärt und deaktiviert
+- GitHub Actions installiert PySide6 und führt den Offscreen-Smoke-Test aus
+- Repository-Vertrag prüft Einstellungs-, Schema-, GUI- und Fortschrittsvertrag
+- Fortschritt auf 33 Prozent, 21 erledigte und 42 offene Punkte aktualisiert
+- Pflichtdokumentation an P0-003 und D-018 angepasst
 
 ### Sicherheit – 2026-08-04
 
-- Start wird bei relativen XDG-Werten, Zielüberschneidung mit dem Programmverzeichnis, App-Symlinks, doppelten Zielen oder fehlender Schreibbarkeit blockiert
-- Programmcode schreibt keine Konfiguration, Logs, Sicherungen oder Nutzerdaten in den Quellbaum
-- temporäre Schreibproben werden nach `fsync` vollständig entfernt
-- keine GitHub-Tokens oder Zugangsdaten im Repository
-- `.venv`-Symlinks werden blockiert
-- keine Befehlsausführung über `shell=True`
-- bestehende `.venv` wird erst nach vollständigem Aufbau und PySide6-Importprüfung ersetzt
-- fehlgeschlagene temporäre Einrichtung wird bereinigt; vorhandene Umgebung bleibt erhalten
-- Systempakete werden nur nach sichtbarer Bestätigung und als konkrete `apt-get`-Befehle installiert
+- Einstellungsdateien verwenden Modus `0600`
+- Konfigurationsverzeichnis bleibt XDG-konform und mit `0700` geschützt
+- unbekannte Versionen, Felder und unsichere Werte werden vor Schreibzugriff blockiert
+- temporäre Dateien werden in jedem Fehlerfall entfernt
+- defekte Einstellungen schalten keine produktiven Funktionen frei
+- rein lesende Diagnose verändert keine XDG- oder Einstellungsdatei
+- GUI-Smoke-Test verwendet keine privaten Nutzerdaten
 
-### Vorheriger Grundstand – 2026-08-04
+### Bereits umgesetzt – 2026-08-04
 
-- startbares PySide6-Linux-Desktop-Grundgerüst mit neun Layoutzonen
-- Linux- und Manifestblocker
-- Repository-Vertragsprüfer, Unit-Tests und Ubuntu-GitHub-Actions
-- verbindliche Linux-, Dokumentations-, Fortschritts- und UI-Verträge
+- geführter Linux-Einrichtungsassistent mit atomarer `.venv`
+- sichere XDG-Pfadverwaltung für Konfiguration, Daten, Cache, Status, Logs und Sicherungen
+- Linux-, Manifest-, Dokumentations- und GitHub-Zugriffsvertrag
+- startbares PySide6-Grundgerüst mit neun verbindlichen Layoutzonen

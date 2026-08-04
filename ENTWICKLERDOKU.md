@@ -6,115 +6,151 @@
 - Kubuntu 22.04/24.04, KDE Plasma, X11/Wayland, x86-64
 - Python 3.10+
 - PySide6 / Qt Widgets
-- Standardbibliothek für Setup-, Manifest-, XDG- und Repository-Prüfung
+- Standardbibliothek für Setup, Manifest, XDG, Einstellungen und Repository-Prüfung
 - Start: `./start.sh`
 - Einrichtung: `./setup.sh`
+- Einstellungsformat: `schemaVersion` 1
 
-## 2. Start- und Einrichtungsfluss
+## 2. Startfluss
 
 ```text
 start.sh
-  ├─ Linux und Python prüfen
-  ├─ .venv/PySide6 prüfen
-  ├─ bei Bedarf setup.sh
-  │    ├─ fehlendes Python optional nach Bestätigung per apt-get
-  │    └─ tools/setup_assistant.py
-  │         ├─ Python/venv/KDE/X11-Wayland/Schreibrechte prüfen
-  │         ├─ Systempakete nur nach Bestätigung
-  │         ├─ .venv.setup-* erzeugen
-  │         ├─ requirements.txt installieren
-  │         ├─ PySide6 importieren
-  │         └─ Umgebung atomar aktivieren
+  ├─ Linux, Python, .venv und PySide6 prüfen
+  ├─ bei Bedarf setup.sh / tools/setup_assistant.py
   ├─ python -m src.main --validate-only
-  │    └─ XDG-Pfadplan rein lesend prüfen
+  │    ├─ Linux-Plattform prüfen
+  │    ├─ layout-manifest.json prüfen
+  │    ├─ XDG-Pfadplan rein lesend prüfen
+  │    └─ Einstellungen und Recovery-Möglichkeit rein lesend prüfen
   └─ python -m src.main
-       ├─ XDG-Pfade vorvalidieren
-       ├─ App-Verzeichnisse mit 0700 anlegen
-       ├─ Existenz, Schreibbarkeit und Symlinks nachvalidieren
-       ├─ temporäre Schreibprobe ausführen und entfernen
-       └─ GUI starten
+       ├─ XDG-Verzeichnisse vor-/nachvalidieren und mit 0700 vorbereiten
+       ├─ settings.json laden
+       ├─ bei Defekt Backup oder Standardwerte atomar aktivieren
+       └─ Qt-Oberfläche mit Z01–Z09 starten
 ```
 
-## 3. Sicherheitsvertrag des Setups
+## 3. Einstellungsarchitektur
 
-- keine Ausführung mit `shell=True`
-- Befehle als feste Argumentlisten
-- `.venv`-Symlink blockiert
-- temporäre Umgebung vor Umschaltung vollständig geprüft
-- bestehende Umgebung erst nach erfolgreichem Neubau umbenannt
-- Rollback bei fehlgeschlagener Umschaltung
-- temporäre Umgebung bei Fehler bereinigt
-- Systempakete ausschließlich nach sichtbarer Bestätigung
-- keine automatische Verwendung von `sudo` für den App-Start
-- keine GitHub-Geheimnisse im Repository
+### Dateien
 
-## 4. Wichtige Dateien
-
-| Datei | Verantwortung |
+| Datei | Aufgabe |
 |---|---|
-| `setup.sh` | Linux-Einstieg, Python-Grundprüfung und kontrollierter Paketweg |
-| `tools/setup_assistant.py` | Diagnose, KDialog/Terminalbestätigung und atomare `.venv` |
-| `start.sh` | sichere Orchestrierung von Einrichtung, Manifestprüfung und GUI |
-| `tests/test_setup_assistant.py` | Setup-Regressionsprüfungen |
-| `tools/validate_repository.py` | gesamter Repository-, Setup-, XDG- und GitHub-Zugriffsvertrag |
-| `docs/GITHUB_ZUGRIFF.md` | Grenzen externer Berechtigungen und Geheimnisschutz |
-| `src/main.py` | Linux-Plattformblocker, Manifest-/XDG-Startfluss und workflow-fokussiertes Desktop-Grundgerüst |
-| `src/xdg_paths.py` | zentrale XDG-Auflösung, Grenzprüfung, sichere Anlage, Rechte- und Schreibprüfung |
-| `tests/test_xdg_paths.py` | XDG-Regressionsprüfungen |
-| `docs/XDG_PFADVERTRAG.md` | verbindliche Speicherorte, Grenzen und Fehlerverhalten |
+| `src/settings_manager.py` | Validierung, Lesen, atomarer Schreibweg, Sicherung, Quarantäne und Recovery |
+| `standards/settings-schema-v1.json` | maschinenlesbarer Strukturvertrag |
+| `docs/EINSTELLUNGSVERTRAG.md` | Sicherheits- und Betriebsvertrag |
+| `tests/test_settings_manager.py` | 15 transaktionale Regressionstests |
 
-## 5. XDG-Pfadvertrag
+### Datenmodell
 
-Die Pfadschicht hat keine PySide6-Abhängigkeit und verwendet ausschließlich die Python-Standardbibliothek.
+```json
+{
+  "schemaVersion": 1,
+  "ui": {
+    "theme": "dark",
+    "fontScalePercent": 100,
+    "showTooltips": true
+  },
+  "safety": {
+    "defaultDryRun": true,
+    "confirmDestructiveActions": true
+  },
+  "workflow": {
+    "startArea": "start",
+    "showAdvancedOptions": false
+  }
+}
+```
+
+Unbekannte Felder sind verboten. Sicherheitswerte `defaultDryRun` und `confirmDestructiveActions` müssen im aktuellen Entwicklungsstand `true` bleiben.
+
+## 4. Transaktionaler Schreibalgorithmus
+
+1. Python-Datenmodell vollständig validieren.
+2. XDG-Konfigurationspfad und Zieldateien prüfen.
+3. Temporäre Datei im selben Verzeichnis mit `0600` erzeugen.
+4. vollständiges JSON schreiben und Dateideskriptor mit `fsync` bestätigen.
+5. temporäre Datei erneut einlesen und validieren.
+6. aktive gültige Datei atomar als `settings.last-valid.json` sichern.
+7. temporäre Datei per `os.replace` aktivieren.
+8. aktive Datei und Verzeichnis nachvalidieren und mit `fsync` bestätigen.
+9. bei Fehler temporäre Reste entfernen und vorhandene aktive Datei erhalten.
+10. schlägt eine Nachvalidierung nach Austausch fehl, Rollback aus Sicherung ausführen.
+
+## 5. Recovery
 
 ```text
-XDG_CONFIG_HOME  -> <basis>/multimodultool2026
-XDG_DATA_HOME    -> <basis>/multimodultool2026
-XDG_CACHE_HOME   -> <basis>/multimodultool2026
-XDG_STATE_HOME   -> <basis>/multimodultool2026
-logs             -> state/logs
-backups          -> data/backups
+settings.json gültig
+  └─ normal laden
+
+settings.json beschädigt
+  ├─ als settings.corrupt-<UTC>.json isolieren
+  ├─ settings.last-valid.json prüfen
+  ├─ gültig: atomar wiederherstellen
+  └─ ungültig/fehlend: sichere Standardwerte atomar schreiben
 ```
 
-Fehlt eine Variable, gelten die Linux-Standardwerte unter `~/.config`, `~/.local/share`, `~/.cache` und `~/.local/state`.
+Rein lesende Modi melden den geplanten Recovery-Weg, führen ihn aber nicht aus.
 
-Sicherheitsreihenfolge:
+## 6. GUI-Zonenvertrag
 
-1. absolute XDG-Basen prüfen,
-2. Ziel innerhalb der jeweiligen XDG-Grenze halten,
-3. Überschneidung mit `PROJECT_ROOT` blockieren,
-4. App-spezifische Symlinks und Nicht-Verzeichnisse blockieren,
-5. Ziele nach Pfadtiefe anlegen,
-6. Modus `0700` setzen,
-7. Existenz und Schreibbarkeit nachprüfen,
-8. je Verzeichnis temporäre Datei schreiben, `fsync` ausführen und Datei entfernen.
+`src.main.ZONE_OBJECT_NAMES` enthält exakt:
 
-`--validate-only` verändert nichts. `--paths-only` zeigt den berechneten Plan. Der normale GUI-Start führt die sichere Anlage aus.
+1. `header`
+2. `navigation`
+3. `summaryCards`
+4. `primaryActionTiles`
+5. `workflowPanel`
+6. `workspaceScroll`
+7. `contextRail`
+8. `actionBar`
+9. `footer`
 
-## 6. Setup-Rückgabecodes
+Jede Zone besitzt zusätzlich `zoneId` von `Z01` bis `Z09`.
 
-- `0`: bereit oder erfolgreich eingerichtet
-- `2`: blockierende Plattform-, Python- oder Schreibprüfung
-- `3`: `--check-only` meldet unvollständige Einrichtung
-- `4`: Systempakete nicht eingerichtet
-- `5`: Nutzer hat Projektumgebung abgebrochen
-- `6`: atomarer Umgebungsaufbau fehlgeschlagen
-- `7`: Nachprüfung fehlgeschlagen
+## 7. Offscreen-GUI-Smoke-Test
 
-## 7. Lokale Prüfungen
+`tests/test_gui_offscreen.py` verwendet `QT_QPA_PLATFORM=offscreen` und prüft:
+
+- neun vorhandene und sichtbare Zonen,
+- korrekte Zonen-IDs,
+- scrollbaren Haupt- und Kontextbereich,
+- textuell sichtbare Sicherheitszustände,
+- sechs deaktivierte Hauptaktionen mit Tooltip,
+- keine Anlage der übergebenen Nutzerdatenpfade.
+
+GitHub Actions installiert PySide6 erst nach den Standardbibliotheksprüfungen und führt den Test separat aus.
+
+## 8. Rückgabecodes von `src.main`
+
+- `0`: Prüfung erfolgreich oder GUI regulär beendet
+- `2`: Manifest ungültig
+- `3`: PySide6 fehlt
+- `4`: Nicht-Linux-System
+- `5`: XDG-Pfadprüfung blockiert
+- `6`: Einstellungsprüfung oder Recovery blockiert
+
+## 9. Lokale Prüfungen
 
 ```bash
-python3 tools/setup_assistant.py --check-only
 python3 -m src.main --validate-only
+python3 -m src.main --settings-only
 python3 tools/validate_repository.py
+python3 -m unittest tests.test_settings_manager -v
 python3 -m unittest discover -s tests -v
-python3 -m py_compile src/main.py src/xdg_paths.py tools/setup_assistant.py tools/validate_repository.py tests/test_setup_assistant.py tests/test_xdg_paths.py
+QT_QPA_PLATFORM=offscreen python3 -m unittest tests.test_gui_offscreen -v
+python3 -m py_compile src/main.py src/settings_manager.py tests/test_settings_manager.py tests/test_gui_offscreen.py
 ```
 
-## 8. GitHub-Rechte
+## 10. Sicherheitsregeln
 
-Berechtigungen gehören zur GitHub-App und zum Konto. Vor Schreibaktionen werden Konto, Repository und Berechtigungsstufe geprüft. Tokens werden weder in Code noch Dokumentation gespeichert.
+- keine Einstellungen, Logs oder Nutzerdaten im Quellbaum
+- keine Symlinks für App-Konfigurationsdateien
+- keine unbekannten Felder oder stillen Versionsannahmen
+- keine Passwörter, Tokens oder privaten Schlüssel in Einstellungen
+- keine produktive Dateiaktion ohne Vorschau und Recovery-Pfad
+- Geschäftslogik bleibt von Widgets getrennt
+- Prüfmodi bleiben ohne PySide6 und ohne Schreibzugriff nutzbar
 
-## 9. Nächste Architekturgrenze
+## 11. Nächste Architekturgrenze
 
-P0-003 führt ein versioniertes Einstellungsformat im XDG-Konfigurationspfad ein. Schreibvorgänge müssen atomar erfolgen, vor Änderung sichern, gegen ein Schema prüfen und bei Fehler auf die letzte gültige Version zurückfallen.
+P0-004 führt einen globalen Fehlerdialog und ein zentrales Ereignismodell ein. Er muss Einstellungs-Recovery, XDG-Fehler und unerwartete GUI-Ausnahmen in einfacher Sprache mit Ursache, Folge, Lösung und unverändertem Datenstand darstellen.

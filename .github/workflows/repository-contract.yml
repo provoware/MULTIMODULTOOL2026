@@ -11,7 +11,9 @@ jobs:
   validate:
     name: Validate Linux project contract
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
+    env:
+      QT_QPA_PLATFORM: offscreen
 
     steps:
       - name: Repository auschecken
@@ -25,8 +27,14 @@ jobs:
       - name: Repository-Vertrag prüfen
         run: python3 tools/validate_repository.py
 
-      - name: Linux- und Manifest-Startprüfung ausführen
+      - name: Linux-, Manifest-, XDG- und Einstellungsprüfung ausführen
         run: python3 -m src.main --validate-only
 
-      - name: Unit-Tests ausführen
-        run: python3 -m unittest discover -s tests -v
+      - name: Unit-Tests ohne GUI-Abhängigkeit ausführen
+        run: python3 -m unittest discover -s tests -p "test_*.py" -v
+
+      - name: PySide6 für Offscreen-Test installieren
+        run: python3 -m pip install -r requirements.txt
+
+      - name: Offscreen-GUI-Smoke-Test ausführen
+        run: python3 -m unittest tests.test_gui_offscreen -v

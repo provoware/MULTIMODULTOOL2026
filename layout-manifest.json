@@ -189,7 +189,34 @@
       "TODO.md",
       "SCHWACHSTELLEN.md",
       "UPGRADE_POOL.md",
-      "ENTWICKLERDOKU.md"
+      "ENTWICKLERDOKU.md",
+      "docs/XDG_PFADVERTRAG.md",
+      "docs/EINSTELLUNGSVERTRAG.md",
+      "standards/settings-schema-v1.json"
+    ],
+    "offscreenGuiSmokeRequired": true,
+    "requiredZoneObjectNames": [
+      "header",
+      "navigation",
+      "summaryCards",
+      "primaryActionTiles",
+      "workflowPanel",
+      "workspaceScroll",
+      "contextRail",
+      "actionBar",
+      "footer"
     ]
+  },
+  "settingsPolicy": {
+    "schemaVersion": 1,
+    "schemaPath": "standards/settings-schema-v1.json",
+    "activeFile": "settings.json",
+    "lastValidBackupFile": "settings.last-valid.json",
+    "fileMode": "0600",
+    "transactionalWriteRequired": true,
+    "preValidationRequired": true,
+    "postValidationRequired": true,
+    "automaticRollbackRequired": true,
+    "readOnlyValidationMustNotWrite": true
   }
 }
