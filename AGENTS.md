@@ -14,6 +14,18 @@ Dieses Repository wird als modulares, laienoptimiertes, transparentes und datens
 6. Nicht-Linux-Systeme werden beim Start verständlich blockiert; es werden keine Daten verändert.
 7. Linux-native Standards wie XDG-Verzeichnisse, POSIX-Pfade, Desktop-Dateien und sichere Dateirechte haben Vorrang.
 
+## Verbindlicher XDG-Pfadvertrag
+
+- Programmcode, Konfiguration, Nutzerdaten, Cache, Status, Logs und Sicherungen werden logisch getrennt.
+- Konfiguration liegt unter `XDG_CONFIG_HOME`, Nutzerdaten unter `XDG_DATA_HOME`, Cache unter `XDG_CACHE_HOME` und Status/Logs unter `XDG_STATE_HOME`.
+- Fehlen XDG-Variablen, gelten die üblichen Linux-Standardpfade im Benutzerverzeichnis.
+- App-spezifische Verzeichnisse werden mit Modus `0700` angelegt.
+- Relative XDG-Werte, Ziele im Programmverzeichnis, doppelt belegte Top-Level-Ziele, App-Symlinks und Nicht-Verzeichnisse blockieren den Start.
+- Jede Anlage benötigt Vorvalidierung, Nachvalidierung und eine rückstandsfreie Schreibprobe.
+- `--validate-only` bleibt rein lesend und darf keine XDG-Verzeichnisse anlegen.
+- Private vollständige Benutzerpfade werden nicht unnötig protokolliert oder in portable Projektdateien geschrieben.
+- Verbindliche Details: `docs/XDG_PFADVERTRAG.md`.
+
 ## Verbindliche UI-Basis
 
 Die Datei `assets/ui-reference/multimodultool2026-ui-layout-reference-2026.webp` ist die primäre visuelle Orientierung.
@@ -61,6 +73,7 @@ Die Datei `assets/ui-reference/multimodultool2026-ui-layout-reference-2026.webp`
 
 - direkt betroffene Syntax, Formate und Funktionen prüfen
 - `python3 -m src.main --validate-only` ausführen
+- XDG-Pfadplan, Quellbaumtrennung und direkt betroffene XDG-Tests prüfen, wenn Speicherorte oder Startfluss betroffen sind
 - `python3 tools/validate_repository.py` ausführen
 - relevante Unit-Tests ausführen
 - auf Kubuntu, KDE Plasma, X11 und Wayland bezogene Auswirkungen prüfen, wenn Laufzeit oder UI betroffen sind
@@ -69,18 +82,19 @@ Die Datei `assets/ui-reference/multimodultool2026-ui-layout-reference-2026.webp`
 
 ## Pflichtpflege der Dokumentation
 
-In jeder Iteration werden alle folgenden Dateien auf Änderungsbedarf geprüft. Betroffene Dateien müssen im selben Entwicklungsstand aktualisiert werden:
+In jeder Iteration werden alle folgenden Dateien auf Änderungsbedarf geprüft. Betroffene Dateien müssen im selben Commit aktualisiert werden:
 
-- `CHANGELOG.md`: bei jeder Änderung an Code, Verhalten, Struktur, Prüfung, Plattformvertrag oder Dokumentation ergänzen
-- `ANLEITUNG_TOOL.md`: bei Änderungen an Linux-Installation, Start, Bedienung, Dialogen oder Fehlerbehebung aktualisieren
-- `TODO.md`: erledigte Aufgaben markieren, neue Aufgaben entdoppeln, priorisieren und mit Abhängigkeit, Abnahmekriterium sowie Risiko ergänzen
-- `SCHWACHSTELLEN.md`: Fehler, Linux-Kompatibilitätsgrenzen, Sicherheitsrisiken und technische Schulden aktualisieren
-- `UPGRADE_POOL.md`: nur Linux-bezogene optionale Ideen bewerten
+- `CHANGELOG.md`: bei jeder Änderung an Code, Verhalten, Struktur, Prüfung, Plattformvertrag oder Dokumentation mit aussagefähigem Eintrag ergänzen
+- `ANLEITUNG_TOOL.md`: bei Änderungen an Linux-Installation, Start, Bedienung, Dialogen, Fehlerbehebung oder Nutzerablauf aktualisieren
+- `TODO.md`: in jeder Iteration erledigte Aufgaben markieren, neue Aufgaben entdoppeln, priorisieren und mit Abhängigkeit, Abnahmekriterium sowie Risiko ergänzen
+- `SCHWACHSTELLEN.md`: neue Fehler, Linux-Kompatibilitätsgrenzen, Sicherheitsrisiken, technische Schulden und Gegenmaßnahmen aktualisieren
+- `UPGRADE_POOL.md`: nur Linux-bezogene optionale Ideen bewerten; keine Pflichtaufgabe ungeprüft hierhin verschieben
 - `ENTWICKLERDOKU.md`: bei Änderungen an Architektur, Schnittstellen, Linux-Datenfluss, Build, Tests oder Abhängigkeiten aktualisieren
 - `docs/GITHUB_ZUGRIFF.md`: bei Änderungen an Zugriffsmodell, App-Installation, Berechtigungsprüfung oder Sicherheitsregeln aktualisieren
-- `README.md`: Fortschrittsblock mit **Entwicklungsfortschritt**, **Erledigte Punkte**, **Offene Punkte** und **Gesamtpunkte** aus `TODO.md` aktualisieren
+- `docs/XDG_PFADVERTRAG.md`: bei Änderungen an Speicherorten, Pfadgrenzen, Rechten, Symlinkregeln oder Schreibvalidierung aktualisieren
+- `README.md`: den Fortschrittsblock ganz oben in jeder Iteration mit **Entwicklungsfortschritt**, **Erledigte Punkte**, **Offene Punkte** und **Gesamtpunkte** aus `TODO.md` aktualisieren
 
-Ist bei einem Dokument keine Änderung nötig, wird es nicht künstlich verändert.
+Ist bei einem Dokument keine Änderung nötig, wird es nicht künstlich verändert. Im Validierungsbericht wird dennoch festgehalten, dass der Änderungsbedarf geprüft wurde.
 
 ## Fortschrittsvertrag
 
