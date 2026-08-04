@@ -1,0 +1,59 @@
+name: P0-009 Wheel Name Fix
+
+on:
+  pull_request:
+    branches: [main]
+    types: [synchronize]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor == 'provoware' && github.event.pull_request.head.ref == 'p0-009-installable-linux-rc'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: p0-009-installable-linux-rc
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Wheel-Namen kanonisch normalisieren
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('tools/build_deb_release.py')
+          text = path.read_text(encoding='utf-8')
+          replacements = {
+              '    "PySide6-",\n    "PySide6_Addons-",\n    "PySide6_Essentials-",\n    "shiboken6-",':
+              '    "pyside6-",\n    "pyside6_addons-",\n    "pyside6_essentials-",\n    "shiboken6-",',
+              '    names = {wheel.name for wheel in wheels}':
+              '    names = {wheel.name.lower() for wheel in wheels}',
+              '    candidates = [wheel.name for wheel in wheels if wheel.name.startswith("PySide6-")]':
+              '    candidates = [wheel.name for wheel in wheels if wheel.name.lower().startswith("pyside6-")]',
+              '    match = re.match(r"PySide6-([0-9][0-9A-Za-z.]*)-", candidates[0])':
+              '    match = re.match(r"pyside6-([0-9][0-9A-Za-z.]*)-", candidates[0], flags=re.IGNORECASE)',
+          }
+          changed = False
+          for old, new in replacements.items():
+              if old in text:
+                  if text.count(old) != 1:
+                      raise SystemExit(f'ambiguous builder marker: {old!r}')
+                  text = text.replace(old, new, 1)
+                  changed = True
+              elif new not in text:
+                  raise SystemExit(f'builder marker missing: {old!r}')
+          if changed:
+              path.write_text(text, encoding='utf-8')
+          PY
+      - name: Patch committen
+        run: |
+          git config user.name 'provoware-release-bot'
+          git config user.email 'provoware-release-bot@users.noreply.github.com'
+          git add tools/build_deb_release.py
+          if ! git diff --cached --quiet; then
+            git commit -m 'P0-009: Normalize PyPI wheel names case-insensitively'
+            git push origin HEAD:p0-009-installable-linux-rc
+          fi
