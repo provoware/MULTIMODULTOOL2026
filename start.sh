@@ -16,7 +16,7 @@ fi
 
 if ! command -v python3 >/dev/null 2>&1; then
     printf 'GELB: Python 3 wurde nicht gefunden. Der Einrichtungsassistent wird gestartet.\n'
-    if ! "$PROJECT_DIR/setup.sh"; then
+    if ! bash "$PROJECT_DIR/setup.sh"; then
         printf 'ROT: Python-Einrichtung nicht abgeschlossen.\n'
         exit 10
     fi
@@ -31,7 +31,7 @@ fi
 if [[ ! -x "$PROJECT_DIR/.venv/bin/python" ]] || \
    ! "$PROJECT_DIR/.venv/bin/python" -c 'import PySide6' >/dev/null 2>&1; then
     printf 'GELB: Die lokale Linux-Umgebung ist noch nicht vollständig eingerichtet.\n'
-    if ! "$PROJECT_DIR/setup.sh"; then
+    if ! bash "$PROJECT_DIR/setup.sh"; then
         printf 'ROT: Einrichtung nicht abgeschlossen. Die Oberfläche wird nicht gestartet.\n'
         exit 13
     fi
