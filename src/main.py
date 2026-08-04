@@ -1,4 +1,4 @@
-"""Linux-Desktop-App mit XDG-, Fehler-, Instanz-, Papierkorb- und Journal-Schutz."""
+"""Linux desktop application with XDG, error, instance and transaction protection."""
 
 from __future__ import annotations
 
@@ -43,9 +43,9 @@ from .xdg_paths import (
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_PATH = PROJECT_ROOT / "layout-manifest.json"
-DEVELOPMENT_PROGRESS = 43
-COMPLETED_POINTS = 29
-OPEN_POINTS = 38
+DEVELOPMENT_PROGRESS = 46
+COMPLETED_POINTS = 31
+OPEN_POINTS = 37
 ZONE_OBJECT_NAMES = (
     "header",
     "navigation",
@@ -150,7 +150,7 @@ def build_window(
     diagnostics: DiagnosticSnapshot | None = None,
     event_center: ErrorEventCenter | None = None,
 ):
-    """Neun sichtbare Layoutzonen ohne Dateioperation erzeugen."""
+    """Build the nine visible layout zones without touching user data."""
 
     snapshot = diagnostics or DiagnosticSnapshot(())
     latest = event_center.latest if event_center else None
@@ -175,7 +175,7 @@ def build_window(
     identity.addWidget(
         _label(
             QtWidgets,
-            "Eine Instanz · atomarer Projektpapierkorb · append-only Undo/Redo · lokale Diagnose.",
+            "Eine Instanz · atomare Dateiaktionen · append-only Undo/Redo · kontrollierter Wiederanlauf.",
             "smallMuted",
         )
     )
@@ -184,7 +184,7 @@ def build_window(
     header_layout.addWidget(
         _label(
             QtWidgets,
-            "● INSTANZ-, PAPIERKORB-, JOURNAL- UND FEHLERPRÜFUNG GRÜN",
+            "● INSTANZ-, JOURNAL-, CHECKPOINT- UND FEHLERPRÜFUNG GRÜN",
             "statusOk",
             safety=True,
         )
@@ -192,15 +192,15 @@ def build_window(
     grid.addWidget(header, 0, 0, 1, 3)
 
     navigation = _zone(QtWidgets.QFrame(), "navigation", 2)
-    navigation.setFixedWidth(204)
+    navigation.setFixedWidth(208)
     nav = QtWidgets.QVBoxLayout(navigation)
     nav.addWidget(_label(QtWidgets, "HAUPTBEREICHE", "navTitle"))
     nav.addWidget(_button(QtWidgets, "⌂  Start"))
     trash_button = _button(
         QtWidgets,
-        "♲  Papierkorb & Verlauf",
+        "♲  Verlauf & Wiederanlauf",
         name="trashNavigation",
-        tooltip="Papierkorbvertrag, Undo/Redo und Transaktionsübersicht anzeigen.",
+        tooltip="Papierkorb, Undo/Redo, Transaktionen und Laufcheckpoints anzeigen.",
     )
     trash_button.setProperty("active", True)
     nav.addWidget(trash_button)
@@ -211,7 +211,7 @@ def build_window(
         tooltip="Lokale bereinigte Ereignisse ausschließlich lesend anzeigen.",
     )
     nav.addWidget(diagnosis_button)
-    lock_tip = "Noch gesperrt, bis Abbruch und Wiederanlauf vollständig geprüft sind."
+    lock_tip = "Noch gesperrt, bis sichere Projekt- und Dateiauswahl verfügbar ist."
     for text in (
         "⌕  Analysieren",
         "▣  Duplikate",
@@ -242,12 +242,12 @@ def build_window(
 
     summary = _zone(QtWidgets.QWidget(), "summaryCards", 3)
     cards = QtWidgets.QHBoxLayout(summary)
-    settings_status = "WIEDERHERGESTELLT" if settings_result.recovered else "1 / 1 GRÜN"
+    settings_status = "WIEDERHERGESTELLT" if settings_result.recovered else "SCHEMA GRÜN"
     for title, value, detail in (
         ("Instanzschutz", "1 PRIMÄR", "Unix-Socket · Peer-UID"),
-        ("Dateischutz", "UNDO/REDO", "atomar · hashverkettet"),
-        ("Diagnose", str(len(snapshot.entries)), "lokal · lesend · gefiltert"),
-        ("Entwicklung", "43 %", "29 erledigt · 38 offen"),
+        ("Wiederanlauf", "CHECKPOINTS", "Lauf-ID · Abbruchpunkte"),
+        ("Einstellungen", settings_status, "atomar · Rollback"),
+        ("Entwicklung", "46 %", "31 erledigt · 37 offen"),
     ):
         cards.addWidget(_panel(QtWidgets, title, f"{value}\n{detail}", "card"))
     grid.addWidget(summary, 1, 1)
@@ -256,11 +256,11 @@ def build_window(
     action_layout = QtWidgets.QHBoxLayout(actions)
     for text in (
         "1\nProjekt wählen",
-        "2\nQuelle prüfen",
-        "3\nVorschau",
-        "4\nFreigabe",
-        "5\nAtomar anwenden",
-        "6\nBericht",
+        "2\nPlan prüfen",
+        "3\nCheckpoint",
+        "4\nSicher starten",
+        "5\nAbbruchpunkt",
+        "6\nErgebnis",
     ):
         action_layout.addWidget(
             _button(
@@ -268,24 +268,24 @@ def build_window(
                 text,
                 enabled=False,
                 name="lockedPrimaryAction",
-                tooltip="Undo/Redo-Kern aktiv; geführte Projektauswahl folgt mit P1-001/P1-003.",
+                tooltip="Laufkern geprüft; geführte Projektauswahl folgt mit P1-001/P1-003.",
             )
         )
     grid.addWidget(actions, 2, 1)
 
     workflow = _zone(QtWidgets.QFrame(), "workflowPanel", 5)
     flow = QtWidgets.QVBoxLayout(workflow)
-    flow.addWidget(_label(QtWidgets, "GEFÜHRTER SICHERHEITS-WORKFLOW", "navTitle"))
+    flow.addWidget(_label(QtWidgets, "TRANSAKTIONALER LAUF-WORKFLOW", "navTitle"))
     flow.addWidget(
         _label(
             QtWidgets,
-            "1 Vorschau → 2 Intent → 3 Transaktion → 4 Journalabschluss → 5 Undo/Redo",
+            "1 Plan → 2 Checkpoint → 3 Intent → 4 Datei/Manifest/Journal → 5 sicherer Abbruch oder Wiederanlauf",
             "sectionTitle",
         )
     )
     progress = QtWidgets.QProgressBar()
     progress.setValue(DEVELOPMENT_PROGRESS)
-    progress.setFormat("Entwicklungsstand: 43 %")
+    progress.setFormat("Entwicklungsstand: 46 %")
     flow.addWidget(progress)
     grid.addWidget(workflow, 3, 1)
 
@@ -294,21 +294,21 @@ def build_window(
     work.addWidget(
         _panel(
             QtWidgets,
-            "P0-007 abgeschlossen",
-            "Jede freigegebene Papierkorbaktion erhält eine eindeutige Aktions-ID, "
-            "mindestens eine Transaktions-ID und eine absturzsicher angehängte, "
-            "hashverkettete Ereignisfolge. Undo arbeitet rückwärts, Redo vorwärts.",
+            "P0-008 abgeschlossen",
+            "Lange Dateioperationen besitzen eine eindeutige Lauf-ID, einen unveränderlichen Plan, "
+            "atomare Checkpoints, kontrollierte Abbruchpunkte und einen idempotenten Wiederanlauf. "
+            "SIGKILL-Zustände werden aus Journal, Manifest, Originalpfad und Payload abgeglichen.",
             "hero",
         )
     )
-    trash_contract = build_trash_contract_panel(QtWidgets)
-    work.addWidget(trash_contract)
+    contract_panel = build_trash_contract_panel(QtWidgets)
+    work.addWidget(contract_panel)
     work.addWidget(
         _panel(
             QtWidgets,
             "Aktuelle Bediengrenze",
-            "Journal, Undo/Redo und read-only Transaktionsübersicht sind geprüft. "
-            "Die produktive Projekt- und Dateiauswahl bleibt bis P1-001/P1-003 gesperrt.",
+            "Papierkorb, Undo/Redo, Checkpoint-Läufe und Prozessabbruchmatrix sind geprüft. "
+            "Produktive Projekt- und Dateiauswahl bleibt bis P1-001/P1-003 gesperrt.",
             "warningPanel",
         )
     )
@@ -333,19 +333,19 @@ def build_window(
     context_layout.addWidget(
         _panel(
             QtWidgets,
-            "Undo-/Redo-Status",
-            "Append-only JSONL · Aktions- und Transaktions-IDs · SHA-256-Hashkette · "
-            "Journal 0600 · Intent/Abschluss-Recovery.",
-            "undoRedoStatusPanel",
+            "Laufstatus",
+            "Run-ID · privater Plan/Checkpoint 0600 · Laufordner 0700 · flock-Sperre · "
+            "Abbruch nur vor Intent oder nach vollständig bestätigtem Schritt.",
+            "runStatusPanel",
         )
     )
     context_layout.addWidget(
         _panel(
             QtWidgets,
-            "Papierkorbstatus",
-            "Projektlokal · gleiches Dateisystem · Manifest 0600 · Verzeichnisse 0700 · "
-            "Namenskonflikte blockieren Restore.",
-            "trashStatusPanel",
+            "Journalstatus",
+            "Append-only JSONL · Aktions-/Transaktions-IDs · SHA-256-Hashkette · "
+            "Intent- und Abschluss-Recovery.",
+            "undoRedoStatusPanel",
         )
     )
     context_layout.addWidget(
@@ -395,7 +395,7 @@ def build_window(
     bottom = QtWidgets.QHBoxLayout(action_bar)
     activation_status = _label(
         QtWidgets,
-        "✓ Primärinstanz aktiv · Papierkorb atomar · Undo/Redo hashverkettet · Diagnose lesend",
+        "✓ Primärinstanz aktiv · Checkpoints atomar · Wiederanlauf idempotent · Diagnose lesend",
         "statusOk",
         safety=True,
     )
@@ -416,7 +416,7 @@ def build_window(
     footer_layout.addWidget(
         _label(
             QtWidgets,
-            "🛡 Peer-UID · Projektpapierkorb 0700 · Manifest/Journal 0600 · Hashkette",
+            "🛡 Peer-UID · Plan/Checkpoint/Manifest/Journal 0600 · Projektkontrolle 0700",
             safety=True,
         )
     )
@@ -424,7 +424,7 @@ def build_window(
     footer_layout.addWidget(
         _label(
             QtWidgets,
-            "🔒 Kein dauerhaftes Löschen · keine Reparatur · kein Upload · kein Auto-Export",
+            "🔒 Kein Doppelstart · keine Doppeloperation · kein stilles Löschen · kein Upload",
             safety=True,
         )
     )
@@ -432,7 +432,7 @@ def build_window(
 
     diagnosis_button.clicked.connect(lambda: diagnostics_controller.focus_diagnostic())
     focus_button.clicked.connect(lambda: diagnostics_controller.focus_diagnostic())
-    trash_button.clicked.connect(lambda: workspace_scroll.ensureWidgetVisible(trash_contract))
+    trash_button.clicked.connect(lambda: workspace_scroll.ensureWidgetVisible(contract_panel))
     window.diagnosticsController = diagnostics_controller
     window.instanceActivationStatus = activation_status
     return window
@@ -742,7 +742,7 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def cli_entrypoint(argv: list[str] | None = None) -> int:
-    """Letzte Schutzschicht für unerwartete Bootstrap-Ausnahmen."""
+    """Final safety layer for unexpected bootstrap exceptions."""
 
     try:
         return main(argv)
