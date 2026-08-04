@@ -24,12 +24,23 @@ Die Datei `assets/ui-reference/multimodultool2026-ui-layout-reference-2026.webp`
 4. Jede UI-Iteration wird gegen `standards/UI_LAYOUT_STANDARD_2026.md` und `layout-manifest.json` geprüft.
 5. Verwendeter Projektname ist ausschließlich `MULTIMODULTOOL2026`.
 
+## GitHub-Zugriffsvertrag
+
+- Schreibrechte werden ausschließlich durch die autorisierte GitHub-App und das angemeldete GitHub-Konto bereitgestellt.
+- Tokens, Passwörter, private Schlüssel oder App-Geheimnisse werden niemals im Repository gespeichert.
+- Vor jeder Schreibiteration werden Repository, Zielbranch, angemeldetes Konto und mindestens `push`-Berechtigung geprüft.
+- Für destruktive Repository-Aktionen wird zusätzlich `admin` geprüft.
+- Ein fehlgeschlagener oder entzogener Zugriff blockiert die Iteration; es wird niemals ein erfolgreicher Push behauptet.
+- Repository-Dateien können Berechtigungen dokumentieren und prüfen, aber keine GitHub-Rechte dauerhaft erzwingen.
+- Verbindliche Erläuterung: `docs/GITHUB_ZUGRIFF.md`.
+
 ## Verbindlicher Ablauf jeder Iteration
 
 ### Vorprüfung
 
 - Ziel, Nutzen und sichtbare Nutzerwirkung festlegen.
 - Ausgangscommit und Zielbranch prüfen.
+- GitHub-Konto und erforderliche Repository-Berechtigung prüfen.
 - betroffene Dateien und exakte Änderungsbereiche bestimmen.
 - Datenverlust-, Bedien-, Datenschutz-, Linux-Kompatibilitäts- und Rückfallrisiken bewerten.
 - `TODO.md`, `SCHWACHSTELLEN.md` und `UPGRADE_POOL.md` auf Doppelungen und Abhängigkeiten prüfen.
@@ -44,6 +55,7 @@ Die Datei `assets/ui-reference/multimodultool2026-ui-layout-reference-2026.webp`
 - manuelle Eingaben vermeiden, wenn sichere Auswahlfelder, Schalter oder Dialoge möglich sind
 - produktive Dateiaktionen erst nach Vorschau, Validierung und definiertem Rückfallweg
 - neue Funktionen in kleine, testbare Linux-Module trennen
+- keine Zugangsdaten oder GitHub-Tokens in Dateien, Logs oder Commits aufnehmen
 
 ### Nachvalidierung
 
@@ -57,17 +69,18 @@ Die Datei `assets/ui-reference/multimodultool2026-ui-layout-reference-2026.webp`
 
 ## Pflichtpflege der Dokumentation
 
-In jeder Iteration werden alle folgenden Dateien auf Änderungsbedarf geprüft. Betroffene Dateien müssen im selben Commit aktualisiert werden:
+In jeder Iteration werden alle folgenden Dateien auf Änderungsbedarf geprüft. Betroffene Dateien müssen im selben Entwicklungsstand aktualisiert werden:
 
-- `CHANGELOG.md`: bei jeder Änderung an Code, Verhalten, Struktur, Prüfung, Plattformvertrag oder Dokumentation mit aussagefähigem Eintrag ergänzen
-- `ANLEITUNG_TOOL.md`: bei Änderungen an Linux-Installation, Start, Bedienung, Dialogen, Fehlerbehebung oder Nutzerablauf aktualisieren
-- `TODO.md`: in jeder Iteration erledigte Aufgaben markieren, neue Aufgaben entdoppeln, priorisieren und mit Abhängigkeit, Abnahmekriterium sowie Risiko ergänzen
-- `SCHWACHSTELLEN.md`: neue Fehler, Linux-Kompatibilitätsgrenzen, Sicherheitsrisiken, technische Schulden und Gegenmaßnahmen aktualisieren
-- `UPGRADE_POOL.md`: nur Linux-bezogene optionale Ideen bewerten; keine Pflichtaufgabe ungeprüft hierhin verschieben
+- `CHANGELOG.md`: bei jeder Änderung an Code, Verhalten, Struktur, Prüfung, Plattformvertrag oder Dokumentation ergänzen
+- `ANLEITUNG_TOOL.md`: bei Änderungen an Linux-Installation, Start, Bedienung, Dialogen oder Fehlerbehebung aktualisieren
+- `TODO.md`: erledigte Aufgaben markieren, neue Aufgaben entdoppeln, priorisieren und mit Abhängigkeit, Abnahmekriterium sowie Risiko ergänzen
+- `SCHWACHSTELLEN.md`: Fehler, Linux-Kompatibilitätsgrenzen, Sicherheitsrisiken und technische Schulden aktualisieren
+- `UPGRADE_POOL.md`: nur Linux-bezogene optionale Ideen bewerten
 - `ENTWICKLERDOKU.md`: bei Änderungen an Architektur, Schnittstellen, Linux-Datenfluss, Build, Tests oder Abhängigkeiten aktualisieren
-- `README.md`: den Fortschrittsblock ganz oben in jeder Iteration mit **Entwicklungsfortschritt**, **Erledigte Punkte**, **Offene Punkte** und **Gesamtpunkte** aus `TODO.md` aktualisieren
+- `docs/GITHUB_ZUGRIFF.md`: bei Änderungen an Zugriffsmodell, App-Installation, Berechtigungsprüfung oder Sicherheitsregeln aktualisieren
+- `README.md`: Fortschrittsblock mit **Entwicklungsfortschritt**, **Erledigte Punkte**, **Offene Punkte** und **Gesamtpunkte** aus `TODO.md` aktualisieren
 
-Ist bei einem Dokument keine Änderung nötig, wird es nicht künstlich verändert. Im Validierungsbericht wird dennoch festgehalten, dass der Änderungsbedarf geprüft wurde.
+Ist bei einem Dokument keine Änderung nötig, wird es nicht künstlich verändert.
 
 ## Fortschrittsvertrag
 
