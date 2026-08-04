@@ -1,16 +1,16 @@
 name: P0-009 Metadata Sync
 
 on:
-  push:
-    branches: [p0-009-installable-linux-rc]
-    paths: [tools/p0_009_metadata_sync.py]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
 
 jobs:
   sync:
-    if: github.actor == 'provoware'
+    if: github.actor == 'provoware' && github.event.pull_request.head.ref == 'p0-009-installable-linux-rc'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
