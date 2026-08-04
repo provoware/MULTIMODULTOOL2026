@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+WORK="$(mktemp -d)"
+trap 'rm -rf "$WORK"' EXIT
+WHEELHOUSE="$WORK/wheelhouse"
+python3 -m pip download --dest "$WHEELHOUSE" -r "$ROOT_DIR/requirements.txt"
+export SOURCE_DATE_EPOCH=1704067200
+python3 "$ROOT_DIR/release/build_release.py" --version 0.9.0-rc1 --wheelhouse "$WHEELHOUSE" --output "$WORK/v1"
+python3 "$ROOT_DIR/release/build_release.py" --version 0.9.0-rc2 --wheelhouse "$WHEELHOUSE" --output "$WORK/v2"
+ARCHIVE1="$(find "$WORK/v1" -name '*.tar.gz' -print -quit)"
+ARCHIVE2="$(find "$WORK/v2" -name '*.tar.gz' -print -quit)"
+mkdir "$WORK/p1" "$WORK/p2"
+tar -xzf "$ARCHIVE1" -C "$WORK/p1"
+tar -xzf "$ARCHIVE2" -C "$WORK/p2"
+PACKAGE1="$(find "$WORK/p1" -mindepth 1 -maxdepth 1 -type d -print -quit)"
+PACKAGE2="$(find "$WORK/p2" -mindepth 1 -maxdepth 1 -type d -print -quit)"
+TARGET="$WORK/root"
+python3 "$PACKAGE1/release_manager.py" verify
+python3 "$PACKAGE1/release_manager.py" install --root "$TARGET"
+python3 "$PACKAGE1/release_manager.py" first-start-check --root "$TARGET"
+BUILD1="$(basename "$(readlink "$TARGET/opt/multimodultool2026/current")")"
+python3 "$PACKAGE2/release_manager.py" upgrade --root "$TARGET"
+python3 "$PACKAGE2/release_manager.py" first-start-check --root "$TARGET"
+BUILD2="$(basename "$(readlink "$TARGET/opt/multimodultool2026/current")")"
+test "$BUILD1" != "$BUILD2"
+python3 "$PACKAGE2/release_manager.py" rollback --root "$TARGET"
+test "$(basename "$(readlink "$TARGET/opt/multimodultool2026/current")")" = "$BUILD1"
+python3 "$PACKAGE2/release_manager.py" rollback --root "$TARGET"
+test "$(basename "$(readlink "$TARGET/opt/multimodultool2026/current")")" = "$BUILD2"
+python3 "$PACKAGE2/release_manager.py" uninstall --root "$TARGET"
+test ! -e "$TARGET/opt/multimodultool2026"
+test ! -e "$TARGET/usr/local/bin/multimodultool2026"
+test ! -e "$TARGET/usr/share/applications/multimodultool2026.desktop"
+echo 'GRÜN: Installation, erster Start, Upgrade, Rollback und Deinstallation erfolgreich.'
