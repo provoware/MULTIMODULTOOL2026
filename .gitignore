@@ -1,0 +1,38 @@
+# Lokale Laufzeit-, Nutzer- und Sicherungsdaten
+backups/*
+data/private-*
+exports/*
+logs/*
+trash/*
+
+# Strukturordner im Repository erhalten
+!backups/.gitkeep
+!exports/.gitkeep
+!logs/.gitkeep
+!trash/.gitkeep
+
+# Betriebssystem- und Editorreste
+.DS_Store
+Thumbs.db
+*~
+*.swp
+*.tmp
+
+# Python- und Testartefakte
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node-/Buildartefakte
+node_modules/
+dist/
+build/
+
+# Lokale Umgebungen und Geheimnisse
+.env
+.env.*
+!.env.example
+.venv/
+venv/
