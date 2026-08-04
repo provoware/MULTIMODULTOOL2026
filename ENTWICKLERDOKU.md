@@ -2,113 +2,82 @@
 
 ## 1. Technischer Stand
 
-- Plattformvertrag: ausschließlich Linux-Desktop
-- Primäre Distributionen: Kubuntu 22.04 LTS und Kubuntu 24.04 LTS
-- Desktop: KDE Plasma unter X11 und Wayland
-- Architektur: x86-64
-- Sprache: Python 3.10+
-- Desktop-Framework: PySide6 / Qt Widgets
-- Manifest- und Repository-Prüfung: reine Python-Standardbibliothek
-- Startpunkt: `python3 -m src.main`
-- sichere Linux-Startroutine: `./start.sh`
+- ausschließlich Linux-Desktop
+- Kubuntu 22.04/24.04, KDE Plasma, X11/Wayland, x86-64
+- Python 3.10+
+- PySide6 / Qt Widgets
+- Standardbibliothek für Setup-, Manifest- und Repository-Prüfung
+- Start: `./start.sh`
+- Einrichtung: `./setup.sh`
 
-Nicht unterstützt: Windows, macOS, Android, iOS, Browser und PWA.
-
-## 2. Startfluss
+## 2. Start- und Einrichtungsfluss
 
 ```text
 start.sh
-  ├─ Linux-Shell und Python-Version prüfen
-  ├─ lokale .venv bevorzugen
+  ├─ Linux und Python prüfen
+  ├─ .venv/PySide6 prüfen
+  ├─ bei Bedarf setup.sh
+  │    ├─ fehlendes Python optional nach Bestätigung per apt-get
+  │    └─ tools/setup_assistant.py
+  │         ├─ Python/venv/KDE/X11-Wayland/Schreibrechte prüfen
+  │         ├─ Systempakete nur nach Bestätigung
+  │         ├─ .venv.setup-* erzeugen
+  │         ├─ requirements.txt installieren
+  │         ├─ PySide6 importieren
+  │         └─ Umgebung atomar aktivieren
   ├─ python -m src.main --validate-only
-  │    ├─ Linux-Plattform prüfen
-  │    └─ src/manifest_validator.py
-  │         ├─ JSON lesen
-  │         ├─ Linux-Plattformvertrag prüfen
-  │         ├─ Projektname prüfen
-  │         ├─ Referenzpfad absichern
-  │         ├─ neun Zonen prüfen
-  │         └─ Iterationsvertrag prüfen
-  ├─ PySide6-Verfügbarkeit prüfen
   └─ python -m src.main
-       └─ Qt-Oberfläche mit Z01–Z09
 ```
 
-Der Import von PySide6 erfolgt absichtlich erst nach erfolgreicher Plattform- und Manifestprüfung. Dadurch funktionieren CI, Diagnose und Repository-Prüfung ohne installierte GUI-Bibliothek.
+## 3. Sicherheitsvertrag des Setups
 
-## 3. Dateien und Verantwortung
+- keine Ausführung mit `shell=True`
+- Befehle als feste Argumentlisten
+- `.venv`-Symlink blockiert
+- temporäre Umgebung vor Umschaltung vollständig geprüft
+- bestehende Umgebung erst nach erfolgreichem Neubau umbenannt
+- Rollback bei fehlgeschlagener Umschaltung
+- temporäre Umgebung bei Fehler bereinigt
+- Systempakete ausschließlich nach sichtbarer Bestätigung
+- keine automatische Verwendung von `sudo` für den App-Start
+- keine GitHub-Geheimnisse im Repository
+
+## 4. Wichtige Dateien
 
 | Datei | Verantwortung |
 |---|---|
-| `src/main.py` | Linux-Plattformblocker, Argumente, Startablauf und sichtbares Desktop-Grundgerüst |
-| `src/manifest_validator.py` | reine, testbare Prüfung von Linux- und Layoutvertrag |
-| `src/theme.qss` | aktuelles Qt-Grundtheme |
-| `layout-manifest.json` | maschinenlesbarer Plattform-, Zonen-, Sicherheits- und Iterationsvertrag |
-| `tools/validate_repository.py` | Pflichtdateien, Plattformvertrag, Fortschritt, Dokumentation, Syntax und Startvertrag |
-| `tests/test_repository_contract.py` | Regressionstests für Linux-, Manifest- und Repository-Vertrag |
-| `.github/workflows/repository-contract.yml` | automatische Prüfung auf Ubuntu bei Push und Pull Request |
+| `setup.sh` | Linux-Einstieg, Python-Grundprüfung und kontrollierter Paketweg |
+| `tools/setup_assistant.py` | Diagnose, KDialog/Terminalbestätigung und atomare `.venv` |
+| `start.sh` | Einrichtung, Manifestprüfung und GUI-Start |
+| `tests/test_setup_assistant.py` | Setup-Regressionsprüfungen |
+| `tools/validate_repository.py` | Repository-, Setup- und GitHub-Zugriffsvertrag |
+| `docs/GITHUB_ZUGRIFF.md` | Grenzen externer Berechtigungen und Geheimnisschutz |
+| `src/main.py` | Linux-Plattformblocker und Desktop-Grundgerüst |
 
-## 4. Linux-Regeln
+## 5. Setup-Rückgabecodes
 
-- Laufzeitpfade werden später XDG-konform unter `XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `XDG_CACHE_HOME` und `XDG_STATE_HOME` abgelegt.
-- Pfade werden mit `pathlib.Path` verarbeitet; keine Windows-Laufwerksbuchstaben oder Backslash-Sonderlogik.
-- Dateirechte, Symlinks, Mountpoints und Groß-/Kleinschreibung müssen explizit geprüft werden.
-- KDE-Dateidialoge, X11 und Wayland werden getrennt abgenommen.
-- Paketziele sind zunächst ein Debian-Paket und optional AppImage. Andere Betriebssystempakete sind ausgeschlossen.
+- `0`: bereit oder erfolgreich eingerichtet
+- `2`: blockierende Plattform-, Python- oder Schreibprüfung
+- `3`: `--check-only` meldet unvollständige Einrichtung
+- `4`: Systempakete nicht eingerichtet
+- `5`: Nutzer hat Projektumgebung abgebrochen
+- `6`: atomarer Umgebungsaufbau fehlgeschlagen
+- `7`: Nachprüfung fehlgeschlagen
 
-## 5. Layoutzonen
-
-Die IDs `Z01` bis `Z09` und ihre Reihenfolge sind verbindlich. Interne Widgets dürfen sich ändern, solange Rolle, Erreichbarkeit und Grundposition erhalten bleiben. Strukturelle Abweichungen benötigen ausdrückliche Nutzerfreigabe und eine Manifestanpassung.
-
-## 6. Fortschrittsberechnung
-
-`TODO.md` ist die einzige Quelle:
-
-```text
-erledigt = Anzahl "- [x]"
-offen    = Anzahl "- [ ]"
-gesamt   = erledigt + offen
-prozent  = round(erledigt / gesamt * 100)
-```
-
-`tools/validate_repository.py` blockiert inkonsistente README-Werte.
-
-## 7. Lokale Prüfungen
+## 6. Lokale Prüfungen
 
 ```bash
+python3 tools/setup_assistant.py --check-only
 python3 -m src.main --validate-only
 python3 tools/validate_repository.py
 python3 -m unittest discover -s tests -v
-python3 -m py_compile src/main.py src/manifest_validator.py tools/validate_repository.py tests/test_repository_contract.py
+python3 -m py_compile tools/setup_assistant.py tools/validate_repository.py tests/test_setup_assistant.py
 ```
 
-Für einen GUI-Smoke-Test wird PySide6 benötigt:
+## 7. GitHub-Rechte
 
-```bash
-QT_QPA_PLATFORM=offscreen .venv/bin/python -m src.main
-```
+Berechtigungen gehören zur GitHub-App und zum Konto. Vor Schreibaktionen werden Konto, Repository und Berechtigungsstufe geprüft. Tokens werden weder in Code noch Dokumentation gespeichert.
 
-Der aktuelle Stand beendet sich dabei nicht automatisch; ein automatisierter Linux-GUI-Smoke-Test folgt in einer späteren Aufgabe.
+## 8. Nächste Architekturgrenze
 
-## 8. Entwicklungsregeln
-
-- Prüflogik bleibt von PySide6 unabhängig.
-- Geschäftslogik darf nicht direkt in Widgets wachsen.
-- Dateisystemänderungen benötigen Vorschau, Transaktion, Protokoll und Rückfallweg.
-- Keine absolute Benutzerpfade in portablen Projektdateien.
-- Fehlertexte müssen Ursache, Folge, Lösung und Datenzustand nennen.
-- Neue Abhängigkeiten werden in README, Anleitung, Entwicklerdoku, Schwachstellen und Changelog bewertet.
-- Änderungen an Aufgabenstatus aktualisieren README und TODO im selben Commit.
-- Keine nicht-linuxbezogenen Abstraktionen oder Paketziele ohne ausdrückliche Freigabe.
-
-## 9. Nächste Architekturgrenze
-
-Vor echten Dateioperationen werden zuerst folgende Linux-Basisschichten eingeführt:
-
-1. XDG-konforme Pfad- und Arbeitsverzeichnisverwaltung
-2. versionierte Einstellungen mit atomarem Schreiben
-3. zentrales Fehler- und Ereignismodell
-4. Papierkorb-, Undo- und Aktionsjournal
-5. abbrechbare Worker für lange Operationen
-
-Erst danach werden Analyse-, Umbenennungs-, Duplikat- und Sortiermodule produktiv freigeschaltet.
+P0-002 führt eine zentrale XDG-Pfadschicht ein. Erst danach dürfen Einstellungen, Logs oder Nutzerdaten außerhalb klar definierter Linux-Benutzerverzeichnisse geschrieben werden.
