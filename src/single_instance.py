@@ -327,6 +327,8 @@ def _validate_socket_path(path: Path, *, uid: int) -> None:
         raise InstanceSecurityError("Instanzsocket gehört nicht dem aktuellen Nutzer.")
     if metadata.st_nlink != 1:
         raise InstanceSecurityError("Instanzsocket besitzt zusätzliche Hardlinks.")
+    if stat.S_IMODE(metadata.st_mode) & 0o077:
+        raise InstanceSecurityError("Instanzsocket ist zu offen; erforderlich ist 0600.")
 
 
 def _encode_request(request: LaunchRequest) -> bytes:
@@ -387,8 +389,8 @@ class SingleInstanceCoordinator:
         self._recovered_stale = False
 
     def acquire(self, request: LaunchRequest | None = None) -> InstanceResult:
-        requested = validate_launch_request((request or LaunchRequest()).as_dict())
         try:
+            requested = validate_launch_request((request or LaunchRequest()).as_dict())
             _prepare_app_directory(self.paths, uid=self.uid)
             _validate_socket_path(self.paths.socket_path, uid=self.uid)
         except (OSError, InstanceSecurityError) as exc:
