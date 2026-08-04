@@ -16,6 +16,8 @@ done
 REPORT_DIR="$ARTIFACT_DIR/lifecycle-reports"
 mkdir -p "$REPORT_DIR"
 REPORT="$REPORT_DIR/kubuntu-$SERIES.json"
+printf '[mmt-release-diagnostic] requested-series=%s container-image=ubuntu:%s artifact-dir=%s\n' \
+    "$SERIES" "$SERIES" "$ARTIFACT_DIR"
 
 DOCKER_SCRIPT='set -Eeuo pipefail
 export DEBIAN_FRONTEND=noninteractive
@@ -28,6 +30,8 @@ apt-get update
 printf "sddm shared/default-x-display-manager select sddm\n" | debconf-set-selections || true
 apt-get install -y --no-install-recommends kubuntu-desktop plasma-desktop
 
+printf "[mmt-release-diagnostic] requested-series='"$SERIES"' actual-version-id=%s bash=%s phase=validate-package-state\n" \
+  "$(. /etc/os-release && printf "%s" "$VERSION_ID")" "$BASH_VERSION"
 dpkg-query -W -f="${Status}\n" kubuntu-desktop | grep -q "install ok installed"
 dpkg-query -W -f="${Status}\n" plasma-desktop | grep -q "install ok installed"
 
