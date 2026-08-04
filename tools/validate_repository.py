@@ -129,7 +129,7 @@ def check_setup_contract(errors: list[str]) -> None:
     setup_source = read_text("tools/setup_assistant.py", errors)
     setup_shell = read_text("setup.sh", errors)
     start_source = read_text("start.sh", errors)
-    for phrase in ("--check-only", ".venv.setup-", "PySide6", "KDE"):
+    for phrase in ("--check-only", ".venv.setup-", "PySide6", "kde"):
         if phrase not in setup_source:
             errors.append(f"Einrichtungsassistent enthält Pflichtmerkmal nicht: {phrase}")
     if "shell=True" in setup_source:
