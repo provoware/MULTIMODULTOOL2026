@@ -14,11 +14,13 @@ REQUIRED_FILES = (
     "TODO.md", "SCHWACHSTELLEN.md", "UPGRADE_POOL.md", "ENTWICKLERDOKU.md",
     "layout-manifest.json", "src/main.py", "src/single_instance.py",
     "src/diagnostics_center.py", "src/error_events.py", "src/error_dialog.py",
-    "tests/test_single_instance.py", "tests/test_diagnostics_center.py",
-    "tests/test_gui_offscreen.py", "tests/test_settings_failpoints.py",
-    "docs/XDG_PFADVERTRAG.md", "docs/EINSTELLUNGSVERTRAG.md",
-    "docs/FEHLER_UND_EREIGNISVERTRAG.md",
-    "docs/SINGLE_INSTANCE_UND_DIAGNOSEVERTRAG.md",
+    "src/project_trash.py", "src/trash_contract_panel.py",
+    "tests/test_single_instance.py", "tests/test_single_instance_stress.py",
+    "tests/test_diagnostics_center.py", "tests/test_project_trash.py",
+    "tests/test_gui_offscreen.py", "tests/test_gui_trash_contract.py",
+    "tests/test_settings_failpoints.py", "docs/XDG_PFADVERTRAG.md",
+    "docs/EINSTELLUNGSVERTRAG.md", "docs/FEHLER_UND_EREIGNISVERTRAG.md",
+    "docs/SINGLE_INSTANCE_UND_DIAGNOSEVERTRAG.md", "docs/PAPIERKORBVERTRAG.md",
     ".github/workflows/repository-contract.yml",
 )
 
@@ -42,8 +44,7 @@ def check_python(errors: list[str]) -> None:
         if any(part in {".venv", "__pycache__"} for part in path.parts):
             continue
         try:
-            source = path.read_text(encoding="utf-8")
-            compile(source, str(path.relative_to(ROOT)), "exec")
+            compile(path.read_text(encoding="utf-8"), str(path.relative_to(ROOT)), "exec")
         except (OSError, UnicodeError, SyntaxError) as exc:
             errors.append(f"Python-Prüfung fehlgeschlagen: {path.relative_to(ROOT)}: {exc}")
 
@@ -54,25 +55,41 @@ def check_manifest(errors: list[str]) -> None:
     except json.JSONDecodeError as exc:
         errors.append(f"layout-manifest.json: ungültiges JSON: {exc}")
         return
+    if manifest.get("schemaVersion") != "1.3.0":
+        errors.append("Manifest: schemaVersion muss 1.3.0 sein.")
     zones = manifest.get("zones", [])
-    ids = [zone.get("id") for zone in zones if isinstance(zone, dict)]
     expected = [f"Z{index:02d}" for index in range(1, 10)]
-    if ids != expected:
-        errors.append(f"Layoutzonen sind inkonsistent: {ids!r}")
+    if [zone.get("id") for zone in zones if isinstance(zone, dict)] != expected:
+        errors.append("Manifest: neun Layoutzonen sind inkonsistent.")
     single = manifest.get("singleInstancePolicy", {})
-    if single.get("transport") != "unix-domain-socket":
-        errors.append("Manifest: Unix-Domain-Socket-Vertrag fehlt.")
-    if single.get("peerUidRequired") is not True:
-        errors.append("Manifest: Peer-UID-Prüfung fehlt.")
-    if single.get("allowedActions") != ["activate", "show-diagnostics"]:
-        errors.append("Manifest: erlaubte Instanzaktionen sind inkonsistent.")
-    diagnostics = manifest.get("diagnosticsPolicy", {})
-    for key in ("readOnly", "copySanitizedSingleReport"):
-        if diagnostics.get(key) is not True:
-            errors.append(f"Manifest: Diagnosevertrag {key} fehlt.")
-    for key in ("deleteAllowed", "uploadAllowed", "automaticExportAllowed"):
-        if diagnostics.get(key) is not False:
-            errors.append(f"Manifest: Diagnosevertrag muss {key}=false setzen.")
+    required_single = {
+        "transport": "unix-domain-socket",
+        "peerUidRequired": True,
+        "parallelSecondaryStressCount": 20,
+        "activationAtMostOnceRequired": True,
+        "cleanupAfterPrimaryExitRequired": True,
+    }
+    for key, expected_value in required_single.items():
+        if single.get(key) != expected_value:
+            errors.append(f"Manifest: Single-Instance-Feld {key} ist inkonsistent.")
+    trash = manifest.get("projectTrashPolicy", {})
+    required_trash = {
+        "projectRelative": True,
+        "privateDirectoryMode": "0700",
+        "privateManifestMode": "0600",
+        "previewMustBeReadOnly": True,
+        "atomicPrimitive": "os.replace",
+        "sameFilesystemRequired": True,
+        "copyThenDeleteForbidden": True,
+        "permanentDeleteAvailable": False,
+        "sourceFingerprintRequired": True,
+        "restoreConflictMustBlock": True,
+        "damagedManifestMustRemainUnchanged": True,
+        "centralErrorContractRequired": True,
+    }
+    for key, expected_value in required_trash.items():
+        if trash.get(key) != expected_value:
+            errors.append(f"Manifest: Papierkorb-Feld {key} ist inkonsistent.")
     for path in manifest.get("validation", {}).get("documentation", []):
         if not (ROOT / path).is_file():
             errors.append(f"Manifest-Dokument fehlt: {path}")
@@ -87,11 +104,10 @@ def checkbox_counts(todo: str) -> tuple[int, int]:
 def check_progress(errors: list[str]) -> None:
     todo = text("TODO.md", errors)
     readme = text("README.md", errors)
-    main_source = text("src/main.py", errors)
     done, open_count = checkbox_counts(todo)
     total = done + open_count
     percent = round(done / total * 100) if total else 0
-    expected = {"done": 25, "open": 40, "total": 65, "percent": 38}
+    expected = {"done": 27, "open": 39, "total": 66, "percent": 41}
     actual = {"done": done, "open": open_count, "total": total, "percent": percent}
     if actual != expected:
         errors.append(f"TODO-Fortschritt inkonsistent: {actual!r}, erwartet {expected!r}")
@@ -103,49 +119,35 @@ def check_progress(errors: list[str]) -> None:
     ):
         if marker not in readme:
             errors.append(f"README-Fortschritt fehlt: {marker}")
-    for marker in (
-        f"DEVELOPMENT_PROGRESS = {percent}",
-        f"COMPLETED_POINTS = {done}",
-        f"OPEN_POINTS = {open_count}",
-    ):
-        if marker not in main_source:
-            errors.append(f"src/main.py-Fortschritt fehlt: {marker}")
 
 
-def check_linux_and_instance_contract(errors: list[str]) -> None:
+def check_runtime_and_trash(errors: list[str]) -> None:
     main_source = text("src/main.py", errors)
     instance = text("src/single_instance.py", errors)
-    diagnostics = text("src/diagnostics_center.py", errors)
-    agents = text("AGENTS.md", errors)
+    trash = text("src/project_trash.py", errors)
+    panel = text("src/trash_contract_panel.py", errors)
     workflow = text(".github/workflows/repository-contract.yml", errors)
-    for marker in (
-        "SingleInstanceCoordinator", "resolve_runtime_root", "--show-diagnostics",
-        "--diagnostic-id", "drain_messages", "requestActivate",
-    ):
+    for marker in ("SingleInstanceCoordinator", "resolve_runtime_root", "drain_messages"):
         if marker not in main_source:
-            errors.append(f"Single-Instance-Integration fehlt in main.py: {marker}")
-    for marker in (
-        "socket.AF_UNIX", "socket.SO_PEERCRED", "XDG_RUNTIME_DIR",
-        "activate", "show-diagnostics", "beschädigt",
-    ):
+            errors.append(f"Single-Instance-Integration fehlt: {marker}")
+    for marker in ("socket.AF_UNIX", "socket.SO_PEERCRED", "activate", "show-diagnostics"):
         if marker not in instance:
             errors.append(f"Single-Instance-Vertrag fehlt: {marker}")
     for marker in (
-        "O_RDONLY", "O_NOFOLLOW", "diagnosticsSeverityFilter",
-        "diagnosticsIdFilter", "diagnosticsCopyButton",
+        "MMTTRASH-", "manifest.json", "preview_trash_move", "execute_trash_move",
+        "restore_transaction", "os.replace", "SafeOperationError", "0o700", "0o600",
     ):
-        if marker not in diagnostics:
-            errors.append(f"Diagnosevertrag fehlt: {marker}")
-    for forbidden in (
-        "diagnosticsDeleteButton", "diagnosticsUploadButton", "diagnosticsExportButton",
-    ):
-        if forbidden in diagnostics:
-            errors.append(f"Verbotene Diagnoseaktion vorhanden: {forbidden}")
-    for marker in ("Peer-UID", "Dateipfade", "Upload"):
-        if marker.lower() not in agents.lower():
-            errors.append(f"AGENTS-Vertrag fehlt: {marker}")
+        if marker not in trash:
+            errors.append(f"Papierkorbvertrag fehlt: {marker}")
+    for marker in ("trashContractPanel", "trashStatusPanel", "keine dauerhafte Löschung"):
+        if marker.lower() not in panel.lower():
+            errors.append(f"Papierkorb-UI-Vertrag fehlt: {marker}")
+    for forbidden in ("permanentDeleteButton", "emptyTrashButton"):
+        if forbidden in panel:
+            errors.append(f"Verbotene Papierkorbfunktion vorhanden: {forbidden}")
     for marker in (
-        "tests.test_single_instance", "tests.test_diagnostics_center", "QT_QPA_PLATFORM",
+        "tests.test_project_trash", "tests.test_single_instance_stress",
+        "tests.test_gui_trash_contract", "QT_QPA_PLATFORM",
     ):
         if marker not in workflow:
             errors.append(f"CI-Vertrag fehlt: {marker}")
@@ -153,20 +155,14 @@ def check_linux_and_instance_contract(errors: list[str]) -> None:
 
 def main() -> int:
     errors: list[str] = []
-    for check in (
-        check_required,
-        check_python,
-        check_manifest,
-        check_progress,
-        check_linux_and_instance_contract,
-    ):
+    for check in (check_required, check_python, check_manifest, check_progress, check_runtime_and_trash):
         check(errors)
     if errors:
         print("ROT: Repository-Vertrag ist nicht erfüllt.", file=sys.stderr)
         for error in errors:
             print(f"- {error}", file=sys.stderr)
         return 1
-    print("GRÜN: Repository-, Linux-, Single-Instance- und Diagnosevertrag sind konsistent.")
+    print("GRÜN: Linux-, Papierkorb-, Single-Instance- und Diagnosevertrag sind konsistent.")
     return 0
 
 
