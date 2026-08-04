@@ -1,143 +1,76 @@
 # ANLEITUNG_TOOL
 
-## 1. Zweck des aktuellen Stands
+## Unterstützte Systeme
 
-MULTIMODULTOOL2026 ist ein startbares Linux-Desktop-Grundgerüst mit geführter Einrichtung, XDG-Speichertrennung, transaktionalen Einstellungen und zentraler Fehler-/Ereignisschicht. Produktive Dateioperationen sind weiterhin deaktiviert.
+Kubuntu 22.04/24.04, KDE Plasma, X11 oder Wayland, x86-64. Andere Systeme werden kontrolliert blockiert.
 
-## 2. Unterstützte Systeme
-
-- Kubuntu 22.04 LTS, x86-64
-- Kubuntu 24.04 LTS, x86-64
-- KDE Plasma unter X11 oder Wayland
-- Python 3.10 oder neuer
-
-Nicht unterstützt: Windows, macOS, Android, iOS, Browser und PWA.
-
-## 3. Einfacher Start
+## Start
 
 ```bash
 chmod +x start.sh setup.sh
 ./start.sh
 ```
 
-Fehlt eine Abhängigkeit, startet der Einrichtungsassistent. Systempakete und `.venv` werden nur nach Bestätigung eingerichtet.
+Beim ersten Start werden Linux, Python, PySide6, XDG-Pfade, Einstellungen, Ereignisjournal und privater Laufzeitpfad geprüft.
 
-## 4. Rein lesende Prüfungen
+## Zweiter Start
+
+Ein zweiter normaler Start öffnet kein zweites Hauptfenster. Er sucht den privaten Unix-Socket, prüft die Linux-Nutzerkennung, überträgt nur die erlaubte Aktivierung und macht das vorhandene Fenster sichtbar.
+
+Diagnose öffnen:
 
 ```bash
-./setup.sh --check-only
+python3 -m src.main --show-diagnostics
+```
+
+Diagnosekennung fokussieren:
+
+```bash
+python3 -m src.main --show-diagnostics --diagnostic-id MMT-XDG-20260804-ABCD1234
+```
+
+Dateipfade, freie Argumentlisten und beliebige Befehle können nicht übergeben werden.
+
+## Veraltete Sperre
+
+Eine Sperre wird nur entfernt, wenn Socket und Metadaten dem aktuellen Nutzer gehören, sichere Dateitypen sind und Prozess- oder Boot-Kennung eindeutig belegen, dass keine aktive Instanz mehr besteht. Danach wird ein Recovery-Ereignis protokolliert.
+
+## Beschädigte oder zweifelhafte Sperre
+
+Der Start wird blockiert. Die Sperre bleibt unverändert. Der Fehlerbericht nennt Ursache, Folge, Datenstand, Lösung, Diagnosekennung und sicheren nächsten Schritt. Das Tool nicht mit `sudo` starten und Sperren nicht blind löschen.
+
+## Diagnosezentrale
+
+1. Schweregrad auswählen.
+2. Optional Diagnosekennung eingeben.
+3. Ereignis auswählen.
+4. Vollständigen bereinigten Bericht lesen.
+5. Bei Bedarf **Bereinigten Bericht kopieren** drücken.
+
+Nicht vorhanden: Löschen, Upload, automatischer Export oder Journalreparatur.
+
+## Rein lesende Prüfungen
+
+```bash
 python3 -m src.main --validate-only
 python3 -m src.main --paths-only
 python3 -m src.main --settings-only
 ```
 
-Diese Modi dürfen keine XDG-Verzeichnisse oder Einstellungsdateien anlegen, verändern, umbenennen oder löschen.
+Diese Modi erzeugen keine zweite GUI-Instanz.
 
-## 5. Sichere Speicherorte
+## Typische Fehler
 
-- Konfiguration: `~/.config/multimodultool2026`
-- Nutzerdaten: `~/.local/share/multimodultool2026`
-- Cache: `~/.cache/multimodultool2026`
-- Status: `~/.local/state/multimodultool2026`
-- Logs: `~/.local/state/multimodultool2026/logs`
-- Sicherungen: `~/.local/share/multimodultool2026/backups`
+### XDG_RUNTIME_DIR unsicher
 
-App-Verzeichnisse verwenden `0700`. Einstellungs- und Ereignisdateien verwenden `0600`.
+**Folge:** GUI-Start blockiert.  
+**Datenstand:** Keine Sperre und keine Nutzerdaten verändert.  
+**Lösung:** KDE-Sitzung als normaler Nutzer starten und `/run/user/<UID>` prüfen.
 
-## 6. Globaler Fehlerdialog
+### Instanz antwortet nicht
 
-Bei einem kontrolliert erfassten Fehler erscheint ein Dialog mit sechs Bereichen:
+Eine lebende, aber nicht antwortende Instanz wird nicht überschrieben. Vorhandenen Prozess und Diagnosekennung prüfen.
 
-1. **Ursache** – welcher Fehler wurde erkannt?
-2. **Folge** – welcher Schritt wurde beendet oder blockiert?
-3. **Datenstand** – was ist unverändert, was wurde isoliert?
-4. **Lösung** – welche Korrektur ist möglich?
-5. **Diagnosekennung** – eindeutige Kennung für Bericht und Logsuche.
-6. **Sicherer nächster Schritt** – welcher geprüfte Schritt darf folgen?
+### Ereignisjournal unsicher
 
-Über **Diagnose kopieren** wird der vollständige Bericht in die Zwischenablage übernommen.
-
-### Vorgehen nach einem Fehler
-
-1. Datenstand lesen; nicht blind erneut starten.
-2. Diagnosekennung notieren oder kopieren.
-3. vorgeschlagene Lösung ausführen.
-4. passenden rein lesenden Diagnosebefehl starten.
-5. normalen Workflow erst bei grünem Ergebnis fortsetzen.
-
-## 7. Ereignisjournal
-
-Datei:
-
-```text
-~/.local/state/multimodultool2026/logs/events.jsonl
-```
-
-Jede Zeile enthält ein vollständiges JSON-Ereignis. Die Datei ist privat (`0600`). Benutzerpfade werden verkürzt und typische Geheimnismuster entfernt.
-
-Das Journal darf nicht durch einen Symlink ersetzt werden. Ist es unsicher oder unbeschreibbar, blockiert das Tool den normalen Start.
-
-## 8. Einstellungen und Recovery
-
-Aktive Datei:
-
-```text
-~/.config/multimodultool2026/settings.json
-```
-
-Sicherung:
-
-```text
-~/.config/multimodultool2026/settings.last-valid.json
-```
-
-Bei Beschädigung wird die aktive Datei isoliert. Danach wird die Sicherung oder eine sichere Standardkonfiguration atomar aktiviert. Der globale Dialog erklärt Ursache, verwendete Quelle und unveränderten Nutzerdatenstand.
-
-## 9. Failpoint-Prüfung
-
-Die Entwicklungstests simulieren Unterbrechungen vor und nach:
-
-- temporärem Schreiben,
-- Datei-`fsync`,
-- Backup,
-- `os.replace`,
-- Nachvalidierung.
-
-Diese Failpoints sind Testhilfen und werden im normalen Start nicht aktiviert. Sie beweisen, dass immer eine vollständige alte oder neue Konfiguration erhalten bleibt.
-
-## 10. Typische Fehler
-
-### Ereignisjournal ist unsicher
-
-**Ursache:** Logdatei ist Symlink, Spezialdatei, zu offen oder nicht beschreibbar.  
-**Folge:** Normaler Start wird blockiert.  
-**Datenstand:** Einstellungen und Nutzerdaten bleiben unverändert.  
-**Lösung:** `events.jsonl` entfernen oder auf reguläre Datei mit `0600` korrigieren.  
-**Nächster Schritt:** XDG-Logpfad prüfen und `./start.sh` erneut ausführen.
-
-### Einstellungen wurden wiederhergestellt
-
-**Ursache:** Aktive JSON-Datei war beschädigt oder inkompatibel.  
-**Folge:** Sicherung oder Standardwerte wurden aktiviert.  
-**Datenstand:** Produktive Nutzerdaten blieben unverändert.  
-**Lösung:** Wiederhergestellte Einstellungen prüfen.  
-**Nächster Schritt:** `python3 -m src.main --settings-only` ausführen.
-
-### PySide6 fehlt
-
-```bash
-./setup.sh
-```
-
-## 11. Entwicklerprüfungen
-
-```bash
-python3 tools/validate_repository.py
-python3 -m unittest discover -s tests -v
-python3 -m unittest tests.test_settings_failpoints -v
-QT_QPA_PLATFORM=offscreen python3 -m unittest tests.test_gui_offscreen -v
-```
-
-## 12. Aktuelle Grenze
-
-Noch keine privaten oder unersetzlichen Dateibestände bearbeiten. Produktive Funktionen folgen erst nach Single-Instance-Schutz, Papierkorb, Undo und Wiederanlauf.
+Symlink, falscher Eigentümer, Hardlink, falscher Dateityp oder Rechte offener als `0600` blockieren den Zugriff. Das Journal bleibt unverändert.
