@@ -1,4 +1,4 @@
-"""Linux-Desktop-Grundgerüst mit sicherer XDG-Pfadverwaltung."""
+"""Linux-Desktop-App mit XDG-Pfaden und transaktionalen Einstellungen."""
 
 from __future__ import annotations
 
@@ -7,6 +7,12 @@ from pathlib import Path
 import sys
 
 from .manifest_validator import format_validation_result, validate_manifest
+from .settings_manager import (
+    SettingsLoadResult,
+    format_settings_report,
+    inspect_settings,
+    load_or_recover_settings,
+)
 from .xdg_paths import (
     XDGPaths,
     ensure_xdg_paths,
@@ -17,12 +23,23 @@ from .xdg_paths import (
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_PATH = PROJECT_ROOT / "layout-manifest.json"
-DEVELOPMENT_PROGRESS = 31
+DEVELOPMENT_PROGRESS = 33
+COMPLETED_POINTS = 21
+OPEN_POINTS = 42
+ZONE_OBJECT_NAMES = (
+    "header",
+    "navigation",
+    "summaryCards",
+    "primaryActionTiles",
+    "workflowPanel",
+    "workspaceScroll",
+    "contextRail",
+    "actionBar",
+    "footer",
+)
 
 
 def is_supported_platform(platform_name: str | None = None) -> bool:
-    """Nur Linux ist Teil des verbindlichen Projektumfangs."""
-
     return (platform_name or sys.platform).startswith("linux")
 
 
@@ -30,23 +47,52 @@ def platform_error_text() -> str:
     return (
         "FEHLER: MULTIMODULTOOL2026 wird ausschließlich für Linux-Desktop-Systeme gebaut.\n"
         "Unterstützt: Kubuntu 22.04/24.04, KDE Plasma, X11 oder Wayland.\n"
-        "Dieses System wird nicht unterstützt. Es wurden keine Daten verändert."
+        "Es wurden keine Daten verändert."
     )
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="MULTIMODULTOOL2026 starten oder prüfen")
-    parser.add_argument(
-        "--validate-only",
-        action="store_true",
-        help="Linux-, Manifest- und XDG-Vertrag rein lesend prüfen.",
-    )
-    parser.add_argument(
-        "--paths-only",
-        action="store_true",
-        help="Berechnete XDG-Speicherorte anzeigen und ohne Oberfläche beenden.",
-    )
+    parser.add_argument("--validate-only", action="store_true")
+    parser.add_argument("--paths-only", action="store_true")
+    parser.add_argument("--settings-only", action="store_true")
     return parser.parse_args(argv)
+
+
+def _label(QtWidgets, text: str, name: str = "muted", *, safety: bool = False):
+    item = QtWidgets.QLabel(text)
+    item.setObjectName(name)
+    item.setWordWrap(True)
+    if safety:
+        item.setProperty("safetyStatus", True)
+    return item
+
+
+def _button(QtWidgets, text: str, *, enabled: bool = True, name: str = "", tooltip: str = ""):
+    button = QtWidgets.QPushButton(text)
+    button.setEnabled(enabled)
+    button.setMinimumHeight(44)
+    if name:
+        button.setObjectName(name)
+    if tooltip:
+        button.setToolTip(tooltip)
+    return button
+
+
+def _panel(QtWidgets, title: str, body: str, name: str = "panel"):
+    frame = QtWidgets.QFrame()
+    frame.setObjectName(name)
+    layout = QtWidgets.QVBoxLayout(frame)
+    layout.setContentsMargins(12, 10, 12, 10)
+    layout.addWidget(_label(QtWidgets, title, "sectionTitle"))
+    layout.addWidget(_label(QtWidgets, body))
+    return frame
+
+
+def _zone(widget, object_name: str, zone_id: str):
+    widget.setObjectName(object_name)
+    widget.setProperty("zoneId", zone_id)
+    return widget
 
 
 def _display_path(path: Path) -> str:
@@ -56,387 +102,151 @@ def _display_path(path: Path) -> str:
         return str(path)
 
 
-def _card(QtWidgets, title: str, value: str, detail: str = ""):
-    frame = QtWidgets.QFrame()
-    frame.setObjectName("card")
-    layout = QtWidgets.QVBoxLayout(frame)
-    layout.setContentsMargins(14, 12, 14, 12)
-    layout.setSpacing(4)
-    title_label = QtWidgets.QLabel(title)
-    title_label.setObjectName("muted")
-    value_label = QtWidgets.QLabel(value)
-    value_label.setObjectName("cardValue")
-    value_label.setWordWrap(True)
-    layout.addWidget(title_label)
-    layout.addWidget(value_label)
-    if detail:
-        detail_label = QtWidgets.QLabel(detail)
-        detail_label.setObjectName("smallMuted")
-        detail_label.setWordWrap(True)
-        layout.addWidget(detail_label)
-    return frame
-
-
-def _button(
-    QtWidgets,
-    text: str,
-    *,
-    accent: str = "",
-    active: bool = False,
-    enabled: bool = True,
-    tooltip: str = "",
-):
-    button = QtWidgets.QPushButton(text)
-    if accent:
-        button.setProperty("accent", accent)
-    if active:
-        button.setProperty("active", True)
-    button.setEnabled(enabled)
-    button.setMinimumHeight(48)
-    if tooltip:
-        button.setToolTip(tooltip)
-    return button
-
-
-def _section(QtWidgets, title: str, body: str, object_name: str = "panel"):
-    frame = QtWidgets.QFrame()
-    frame.setObjectName(object_name)
-    layout = QtWidgets.QVBoxLayout(frame)
-    layout.setContentsMargins(16, 14, 16, 14)
-    layout.setSpacing(8)
-    heading = QtWidgets.QLabel(title)
-    heading.setObjectName("sectionTitle")
-    content = QtWidgets.QLabel(body)
-    content.setWordWrap(True)
-    content.setObjectName("muted")
-    layout.addWidget(heading)
-    layout.addWidget(content)
-    return frame
-
-
-def _workflow_step(QtWidgets, QtCore, number: str, title: str, state: str):
-    frame = QtWidgets.QFrame()
-    frame.setProperty("workflowState", state)
-    layout = QtWidgets.QHBoxLayout(frame)
-    layout.setContentsMargins(10, 8, 10, 8)
-    layout.setSpacing(7)
-    badge = QtWidgets.QLabel(number)
-    badge.setObjectName("stepBadge")
-    badge.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-    badge.setFixedSize(28, 28)
-    label = QtWidgets.QLabel(title)
-    label.setObjectName("stepTitle")
-    layout.addWidget(badge)
-    layout.addWidget(label)
-    layout.addStretch(1)
-    return frame
-
-
-def _path_panel(QtWidgets, QtCore, paths: XDGPaths):
-    frame = QtWidgets.QFrame()
-    frame.setObjectName("panel")
-    layout = QtWidgets.QVBoxLayout(frame)
-    layout.setContentsMargins(14, 14, 14, 14)
-    layout.setSpacing(7)
-    title = QtWidgets.QLabel("Sichere Linux-Speicherorte")
-    title.setObjectName("sectionTitle")
-    subtitle = QtWidgets.QLabel("Programmdateien und Nutzerdaten sind strikt getrennt.")
-    subtitle.setObjectName("smallMuted")
-    subtitle.setWordWrap(True)
-    layout.addWidget(title)
-    layout.addWidget(subtitle)
-    for label, path in paths.items():
-        row = QtWidgets.QFrame()
-        row.setObjectName("pathRow")
-        row_layout = QtWidgets.QVBoxLayout(row)
-        row_layout.setContentsMargins(9, 6, 9, 6)
-        row_layout.setSpacing(2)
-        name = QtWidgets.QLabel(f"✓ {label}")
-        name.setObjectName("pathName")
-        value = QtWidgets.QLabel(_display_path(path))
-        value.setObjectName("pathValue")
-        value.setWordWrap(True)
-        value.setTextInteractionFlags(
-            QtCore.Qt.TextInteractionFlag.TextSelectableByMouse
-        )
-        row_layout.addWidget(name)
-        row_layout.addWidget(value)
-        layout.addWidget(row)
-    layout.addStretch(1)
-    return frame
-
-
 def build_window(
     QtWidgets,
     QtCore,
     *,
     validation_text: str,
     path_text: str,
+    settings_text: str,
     paths: XDGPaths,
+    settings_result: SettingsLoadResult,
 ):
-    class MainWindow(QtWidgets.QMainWindow):
-        def __init__(self) -> None:
-            super().__init__()
-            self.setWindowTitle("MULTIMODULTOOL2026 – Linux")
-            self.resize(1500, 900)
-            self.setMinimumSize(1024, 680)
+    """Neun sichtbare und maschinenprüfbare Layoutzonen erzeugen."""
 
-            central = QtWidgets.QWidget()
-            shell = QtWidgets.QGridLayout(central)
-            shell.setContentsMargins(12, 12, 12, 12)
-            shell.setHorizontalSpacing(12)
-            shell.setVerticalSpacing(10)
-            shell.setColumnStretch(1, 1)
-            shell.setRowStretch(4, 1)
-            self.setCentralWidget(central)
+    window = QtWidgets.QMainWindow()
+    window.setWindowTitle("MULTIMODULTOOL2026 – Linux")
+    window.resize(1500, 900)
+    window.setMinimumSize(1024, 680)
+    central = QtWidgets.QWidget()
+    shell = QtWidgets.QGridLayout(central)
+    shell.setContentsMargins(12, 12, 12, 12)
+    shell.setSpacing(9)
+    shell.setColumnStretch(1, 1)
+    shell.setRowStretch(4, 1)
+    window.setCentralWidget(central)
 
-            header = QtWidgets.QFrame()
-            header.setObjectName("header")
-            header_layout = QtWidgets.QHBoxLayout(header)
-            header_layout.setContentsMargins(18, 10, 18, 10)
-            identity = QtWidgets.QVBoxLayout()
-            identity.setSpacing(1)
-            title = QtWidgets.QLabel("◈  MULTIMODULTOOL2026")
-            title.setObjectName("appTitle")
-            subtitle = QtWidgets.QLabel(
-                "Sicher organisieren: erst auswählen, dann prüfen, erst danach verändern."
-            )
-            subtitle.setObjectName("smallMuted")
-            identity.addWidget(title)
-            identity.addWidget(subtitle)
-            safety = QtWidgets.QLabel("● XDG- UND SYSTEMPRÜFUNG GRÜN")
-            safety.setObjectName("statusOk")
-            header_layout.addLayout(identity)
-            header_layout.addStretch(1)
-            header_layout.addWidget(safety)
-            shell.addWidget(header, 0, 0, 1, 3)
+    header = _zone(QtWidgets.QFrame(), "header", "Z01")
+    header_layout = QtWidgets.QHBoxLayout(header)
+    identity = QtWidgets.QVBoxLayout()
+    identity.addWidget(_label(QtWidgets, "◈  MULTIMODULTOOL2026", "appTitle"))
+    identity.addWidget(_label(QtWidgets, "Erst prüfen, dann vorschauen, erst danach verändern.", "smallMuted"))
+    header_layout.addLayout(identity)
+    header_layout.addStretch(1)
+    header_layout.addWidget(
+        _label(QtWidgets, "● SYSTEM-, XDG- UND EINSTELLUNGSPRÜFUNG GRÜN", "statusOk", safety=True)
+    )
+    shell.addWidget(header, 0, 0, 1, 3)
 
-            navigation = QtWidgets.QFrame()
-            navigation.setObjectName("navigation")
-            navigation.setFixedWidth(178)
-            nav_layout = QtWidgets.QVBoxLayout(navigation)
-            nav_layout.setContentsMargins(10, 12, 10, 12)
-            nav_layout.setSpacing(7)
-            nav_title = QtWidgets.QLabel("HAUPTBEREICHE")
-            nav_title.setObjectName("navTitle")
-            nav_layout.addWidget(nav_title)
-            for label, active in (
-                ("⌂  Start", True),
-                ("⌕  Analysieren", False),
-                ("▣  Duplikate", False),
-                ("↕  Organisieren", False),
-                ("✎  Umbenennen", False),
-                ("▤  Berichte", False),
-                ("♲  Papierkorb", False),
-            ):
-                nav_layout.addWidget(
-                    _button(
-                        QtWidgets,
-                        label,
-                        active=active,
-                        tooltip=(
-                            "Aktuelle Startübersicht."
-                            if active
-                            else "Wird nach Freigabe des sicheren Kernworkflows aktiv."
-                        ),
-                    )
-                )
-            nav_layout.addStretch(1)
-            nav_layout.addWidget(_button(QtWidgets, "⚙  Einstellungen"))
-            nav_layout.addWidget(_button(QtWidgets, "?  Hilfe"))
-            shell.addWidget(navigation, 1, 0, 5, 1)
+    navigation = _zone(QtWidgets.QFrame(), "navigation", "Z02")
+    navigation.setFixedWidth(178)
+    nav = QtWidgets.QVBoxLayout(navigation)
+    nav.addWidget(_label(QtWidgets, "HAUPTBEREICHE", "navTitle"))
+    nav.addWidget(_button(QtWidgets, "⌂  Start"))
+    locked_tip = "Noch gesperrt, bis der sichere Kernworkflow vollständig ist."
+    for text in ("⌕  Analysieren", "▣  Duplikate", "↕  Organisieren", "✎  Umbenennen", "▤  Berichte", "♲  Papierkorb"):
+        nav.addWidget(_button(QtWidgets, text, enabled=False, name="lockedNavigation", tooltip=locked_tip))
+    nav.addStretch(1)
+    nav.addWidget(_button(QtWidgets, "⚙  Einstellungen", enabled=False, tooltip="Dateiformat aktiv; Bedienseite folgt."))
+    nav.addWidget(_button(QtWidgets, "?  Hilfe"))
+    shell.addWidget(navigation, 1, 0, 5, 1)
 
-            summary = QtWidgets.QWidget()
-            summary_layout = QtWidgets.QHBoxLayout(summary)
-            summary_layout.setContentsMargins(0, 0, 0, 0)
-            summary_layout.setSpacing(8)
-            for title_text, value, detail in (
-                ("System", "Linux / KDE", "X11 und Wayland vorgesehen"),
-                ("Speichertrennung", "6 / 6 GRÜN", "XDG-konform vorbereitet"),
-                ("Sicherheitsmodus", "Nur Vorschau", "Keine Dateiaktion aktiv"),
-                ("Entwicklung", "31 %", "19 erledigt · 43 offen"),
-            ):
-                summary_layout.addWidget(_card(QtWidgets, title_text, value, detail))
-            shell.addWidget(summary, 1, 1, 1, 1)
+    summary = _zone(QtWidgets.QWidget(), "summaryCards", "Z03")
+    cards = QtWidgets.QHBoxLayout(summary)
+    status = "WIEDERHERGESTELLT" if settings_result.recovered else "1 / 1 GRÜN"
+    for title, value, detail in (
+        ("System", "Linux / KDE", "X11 und Wayland"),
+        ("XDG-Speicher", "6 / 6 GRÜN", "Pfade 0700"),
+        ("Einstellungen", status, "Schema 1 · Dateien 0600"),
+        ("Entwicklung", "33 %", "21 erledigt · 42 offen"),
+    ):
+        cards.addWidget(_panel(QtWidgets, title, f"{value}\n{detail}", "card"))
+    shell.addWidget(summary, 1, 1, 1, 1)
 
-            actions = QtWidgets.QWidget()
-            actions_layout = QtWidgets.QHBoxLayout(actions)
-            actions_layout.setContentsMargins(0, 0, 0, 0)
-            actions_layout.setSpacing(7)
-            for text, accent in (
-                ("1\nOrdner wählen", "cyan"),
-                ("2\nBestand prüfen", "blue"),
-                ("3\nRegeln wählen", "magenta"),
-                ("4\nVorschau", "amber"),
-                ("5\nSicher anwenden", "green"),
-                ("6\nBericht", "cyan"),
-            ):
-                actions_layout.addWidget(
-                    _button(
-                        QtWidgets,
-                        text,
-                        accent=accent,
-                        enabled=False,
-                        tooltip=(
-                            "Noch nicht freigeschaltet. Produktive Funktionen folgen "
-                            "erst nach Einstellungen, Fehlerzentrale, Papierkorb und Undo."
-                        ),
-                    )
-                )
-            shell.addWidget(actions, 2, 1, 1, 1)
+    actions = _zone(QtWidgets.QWidget(), "primaryActionTiles", "Z04")
+    action_layout = QtWidgets.QHBoxLayout(actions)
+    for text in ("1\nOrdner wählen", "2\nBestand prüfen", "3\nRegeln wählen", "4\nVorschau", "5\nSicher anwenden", "6\nBericht"):
+        action_layout.addWidget(
+            _button(QtWidgets, text, enabled=False, name="lockedPrimaryAction", tooltip=locked_tip)
+        )
+    shell.addWidget(actions, 2, 1, 1, 1)
 
-            process = QtWidgets.QFrame()
-            process.setObjectName("workflowPanel")
-            process_layout = QtWidgets.QVBoxLayout(process)
-            process_layout.setContentsMargins(14, 12, 14, 12)
-            process_layout.setSpacing(8)
-            process_title = QtWidgets.QLabel("GEFÜHRTER SICHERHEITS-WORKFLOW")
-            process_title.setObjectName("navTitle")
-            process_layout.addWidget(process_title)
-            step_row = QtWidgets.QHBoxLayout()
-            step_row.setSpacing(6)
-            for number, name, state in (
-                ("1", "Quelle", "active"),
-                ("2", "Analyse", "pending"),
-                ("3", "Vorschau", "pending"),
-                ("4", "Freigabe", "locked"),
-                ("5", "Bericht", "locked"),
-            ):
-                step_row.addWidget(
-                    _workflow_step(QtWidgets, QtCore, number, name, state)
-                )
-            process_layout.addLayout(step_row)
-            progress = QtWidgets.QProgressBar()
-            progress.setRange(0, 100)
-            progress.setValue(DEVELOPMENT_PROGRESS)
-            progress.setFormat("Entwicklungsstand: 31 %")
-            process_layout.addWidget(progress)
-            shell.addWidget(process, 3, 1, 1, 1)
+    workflow = _zone(QtWidgets.QFrame(), "workflowPanel", "Z05")
+    flow = QtWidgets.QVBoxLayout(workflow)
+    flow.addWidget(_label(QtWidgets, "GEFÜHRTER SICHERHEITS-WORKFLOW", "navTitle"))
+    flow.addWidget(_label(QtWidgets, "1 Quelle  →  2 Analyse  →  3 Vorschau  →  4 Freigabe  →  5 Bericht", "sectionTitle"))
+    progress = QtWidgets.QProgressBar()
+    progress.setRange(0, 100)
+    progress.setValue(DEVELOPMENT_PROGRESS)
+    progress.setFormat("Entwicklungsstand: 33 %")
+    flow.addWidget(progress)
+    shell.addWidget(workflow, 3, 1, 1, 1)
 
-            workspace = QtWidgets.QFrame()
-            workspace.setObjectName("workspace")
-            workspace_layout = QtWidgets.QVBoxLayout(workspace)
-            workspace_layout.setContentsMargins(16, 16, 16, 16)
-            workspace_layout.setSpacing(12)
+    workspace = QtWidgets.QWidget()
+    workspace_layout = QtWidgets.QVBoxLayout(workspace)
+    workspace_layout.addWidget(
+        _panel(
+            QtWidgets,
+            "P0-003 abgeschlossen",
+            "Versionierte Einstellungen werden vorvalidiert, atomar gespeichert und bei Beschädigung aus Backup oder sicheren Standardwerten wiederhergestellt.",
+            "hero",
+        )
+    )
+    row = QtWidgets.QHBoxLayout()
+    row.addWidget(_panel(QtWidgets, "1. Sicher laden", "Version, Felder, Typen und Wertebereiche prüfen."))
+    row.addWidget(_panel(QtWidgets, "2. Atomar speichern", "Temporäre Datei, fsync, Nachvalidierung und os.replace."))
+    row.addWidget(_panel(QtWidgets, "3. Zurückfallen", "Defekt isolieren und letzte gültige Sicherung aktivieren."))
+    workspace_layout.addLayout(row)
+    workspace_layout.addWidget(
+        _panel(QtWidgets, "Aktuelle Schutzgrenze", "Produktive Dateiaktionen bleiben gesperrt. Nächster Schritt: globale Fehlerzentrale.", "warningPanel")
+    )
+    workspace_layout.addStretch(1)
+    workspace_scroll = _zone(QtWidgets.QScrollArea(), "workspaceScroll", "Z06")
+    workspace_scroll.setWidgetResizable(True)
+    workspace_scroll.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
+    workspace_scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+    workspace_scroll.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+    workspace_scroll.setWidget(workspace)
+    shell.addWidget(workspace_scroll, 4, 1, 1, 1)
 
-            hero = QtWidgets.QFrame()
-            hero.setObjectName("hero")
-            hero_layout = QtWidgets.QHBoxLayout(hero)
-            hero_layout.setContentsMargins(18, 14, 18, 14)
-            hero_text = QtWidgets.QVBoxLayout()
-            hero_title = QtWidgets.QLabel("Nächster sinnvoller Schritt")
-            hero_title.setObjectName("heroTitle")
-            hero_body = QtWidgets.QLabel(
-                "Die Linux-Speicherorte sind sicher getrennt. Als Nächstes folgt "
-                "das transaktionale Einstellungsformat mit Backup und Rollback."
-            )
-            hero_body.setObjectName("muted")
-            hero_body.setWordWrap(True)
-            hero_text.addWidget(hero_title)
-            hero_text.addWidget(hero_body)
-            hero_status = QtWidgets.QLabel("P0-002  ✓ ABGESCHLOSSEN")
-            hero_status.setObjectName("statusOk")
-            hero_layout.addLayout(hero_text, 1)
-            hero_layout.addWidget(hero_status)
-            workspace_layout.addWidget(hero)
+    context = _zone(QtWidgets.QFrame(), "contextRail", "Z07")
+    context.setFixedWidth(290)
+    context_layout = QtWidgets.QVBoxLayout(context)
+    context_content = QtWidgets.QWidget()
+    context_items = QtWidgets.QVBoxLayout(context_content)
+    context_items.addWidget(_panel(QtWidgets, "Einstellungen", settings_text, "settingsPanel"))
+    context_items.addWidget(_panel(QtWidgets, "Systemprüfung", f"{validation_text}\n\n{path_text}"))
+    paths_text = "\n".join(f"✓ {name}: {_display_path(path)}" for name, path in paths.items())
+    context_items.addWidget(_panel(QtWidgets, "Sichere Speicherorte", paths_text))
+    context_items.addStretch(1)
+    context_scroll = QtWidgets.QScrollArea()
+    context_scroll.setObjectName("contextScroll")
+    context_scroll.setWidgetResizable(True)
+    context_scroll.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
+    context_scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+    context_scroll.setWidget(context_content)
+    context_layout.addWidget(context_scroll)
+    shell.addWidget(context, 1, 2, 4, 1)
 
-            workflow_cards = QtWidgets.QHBoxLayout()
-            workflow_cards.setSpacing(9)
-            for heading, body in (
-                (
-                    "1. Quelle auswählen",
-                    "Später wird ein Ordner ausschließlich über einen geprüften "
-                    "Linux-Auswahldialog gewählt. Noch erfolgt keine Dateiänderung.",
-                ),
-                (
-                    "2. Wirkung verstehen",
-                    "Vor jeder Aktion erscheinen Umfang, Konflikte, Speicherbedarf, "
-                    "Risiko und Rückfallweg in einfacher Sprache.",
-                ),
-                (
-                    "3. Kontrolliert anwenden",
-                    "Erst nach vollständiger Vorschau und bewusster Freigabe darf "
-                    "eine reversible Operation starten.",
-                ),
-            ):
-                workflow_cards.addWidget(_section(QtWidgets, heading, body), 1)
-            workspace_layout.addLayout(workflow_cards)
-            workspace_layout.addWidget(
-                _section(
-                    QtWidgets,
-                    "Aktuelle Schutzgrenze",
-                    "Analyse-, Umbenennungs-, Verschiebe- und Löschfunktionen bleiben "
-                    "gesperrt. So verändert der unfertige Entwicklungsstand keine privaten Dateien.",
-                    "warningPanel",
-                )
-            )
-            workspace_layout.addStretch(1)
+    action_bar = _zone(QtWidgets.QFrame(), "actionBar", "Z08")
+    action_layout = QtWidgets.QHBoxLayout(action_bar)
+    action_layout.addWidget(
+        _label(QtWidgets, "✓ XDG-Pfade und versionierte Einstellungen sicher vorbereitet", "statusOk", safety=True)
+    )
+    action_layout.addStretch(1)
+    action_layout.addWidget(_button(QtWidgets, "Diagnose erneut prüfen", enabled=False, tooltip="Folgt mit P0-004."))
+    action_layout.addWidget(_button(QtWidgets, "Weiter zur Fehlerzentrale", enabled=False, tooltip="Wird mit P0-004 freigeschaltet."))
+    shell.addWidget(action_bar, 5, 1, 1, 2)
 
-            workspace_scroll = QtWidgets.QScrollArea()
-            workspace_scroll.setObjectName("workspaceScroll")
-            workspace_scroll.setWidgetResizable(True)
-            workspace_scroll.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
-            workspace_scroll.setHorizontalScrollBarPolicy(
-                QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-            )
-            workspace_scroll.setWidget(workspace)
-            shell.addWidget(workspace_scroll, 4, 1, 1, 1)
-
-            context = QtWidgets.QFrame()
-            context.setObjectName("contextRail")
-            context.setFixedWidth(285)
-            context_layout = QtWidgets.QVBoxLayout(context)
-            context_layout.setContentsMargins(10, 10, 10, 10)
-            context_layout.setSpacing(9)
-            context_layout.addWidget(_path_panel(QtWidgets, QtCore, paths), 1)
-            context_layout.addWidget(
-                _section(QtWidgets, "Prüfergebnis", f"{validation_text}\n\n{path_text}")
-            )
-            shell.addWidget(context, 1, 2, 4, 1)
-
-            action_bar = QtWidgets.QFrame()
-            action_bar.setObjectName("actionBar")
-            action_layout = QtWidgets.QHBoxLayout(action_bar)
-            action_layout.setContentsMargins(14, 8, 14, 8)
-            state = QtWidgets.QLabel("✓ Programm und Nutzerdaten strikt getrennt")
-            state.setObjectName("statusOk")
-            action_layout.addWidget(state)
-            action_layout.addStretch(1)
-            action_layout.addWidget(
-                _button(
-                    QtWidgets,
-                    "System erneut prüfen",
-                    accent="cyan",
-                    tooltip="Die sichtbare Wiederholungsdiagnose folgt in einer späteren Iteration.",
-                )
-            )
-            action_layout.addWidget(
-                _button(
-                    QtWidgets,
-                    "Weiter zu Einstellungen",
-                    accent="magenta",
-                    enabled=False,
-                    tooltip="Wird mit P0-003 freigeschaltet.",
-                )
-            )
-            shell.addWidget(action_bar, 5, 1, 1, 2)
-
-            footer = QtWidgets.QFrame()
-            footer.setObjectName("footer")
-            footer_layout = QtWidgets.QHBoxLayout(footer)
-            footer_layout.setContentsMargins(16, 7, 16, 7)
-            footer_layout.addWidget(
-                QtWidgets.QLabel(
-                    "🛡 XDG-Pfade geprüft · Modus 0700 · keine Quelldaten beschrieben"
-                )
-            )
-            footer_layout.addStretch(1)
-            footer_layout.addWidget(
-                QtWidgets.QLabel("🔒 Produktive Dateiaktionen weiterhin gesperrt")
-            )
-            shell.addWidget(footer, 6, 0, 1, 3)
-
-    return MainWindow()
+    footer = _zone(QtWidgets.QFrame(), "footer", "Z09")
+    footer_layout = QtWidgets.QHBoxLayout(footer)
+    footer_layout.addWidget(
+        _label(QtWidgets, "🛡 XDG 0700 · Einstellungen 0600 · atomarer Austausch · Rollback bereit", safety=True)
+    )
+    footer_layout.addStretch(1)
+    footer_layout.addWidget(_label(QtWidgets, "🔒 Produktive Dateiaktionen weiterhin gesperrt"))
+    shell.addWidget(footer, 6, 0, 1, 3)
+    return window
 
 
 def load_stylesheet() -> str:
@@ -446,29 +256,31 @@ def load_stylesheet() -> str:
         return ""
 
 
-def run_gui(validation_text: str, path_text: str, paths: XDGPaths) -> int:
+def run_gui(validation_text: str, path_text: str, settings_text: str, paths: XDGPaths, settings_result: SettingsLoadResult) -> int:
     try:
-        from PySide6 import QtCore, QtWidgets
+        from PySide6 import QtCore, QtGui, QtWidgets
     except ImportError:
-        print(
-            "FEHLER: PySide6 fehlt.\n"
-            "Lösung: ./setup.sh ausführen und danach erneut ./start.sh starten.",
-            file=sys.stderr,
-        )
+        print("FEHLER: PySide6 fehlt. Lösung: ./setup.sh ausführen.", file=sys.stderr)
         return 3
-
     app = QtWidgets.QApplication(sys.argv)
     app.setApplicationName("MULTIMODULTOOL2026")
     app.setOrganizationName("provoware")
-    stylesheet = load_stylesheet()
-    if stylesheet:
-        app.setStyleSheet(stylesheet)
+    scale = settings_result.settings["ui"]["fontScalePercent"] / 100
+    font = QtGui.QFont(app.font())
+    if font.pointSizeF() > 0:
+        font.setPointSizeF(max(8.0, font.pointSizeF() * scale))
+        app.setFont(font)
+    style = load_stylesheet()
+    if style:
+        app.setStyleSheet(style)
     window = build_window(
         QtWidgets,
         QtCore,
         validation_text=validation_text,
         path_text=path_text,
+        settings_text=settings_text,
         paths=paths,
+        settings_result=settings_result,
     )
     window.show()
     return app.exec()
@@ -491,23 +303,31 @@ def main(argv: list[str] | None = None) -> int:
         print(format_path_report(resolved, prepared=False), file=sys.stderr)
         return 5
 
-    if args.validate_only or args.paths_only:
+    if args.paths_only:
         path_result = validate_xdg_paths(resolved.paths, project_root=PROJECT_ROOT)
-        print(
-            format_path_report(
-                path_result,
-                include_paths=args.paths_only,
-                prepared=False,
-            )
-        )
+        print(format_path_report(path_result, include_paths=True, prepared=False))
         return 0 if path_result.is_valid else 5
+
+    if args.validate_only or args.settings_only:
+        path_result = validate_xdg_paths(resolved.paths, project_root=PROJECT_ROOT)
+        print(format_path_report(path_result, include_paths=False, prepared=False))
+        if not path_result.is_valid:
+            return 5
+        settings_result = inspect_settings(resolved.paths.config)
+        print(format_settings_report(settings_result))
+        return 0 if settings_result.is_valid else 6
 
     path_result = ensure_xdg_paths(resolved.paths, project_root=PROJECT_ROOT)
     path_text = format_path_report(path_result, include_paths=False, prepared=True)
     print(path_text)
     if not path_result.is_valid or path_result.paths is None:
         return 5
-    return run_gui(manifest_text, path_text, path_result.paths)
+    settings_result = load_or_recover_settings(path_result.paths.config)
+    settings_text = format_settings_report(settings_result)
+    print(settings_text)
+    if not settings_result.is_valid:
+        return 6
+    return run_gui(manifest_text, path_text, settings_text, path_result.paths, settings_result)
 
 
 if __name__ == "__main__":

@@ -4,7 +4,7 @@ Der Upgrade-Pool enthält ausschließlich Linux-bezogene Ideen außerhalb des ve
 
 ## Bewertungslogik
 
-Nutzen, Risiko und Aufwand werden jeweils als niedrig, mittel oder hoch bewertet. Eine Übernahme in `TODO.md` benötigt ein objektives Abnahmekriterium und bekannte Abhängigkeiten.
+Nutzen, Risiko und Aufwand werden als niedrig, mittel oder hoch bewertet. Eine Übernahme in `TODO.md` benötigt ein objektives Abnahmekriterium, bekannte Abhängigkeiten und einen Rückfallweg.
 
 ## Ausschluss
 
@@ -27,10 +27,12 @@ Windows-, macOS-, Android-, iOS-, Browser- und PWA-Varianten werden nicht aufgen
 | U-011 | AppImage- und Debian-Paket parallel | hoch | mittel | groß | reproduzierbarer Build | später prüfen |
 | U-012 | systemd-Userdienste für geplante lokale Aufgaben | mittel | mittel | groß | stabiler Worker-Vertrag | beobachten |
 | U-013 | signiertes Offline-Wheelhouse für PySide6-Ersteinrichtung | hoch | mittel | groß | reproduzierbarer Releaseprozess | vorbereiten |
+| U-014 | sicherer Einstellungs-Import/Export ohne private Pfade | mittel | niedrig | mittel | stabile Schema- und Migrationsversion | später prüfen |
+| U-015 | differenzielle Einstellungs-Sicherung mit begrenzter Historie | mittel | niedrig | mittel | Logging- und Aufbewahrungsvertrag | beobachten |
 
 ## Ergebnis dieser Iteration
 
-Die XDG-Pfadschicht ist als P0-002 abgeschlossen. Sie schafft die Grundlage für portable Linux-Ausgaben ohne gespeicherte Benutzerpfade (`U-002`) und datensparsame Diagnoseexporte (`U-008`). Diese Erweiterungen bleiben getrennt, bis Einstellungs-, Logging- und Releaseverträge stabil sind.
+P0-003 und der Offscreen-GUI-Smoke-Test sind abgeschlossen. Das stabile Schema schafft die Grundlage für `U-014`; eine Historie über die letzte gültige Sicherung hinaus bleibt bewusst zurückgestellt, bis Aufbewahrung, Datenschutz und Speichergrenzen definiert sind.
 
 ## Aufnahme in TODO.md
 

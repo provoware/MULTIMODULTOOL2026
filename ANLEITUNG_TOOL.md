@@ -2,7 +2,15 @@
 
 ## 1. Zweck des aktuellen Stands
 
-Der aktuelle Stand ist ein startbares Linux-Desktop-Grundgerüst mit geführter Ersteinrichtung, sicherer XDG-Speichertrennung und workflow-fokussierter Oberfläche. Echte Dateioperationen sind weiterhin deaktiviert.
+MULTIMODULTOOL2026 ist aktuell ein startbares Linux-Desktop-Grundgerüst mit:
+
+- geführter Ersteinrichtung,
+- sicherer XDG-Speichertrennung,
+- versionierten, transaktionalen Einstellungen,
+- sichtbaren Sicherheitszuständen,
+- automatischem Qt-Offscreen-GUI-Smoke-Test.
+
+Produktive Dateioperationen bleiben deaktiviert, bis Fehlerzentrale, Papierkorb, Undo und Abbruchschutz vollständig umgesetzt sind.
 
 ## 2. Unterstützte Systeme
 
@@ -20,35 +28,9 @@ chmod +x start.sh setup.sh
 ./start.sh
 ```
 
-Die Startroutine prüft die lokale Umgebung. Fehlt etwas, öffnet sie automatisch den Einrichtungsassistenten.
+Fehlen Python-Komponenten, `.venv` oder PySide6, startet der geführte Einrichtungsassistent.
 
-## 4. Was der Assistent prüft
-
-- Linux-Betriebssystem
-- Python-Version
-- Modul `python3-venv`
-- KDE-Plasma-Sitzung
-- X11 oder Wayland
-- Schreibrecht im Projektordner
-- lokale `.venv`
-- PySide6
-
-Ampel:
-
-- **GRÜN:** bereit
-- **GELB:** noch nicht eingerichtet oder nur Hinweis
-- **ROT:** sicherheitsrelevante Blockade
-
-## 5. Bestätigungen
-
-Maximal zwei bestätigende Schritte können nötig sein:
-
-1. fehlende Ubuntu-Systempakete installieren,
-2. lokale Projektumgebung `.venv` erstellen.
-
-Vor jeder Bestätigung werden die exakten Befehle und Auswirkungen angezeigt. Abbrechen lässt bestehende Projektdaten unverändert.
-
-## 6. Sichere Einrichtung
+## 4. Sichere Einrichtung
 
 ```bash
 ./setup.sh
@@ -66,92 +48,136 @@ Terminal statt KDialog:
 ./setup.sh --no-gui-dialogs
 ```
 
-Automatischer ausdrücklich bestätigter Lauf:
+Ausdrücklich bestätigter nichtinteraktiver Lauf:
 
 ```bash
 ./setup.sh --yes --no-gui-dialogs
 ```
 
-`--yes` sollte nur verwendet werden, wenn die angezeigten Installationsschritte vorher verstanden wurden.
+Der Assistent prüft Linux, Python, `venv`, KDE, X11/Wayland, Schreibrechte, `.venv` und PySide6. Die neue Umgebung wird zunächst unter `.venv.setup-*` aufgebaut, geprüft und erst danach aktiviert.
 
-## 7. Sicherheitsprinzip der `.venv`
+## 5. Sichere Speicherorte
 
-Die neue Umgebung wird zunächst als `.venv.setup-...` erstellt. Danach:
-
-1. pip wird aktualisiert,
-2. `requirements.txt` wird installiert,
-3. PySide6 wird importiert,
-4. erst bei grünem Ergebnis wird die Umgebung als `.venv` aktiviert.
-
-Eine bestehende `.venv` wird nicht vorher gelöscht. Symbolische Links an `.venv` werden blockiert.
-
-## 8. Sichere Speicherorte
-
-Beim normalen Start legt das Tool seine privaten Linux-Benutzerbereiche außerhalb des Programmordners an:
+Beim normalen Start werden private App-Verzeichnisse außerhalb des Programmordners verwendet:
 
 - Konfiguration: `~/.config/multimodultool2026`
 - Nutzerdaten: `~/.local/share/multimodultool2026`
 - Cache: `~/.cache/multimodultool2026`
 - Status: `~/.local/state/multimodultool2026`
-- Protokolle: `~/.local/state/multimodultool2026/logs`
+- Logs: `~/.local/state/multimodultool2026/logs`
 - Sicherungen: `~/.local/share/multimodultool2026/backups`
 
-Alle App-Verzeichnisse erhalten Modus `0700`. Vor und nach der Anlage werden absolute Pfade, zulässige Grenzen, Symlinks, Dateitypen, Schreibrechte und eine temporäre Schreibprobe geprüft.
+App-Verzeichnisse erhalten Modus `0700`. Relative Pfade, Ziele im Quellbaum, Symlinks, doppelte Ziele und unbeschreibbare Ziele blockieren den Start.
 
-Nur berechnete Pfade anzeigen:
+Pfade rein lesend anzeigen:
 
 ```bash
 python3 -m src.main --paths-only
 ```
 
-Rein lesend prüfen, ohne Verzeichnisse anzulegen:
+## 6. Versionierte Einstellungen
+
+Aktive Einstellungen:
+
+```text
+~/.config/multimodultool2026/settings.json
+```
+
+Letzte gültige Sicherung:
+
+```text
+~/.config/multimodultool2026/settings.last-valid.json
+```
+
+Beide Dateien verwenden Modus `0600`.
+
+Vor jedem Speichern werden geprüft:
+
+1. `schemaVersion`,
+2. erlaubte Felder,
+3. Datentypen,
+4. Wertebereiche,
+5. unveränderliche Sicherheitswerte,
+6. Dateipfad und Symlinkfreiheit,
+7. private Dateirechte.
+
+Danach wird in eine temporäre Datei geschrieben, mit `fsync` bestätigt, erneut validiert und atomar mit `os.replace` aktiviert.
+
+## 7. Automatische Wiederherstellung
+
+Ist `settings.json` beschädigt oder inkompatibel:
+
+1. die defekte Datei wird lokal als `settings.corrupt-<UTC-Zeit>.json` isoliert,
+2. `settings.last-valid.json` wird geprüft,
+3. eine gültige Sicherung wird atomar wiederhergestellt,
+4. ohne gültige Sicherung werden sichere Standardwerte angelegt.
+
+Die Meldung nennt Ursache, verwendete Quelle und unveränderten Datenstand. Es werden keine Einstellungen auf GitHub übertragen.
+
+## 8. Rein lesende Diagnose
+
+Gesamten Startvertrag prüfen:
 
 ```bash
 python3 -m src.main --validate-only
 ```
 
-### XDG-Pfadfehler
+Nur Einstellungen und möglichen Recovery-Weg prüfen:
 
-**Ursache:** Ein XDG-Wert ist relativ, zeigt in den Programmordner, verwendet einen blockierten Symlink, ist doppelt belegt oder nicht beschreibbar.  
-**Folge:** Die Oberfläche startet nicht.  
-**Datenstand:** Es werden keine produktiven Dateien verändert. Temporäre Schreibtests werden sofort entfernt.  
-**Lösung:** Genannten Pfad korrigieren oder die betreffende `XDG_*_HOME`-Variable auf einen absoluten, eigenen Linux-Benutzerpfad setzen.
+```bash
+python3 -m src.main --settings-only
+```
+
+Diese Modi dürfen keine Verzeichnisse oder Dateien anlegen, verändern, umbenennen oder löschen.
 
 ## 9. Typische Fehler
 
-### Python fehlt
+### Einstellungsdatei enthält unbekannte Version
 
-Der Assistent bietet unter Ubuntu/Kubuntu nach Bestätigung an:
+**Ursache:** `schemaVersion` wird von dieser Programmversion nicht unterstützt.  
+**Folge:** Die Datei wird nicht interpretiert.  
+**Datenstand:** Produktive Dateien bleiben unverändert.  
+**Lösung:** Gültige Sicherung verwenden oder eine geprüfte Migration durchführen.
 
-```bash
-sudo apt-get update
-sudo apt-get install -y python3 python3-venv python3-pip
-```
+### Einstellungsdatei ist beschädigt
 
-### Schreibrecht fehlt
+**Ursache:** unvollständiges oder ungültiges JSON.  
+**Folge:** Der normale Start isoliert die Datei und führt Rollback aus.  
+**Datenstand:** Keine privaten Dateibestände werden verändert.
 
-Projekt in einen eigenen beschreibbaren Ordner verschieben. Nicht mit `sudo ./start.sh` starten.
+### Symlink oder zu offene Rechte
 
-### KDE oder X11/Wayland nicht erkannt
-
-Dies ist zunächst eine gelbe Warnung. Der Zielrahmen bleibt KDE Plasma unter X11 oder Wayland.
+**Ursache:** Einstellungsdatei ist ein Symlink oder besitzt Gruppen-/Weltzugriff.  
+**Folge:** Start wird aus Sicherheitsgründen blockiert.  
+**Lösung:** reguläre Datei im XDG-Konfigurationsordner mit Modus `0600` verwenden.
 
 ### PySide6-Download scheitert
 
-Internetverbindung prüfen und `./setup.sh` erneut ausführen. Eine unvollständige temporäre Umgebung wird entfernt.
+Internetverbindung prüfen und `./setup.sh` erneut ausführen. Die unvollständige temporäre Umgebung wird entfernt.
 
-## 10. Diagnose und Tests
+## 10. Tests
 
 ```bash
-python3 -m src.main --validate-only
 python3 tools/validate_repository.py
 python3 -m unittest discover -s tests -v
+QT_QPA_PLATFORM=offscreen python3 -m unittest tests.test_gui_offscreen -v
 ```
 
-## 11. GitHub-Rechte
+GitHub Actions installiert PySide6 und prüft automatisiert:
 
-GitHub-Schreibrechte werden nicht im Projekt gespeichert. Keine Tokens in Dateien eintragen. Der aktuelle Zugriffsvertrag steht in `docs/GITHUB_ZUGRIFF.md`.
+- alle neun Layoutzonen,
+- Scrollbarkeit,
+- sichtbare Sicherheitsmeldungen,
+- gesperrte Aktionen,
+- keine Dateianlage allein durch den Fensteraufbau.
 
-## 12. Aktuelle Grenze
+## 11. Sicherheitsgrenze
 
-Noch keine privaten oder unersetzlichen Dateibestände bearbeiten. Die XDG-Pfade sind gesichert; produktive Dateiaktionen folgen erst nach transaktionalen Einstellungen, Fehlerzentrale, Papierkorb, Undo und Abbruchschutz.
+Noch keine privaten oder unersetzlichen Dateibestände bearbeiten. Die XDG- und Einstellungsbasis ist gesichert; produktive Funktionen folgen erst nach P0-004 bis P0-008.
+
+## 12. Verbindliche Dokumente
+
+- `docs/XDG_PFADVERTRAG.md`
+- `docs/EINSTELLUNGSVERTRAG.md`
+- `standards/settings-schema-v1.json`
+- `AGENTS.md`

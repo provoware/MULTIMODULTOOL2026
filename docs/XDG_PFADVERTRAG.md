@@ -86,11 +86,11 @@ Eine Fehlermeldung nennt:
 
 - betroffenen Bereich,
 - konkreten Grund,
-- Folge für den Start,
+- Fole für den Start,
 - unveränderten Datenstand,
 - verständlichen Lösungsweg.
 
-Bei Fehlern findet keine automatische Ausweichspeicherung in den Programmordner statt.
+Bei Fehlern findet keine automatische Ausweichsspeicherung in den Programmordner statt.
 
 ## Änderungsregel
 
@@ -101,3 +101,16 @@ Bei Fehlern findet keine automatische Ausweichspeicherung in den Programmordner 
 - Aktualisierung dieser Datei,
 - Prüfung von README, Anleitung, Entwicklerdokumentation, Schwachstellen und Changelog,
 - erfolgreichen Repository-Vertrag und GitHub-Workflow.
+
+
+## Einstellungsdateien im Konfigurationsbereich
+
+Innerhalb des validierten Konfigurationsverzeichnisses verwendet die Anwendung:
+
+- `settings.json` – aktive, schema-geprüfte Einstellungen,
+- `settings.last-valid.json` – letzte gültige Sicherung,
+- `settings.corrupt-<UTC-Zeit>.json` – lokal isolierte beschädigte Datei.
+
+Diese Dateien verwenden Modus `0600`, dürfen keine Symlinks sein und bleiben innerhalb von `XDG_CONFIG_HOME`. Details stehen in `docs/EINSTELLUNGSVERTRAG.md`.
+
+Die rein lesenden Modi `--validate-only` und `--settings-only` dürfen weder XDG-Verzeichnisse noch Einstellungsdateien erzeugen oder verändern.

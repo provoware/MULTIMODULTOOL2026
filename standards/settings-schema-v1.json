@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://provoware.local/schemas/multimodultool2026-settings-v1.json",
+  "title": "MULTIMODULTOOL2026 settings",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "ui",
+    "safety",
+    "workflow"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "ui": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "theme",
+        "fontScalePercent",
+        "showTooltips"
+      ],
+      "properties": {
+        "theme": {
+          "const": "dark"
+        },
+        "fontScalePercent": {
+          "type": "integer",
+          "minimum": 80,
+          "maximum": 200
+        },
+        "showTooltips": {
+          "type": "boolean"
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "defaultDryRun",
+        "confirmDestructiveActions"
+      ],
+      "properties": {
+        "defaultDryRun": {
+          "const": true
+        },
+        "confirmDestructiveActions": {
+          "const": true
+        }
+      }
+    },
+    "workflow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "startArea",
+        "showAdvancedOptions"
+      ],
+      "properties": {
+        "startArea": {
+          "enum": [
+            "start",
+            "analyze",
+            "organize",
+            "reports"
+          ]
+        },
+        "showAdvancedOptions": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

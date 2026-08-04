@@ -1,10 +1,10 @@
 # MULTIMODULTOOL2026
 
-> **Entwicklungsfortschritt: 31 %**  
-> **Erledigte Punkte: 19**  
-> **Offene Punkte: 43**  
-> **Gesamtpunkte: 62**  
-> **Aktuelle Phase:** sichere XDG-Pfadtrennung und workflow-fokussiertes Grundlayout  
+> **Entwicklungsfortschritt: 33 %**  
+> **Erledigte Punkte: 21**  
+> **Offene Punkte: 42**  
+> **Gesamtpunkte: 63**  
+> **Aktuelle Phase:** transaktionale Einstellungen und automatisierter Offscreen-GUI-Vertrag  
 > **Letzte Fortschrittsprüfung:** 2026-08-04
 
 > **Plattformvertrag:** Dieses Projekt wird ausschließlich für Linux-Desktop-Systeme entwickelt. Primäre Zielsysteme sind Kubuntu 22.04 LTS und Kubuntu 24.04 LTS. Windows, macOS, Android und iOS gehören nicht zum Entwicklungs-, Test- oder Releaseumfang.
@@ -43,32 +43,43 @@ Nichtinteraktive, ausdrücklich bestätigte Einrichtung:
 
 ## Aktuell startbarer Stand
 
-Das PySide6-Grundgerüst bildet alle neun verbindlichen Layoutzonen sichtbar ab. Vor dem GUI-Start werden Linux-Plattform, lokale Umgebung, `layout-manifest.json` und der XDG-Pfadvertrag geprüft.
+Das PySide6-Grundgerüst bildet alle neun verbindlichen Layoutzonen sichtbar ab. Vor dem GUI-Start werden Linux-Plattform, lokale Umgebung, `layout-manifest.json`, XDG-Pfade und das versionierte Einstellungsformat geprüft. Beschädigte Einstellungen werden isoliert und automatisch aus der letzten gültigen Sicherung oder sicheren Standardwerten wiederhergestellt. Produktive Dateioperationen bleiben bis Fehlerzentrale, Papierkorb, Undo und Recovery-Worker deaktiviert.
 
-Die Oberfläche wurde workflow-fokussiert überarbeitet: klare nummerierte Arbeitsschritte, sichtbare Sicherheitsgrenzen, ein hervorgehobener nächster Schritt und eine rechte Speicher-/Diagnoseleiste. Noch nicht freigegebene Dateiaktionen bleiben sichtbar gesperrt statt scheinbar funktionsfähig zu wirken.
 
-## Sichere XDG-Speichertrennung
+## Sichere XDG-Pfade und Einstellungen
 
-Beim normalen Start werden sechs private Linux-Benutzerbereiche mit Modus `0700` vorbereitet und mit einer temporären Schreibprobe nachvalidiert:
+Private Laufzeitdaten liegen ausschließlich in Linux-Benutzerverzeichnissen:
 
-| Bereich | Standardpfad |
-|---|---|
-| Konfiguration | `~/.config/multimodultool2026` |
-| Nutzerdaten | `~/.local/share/multimodultool2026` |
-| Cache | `~/.cache/multimodultool2026` |
-| Status | `~/.local/state/multimodultool2026` |
-| Protokolle | `~/.local/state/multimodultool2026/logs` |
-| Sicherungen | `~/.local/share/multimodultool2026/backups` |
+- Konfiguration: `~/.config/multimodultool2026`
+- Nutzerdaten und Sicherungen: `~/.local/share/multimodultool2026`
+- Cache: `~/.cache/multimodultool2026`
+- Status und Logs: `~/.local/state/multimodultool2026`
 
-Vor der Anlage werden absolute Pfade, XDG-Grenzen, Überschneidungen mit dem Programmverzeichnis, doppelte Ziele, vorhandene Dateitypen und Symlinks geprüft. Nach der Anlage werden Existenz, Schreibbarkeit, Verzeichnisrechte und rückstandsfreie Schreibproben erneut geprüft.
+Aktive Einstellungen liegen als `settings.json` mit Modus `0600` im XDG-Konfigurationspfad. Vor jedem Speichern erfolgen Schema-, Feld-, Typ-, Wertebereichs-, Pfad- und Symlinkprüfung. Geschrieben wird über eine temporäre Datei mit `fsync` und atomarem `os.replace`. Die vorherige gültige Version bleibt als `settings.last-valid.json` erhalten.
 
-Nur den Pfadplan anzeigen:
+Rein lesende Diagnose:
 
 ```bash
+python3 -m src.main --validate-only
 python3 -m src.main --paths-only
+python3 -m src.main --settings-only
 ```
 
-`--validate-only` prüft den Pfadplan rein lesend und legt keine Verzeichnisse an. Details: [`docs/XDG_PFADVERTRAG.md`](docs/XDG_PFADVERTRAG.md).
+Verträge:
+
+- [`docs/XDG_PFADVERTRAG.md`](docs/XDG_PFADVERTRAG.md)
+- [`docs/EINSTELLUNGSVERTRAG.md`](docs/EINSTELLUNGSVERTRAG.md)
+- [`standards/settings-schema-v1.json`](standards/settings-schema-v1.json)
+
+## Automatische GUI-Prüfung
+
+GitHub Actions installiert PySide6 und startet die Oberfläche mit `QT_QPA_PLATFORM=offscreen`. Der Smoke-Test prüft ohne Zugriff auf private Nutzerdaten:
+
+- alle neun Layoutzonen,
+- sichtbare textuelle Sicherheitszustände,
+- Scrollbarkeit von Arbeits- und Kontextbereich,
+- deaktivierte, noch nicht freigegebene Aktionen,
+- keine Dateianlage allein durch den Fensteraufbau.
 
 ## Linux-Zielumfang
 
@@ -112,7 +123,7 @@ python3 tools/validate_repository.py
 python3 -m unittest discover -s tests -v
 ```
 
-Der GitHub-Workflow `.github/workflows/repository-contract.yml` prüft bei Push und Pull Request Plattformvertrag, Pflichtdateien, Manifest, Fortschritt, Einrichtungsassistent, XDG-Pfadvertrag, Python-Syntax und Unit-Tests.
+Der GitHub-Workflow `.github/workflows/repository-contract.yml` prüft bei Push und Pull Request Plattformvertrag, Pflichtdateien, Manifest, Fortschritt, Einrichtungsassistent, Python-Syntax und Unit-Tests.
 
 ## Pflichtdokumente
 
@@ -125,7 +136,6 @@ Der GitHub-Workflow `.github/workflows/repository-contract.yml` prüft bei Push 
 | [`UPGRADE_POOL.md`](UPGRADE_POOL.md) | bewertete spätere Linux-Ideen |
 | [`ENTWICKLERDOKU.md`](ENTWICKLERDOKU.md) | Architektur und Prüfungen |
 | [`docs/GITHUB_ZUGRIFF.md`](docs/GITHUB_ZUGRIFF.md) | externer Berechtigungs- und Geheimnisvertrag |
-| [`docs/XDG_PFADVERTRAG.md`](docs/XDG_PFADVERTRAG.md) | Speicherorte, Grenzen, Rechte und Fehlerverhalten |
 
 ## Projektstruktur
 
@@ -145,15 +155,18 @@ Der GitHub-Workflow `.github/workflows/repository-contract.yml` prüft bei Push 
 ├── setup.sh
 ├── start.sh
 ├── docs/GITHUB_ZUGRIFF.md
-├── docs/XDG_PFADVERTRAG.md
 ├── src/
-│   └── xdg_paths.py
-├── tests/
-│   ├── test_setup_assistant.py
-│   └── test_xdg_paths.py
+├── tests/test_setup_assistant.py
 └── tools/setup_assistant.py
 ```
 
 ## Aktuelle Grenze
 
-Die Linux-Ersteinrichtung und XDG-Speichertrennung sind umgesetzt. Eine physische Erstinstallationsabnahme auf frischen Kubuntu-22.04- und 24.04-Systemen bleibt offen. Der direkt folgende Schritt ist `P0-003`: transaktionale Einstellungen mit Schema, Backup und Rollback.
+Die Einrichtung ist automatisiert, aber der Download von PySide6 benötigt derzeit Internetzugang. Eine physische Erstinstallationsabnahme auf frischen Kubuntu-22.04- und 24.04-Systemen bleibt offen. Der direkt folgende Schritt ist `P0-002`: XDG-konforme Trennung von Programm-, Konfigurations-, Daten-, Cache- und Statuspfaden.
+
+## Prüfungen
+
+- Repository-Vertrag
+- Linux-, Manifest-, XDG- und Einstellungsprüfung
+- Unit-Tests
+- Offscreen-GUI-Smoke-Test

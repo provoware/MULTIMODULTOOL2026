@@ -14,17 +14,27 @@ Dieses Repository wird als modulares, laienoptimiertes, transparentes und datens
 6. Nicht-Linux-Systeme werden beim Start verständlich blockiert; es werden keine Daten verändert.
 7. Linux-native Standards wie XDG-Verzeichnisse, POSIX-Pfade, Desktop-Dateien und sichere Dateirechte haben Vorrang.
 
+
 ## Verbindlicher XDG-Pfadvertrag
 
-- Programmcode, Konfiguration, Nutzerdaten, Cache, Status, Logs und Sicherungen werden logisch getrennt.
-- Konfiguration liegt unter `XDG_CONFIG_HOME`, Nutzerdaten unter `XDG_DATA_HOME`, Cache unter `XDG_CACHE_HOME` und Status/Logs unter `XDG_STATE_HOME`.
-- Fehlen XDG-Variablen, gelten die üblichen Linux-Standardpfade im Benutzerverzeichnis.
-- App-spezifische Verzeichnisse werden mit Modus `0700` angelegt.
-- Relative XDG-Werte, Ziele im Programmverzeichnis, doppelt belegte Top-Level-Ziele, App-Symlinks und Nicht-Verzeichnisse blockieren den Start.
-- Jede Anlage benötigt Vorvalidierung, Nachvalidierung und eine rückstandsfreie Schreibprobe.
-- `--validate-only` bleibt rein lesend und darf keine XDG-Verzeichnisse anlegen.
-- Private vollständige Benutzerpfade werden nicht unnötig protokolliert oder in portable Projektdateien geschrieben.
+- Programmcode und private Laufzeitdaten bleiben strikt getrennt.
+- Konfiguration, Daten, Cache, Status, Logs und Sicherungen liegen ausschließlich in validierten XDG-Benutzerpfaden.
+- App-Verzeichnisse verwenden `0700`.
+- Relative Pfade, Ziele im Quellbaum, Symlinks, Doppelziele und unbeschreibbare Ziele blockieren den Start.
+- Rein lesende Prüfungen dürfen keine XDG-Verzeichnisse anlegen.
 - Verbindliche Details: `docs/XDG_PFADVERTRAG.md`.
+
+## Verbindlicher Einstellungsvertrag
+
+- Einstellungen liegen ausschließlich als `settings.json` im validierten XDG-Konfigurationspfad.
+- Aktuelle `schemaVersion` ist 1; unbekannte Versionen und Felder werden blockiert.
+- Aktive Datei und Sicherung verwenden `0600`.
+- Jeder Schreibvorgang benötigt Vorvalidierung, temporäre Datei, `fsync`, Nachvalidierung und atomaren Austausch.
+- Die letzte gültige Version wird als `settings.last-valid.json` gesichert.
+- Beschädigte Dateien werden isoliert und automatisch aus Sicherung oder sicheren Standardwerten wiederhergestellt.
+- `--validate-only` und `--settings-only` bleiben rein lesend.
+- Einstellungen enthalten keine Tokens, Passwörter oder privaten Schlüssel.
+- Verbindliche Details: `docs/EINSTELLUNGSVERTRAG.md` und `standards/settings-schema-v1.json`.
 
 ## Verbindliche UI-Basis
 
@@ -73,7 +83,8 @@ Die Datei `assets/ui-reference/multimodultool2026-ui-layout-reference-2026.webp`
 
 - direkt betroffene Syntax, Formate und Funktionen prüfen
 - `python3 -m src.main --validate-only` ausführen
-- XDG-Pfadplan, Quellbaumtrennung und direkt betroffene XDG-Tests prüfen, wenn Speicherorte oder Startfluss betroffen sind
+- bei Einstellungsänderungen `python3 -m src.main --settings-only` und `tests/test_settings_manager.py` ausführen
+- bei UI-Änderungen den Qt-Offscreen-Smoke-Test unter `QT_QPA_PLATFORM=offscreen` ausführen
 - `python3 tools/validate_repository.py` ausführen
 - relevante Unit-Tests ausführen
 - auf Kubuntu, KDE Plasma, X11 und Wayland bezogene Auswirkungen prüfen, wenn Laufzeit oder UI betroffen sind
@@ -92,6 +103,7 @@ In jeder Iteration werden alle folgenden Dateien auf Änderungsbedarf geprüft. 
 - `ENTWICKLERDOKU.md`: bei Änderungen an Architektur, Schnittstellen, Linux-Datenfluss, Build, Tests oder Abhängigkeiten aktualisieren
 - `docs/GITHUB_ZUGRIFF.md`: bei Änderungen an Zugriffsmodell, App-Installation, Berechtigungsprüfung oder Sicherheitsregeln aktualisieren
 - `docs/XDG_PFADVERTRAG.md`: bei Änderungen an Speicherorten, Pfadgrenzen, Rechten, Symlinkregeln oder Schreibvalidierung aktualisieren
+- `docs/EINSTELLUNGSVERTRAG.md`: bei Änderungen an Version, Schema, Speicherweg, Dateirechten, Backup oder Rollback aktualisieren
 - `README.md`: den Fortschrittsblock ganz oben in jeder Iteration mit **Entwicklungsfortschritt**, **Erledigte Punkte**, **Offene Punkte** und **Gesamtpunkte** aus `TODO.md` aktualisieren
 
 Ist bei einem Dokument keine Änderung nötig, wird es nicht künstlich verändert. Im Validierungsbericht wird dennoch festgehalten, dass der Änderungsbedarf geprüft wurde.
