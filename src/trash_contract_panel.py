@@ -1,13 +1,18 @@
-"""Read-only Qt panel for the project trash safety contract.
+"""Read-only Qt panel for project trash and transaction history.
 
 PySide6 is injected by the caller so the module remains importable without GUI
-dependencies. The panel exposes no delete, empty-trash, upload or execute action.
+dependencies. The panel exposes no restore, repair, delete, empty-trash, upload
+or export action.
 """
 
 from __future__ import annotations
 
 
-def build_trash_contract_panel(QtWidgets):
+def build_trash_contract_panel(QtWidgets, transaction_snapshot=None):
+    from .transaction_overview import TransactionSnapshot
+
+    snapshot = transaction_snapshot or TransactionSnapshot(())
+
     panel = QtWidgets.QFrame()
     panel.setObjectName("trashContractPanel")
     layout = QtWidgets.QVBoxLayout(panel)
@@ -33,6 +38,7 @@ def build_trash_contract_panel(QtWidgets):
         "✓ Projektordner 0700, Manifest 0600\n"
         "✓ os.replace statt Kopieren-und-Löschen\n"
         "✓ Mountwechsel, Symlinks, Hardlinks und Konflikte blockiert\n"
+        "✓ append-only Undo-/Redo-Journal mit Hashkette\n"
         "✓ Wiederherstellung nur bei unverändertem Payload\n"
         "✗ keine dauerhafte Löschung"
     )
@@ -56,6 +62,91 @@ def build_trash_contract_panel(QtWidgets):
 
     preview_button = QtWidgets.QPushButton("Nur Vertragsvorschau")
     preview_button.setObjectName("trashPreviewOnlyButton")
-    preview_button.setToolTip("Zeigt ausschließlich den Sicherheitsvertrag; führt keine Dateiaktion aus.")
+    preview_button.setToolTip(
+        "Zeigt ausschließlich den Sicherheitsvertrag; führt keine Dateiaktion aus."
+    )
     layout.addWidget(preview_button)
+
+    overview = QtWidgets.QFrame()
+    overview.setObjectName("transactionOverview")
+    overview_layout = QtWidgets.QVBoxLayout(overview)
+    overview_layout.setContentsMargins(10, 10, 10, 10)
+    overview_title = QtWidgets.QLabel("Transaktionsübersicht – ausschließlich lesend")
+    overview_title.setObjectName("sectionTitle")
+    overview_title.setWordWrap(True)
+    overview_layout.addWidget(overview_title)
+
+    filter_row = QtWidgets.QHBoxLayout()
+    filter_label = QtWidgets.QLabel("Zustand:")
+    state_filter = QtWidgets.QComboBox()
+    state_filter.setObjectName("transactionStateFilter")
+    state_filter.addItem("Alle", "all")
+    state_filter.addItem("Vorbereitet", "prepared")
+    state_filter.addItem("Im Papierkorb", "trashed")
+    state_filter.addItem("Wiederhergestellt", "restored")
+    state_filter.addItem("Beschädigt", "damaged")
+    filter_row.addWidget(filter_label)
+    filter_row.addWidget(state_filter, 1)
+    overview_layout.addLayout(filter_row)
+
+    listing = QtWidgets.QListWidget()
+    listing.setObjectName("transactionList")
+    listing.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.SingleSelection)
+    overview_layout.addWidget(listing)
+
+    detail = QtWidgets.QPlainTextEdit()
+    detail.setObjectName("transactionDetail")
+    detail.setReadOnly(True)
+    detail.setPlaceholderText(
+        "Keine Transaktion ausgewählt. Die Ansicht verändert keine Manifeste."
+    )
+    overview_layout.addWidget(detail)
+
+    notice = QtWidgets.QLabel(
+        "Kein Wiederherstellen · kein Reparieren · kein Löschen · kein Upload · kein Export"
+    )
+    notice.setObjectName("transactionReadOnlyNotice")
+    notice.setProperty("safetyStatus", True)
+    notice.setWordWrap(True)
+    overview_layout.addWidget(notice)
+    layout.addWidget(overview)
+
+    def populate() -> None:
+        listing.clear()
+        state = str(state_filter.currentData() or "all")
+        entries = snapshot.filtered(state)
+        for entry in entries:
+            item = QtWidgets.QListWidgetItem(
+                f"{entry.state.upper()} · {entry.transaction_id}"
+            )
+            item.setData(256, entry)
+            listing.addItem(item)
+        if listing.count():
+            listing.setCurrentRow(0)
+        else:
+            detail.setPlainText(
+                "Keine passenden Transaktionen vorhanden. "
+                "Die Übersicht hat keine Datei oder kein Manifest verändert."
+            )
+
+    def show_selected() -> None:
+        item = listing.currentItem()
+        if item is None:
+            return
+        entry = item.data(256)
+        detail.setPlainText(
+            "\n".join(
+                (
+                    f"Transaktions-ID: {entry.transaction_id}",
+                    f"Zustand: {entry.state}",
+                    f"Erstellt: {entry.created_utc or 'nicht lesbar'}",
+                    f"Originalpfad: {entry.original_relative_path or 'nicht lesbar'}",
+                    f"Hinweis: {entry.detail or 'Manifest gültig; nur Anzeige.'}",
+                )
+            )
+        )
+
+    state_filter.currentIndexChanged.connect(populate)
+    listing.currentItemChanged.connect(lambda *_args: show_selected())
+    populate()
     return panel
