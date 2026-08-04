@@ -1,4 +1,4 @@
-"""Linux-Desktop-App mit XDG-, Fehler-, Instanz- und Papierkorbschutz."""
+"""Linux-Desktop-App mit XDG-, Fehler-, Instanz-, Papierkorb- und Journal-Schutz."""
 
 from __future__ import annotations
 
@@ -32,6 +32,7 @@ from .single_instance import (
     SingleInstanceCoordinator,
     resolve_runtime_root,
 )
+from .trash_contract_panel import build_trash_contract_panel
 from .xdg_paths import (
     XDGPaths,
     ensure_xdg_paths,
@@ -42,9 +43,9 @@ from .xdg_paths import (
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_PATH = PROJECT_ROOT / "layout-manifest.json"
-DEVELOPMENT_PROGRESS = 41
-COMPLETED_POINTS = 27
-OPEN_POINTS = 39
+DEVELOPMENT_PROGRESS = 43
+COMPLETED_POINTS = 29
+OPEN_POINTS = 38
 ZONE_OBJECT_NAMES = (
     "header",
     "navigation",
@@ -158,6 +159,7 @@ def build_window(
     window.setWindowTitle("MULTIMODULTOOL2026 – Linux")
     window.resize(1500, 900)
     window.setMinimumSize(1024, 680)
+
     central = QtWidgets.QWidget()
     grid = QtWidgets.QGridLayout(central)
     grid.setContentsMargins(12, 12, 12, 12)
@@ -173,7 +175,7 @@ def build_window(
     identity.addWidget(
         _label(
             QtWidgets,
-            "Eine Instanz · atomarer Projektpapierkorb · lokale Diagnose.",
+            "Eine Instanz · atomarer Projektpapierkorb · append-only Undo/Redo · lokale Diagnose.",
             "smallMuted",
         )
     )
@@ -182,7 +184,7 @@ def build_window(
     header_layout.addWidget(
         _label(
             QtWidgets,
-            "● INSTANZ-, PAPIERKORB- UND FEHLERPRÜFUNG GRÜN",
+            "● INSTANZ-, PAPIERKORB-, JOURNAL- UND FEHLERPRÜFUNG GRÜN",
             "statusOk",
             safety=True,
         )
@@ -190,15 +192,15 @@ def build_window(
     grid.addWidget(header, 0, 0, 1, 3)
 
     navigation = _zone(QtWidgets.QFrame(), "navigation", 2)
-    navigation.setFixedWidth(198)
+    navigation.setFixedWidth(204)
     nav = QtWidgets.QVBoxLayout(navigation)
     nav.addWidget(_label(QtWidgets, "HAUPTBEREICHE", "navTitle"))
     nav.addWidget(_button(QtWidgets, "⌂  Start"))
     trash_button = _button(
         QtWidgets,
-        "♲  Papierkorbvertrag",
+        "♲  Papierkorb & Verlauf",
         name="trashNavigation",
-        tooltip="Atomaren, wiederherstellbaren Projektpapierkorb anzeigen.",
+        tooltip="Papierkorbvertrag, Undo/Redo und Transaktionsübersicht anzeigen.",
     )
     trash_button.setProperty("active", True)
     nav.addWidget(trash_button)
@@ -209,7 +211,7 @@ def build_window(
         tooltip="Lokale bereinigte Ereignisse ausschließlich lesend anzeigen.",
     )
     nav.addWidget(diagnosis_button)
-    lock_tip = "Noch gesperrt, bis Undo und Wiederanlauf vollständig geprüft sind."
+    lock_tip = "Noch gesperrt, bis Abbruch und Wiederanlauf vollständig geprüft sind."
     for text in (
         "⌕  Analysieren",
         "▣  Duplikate",
@@ -243,9 +245,9 @@ def build_window(
     settings_status = "WIEDERHERGESTELLT" if settings_result.recovered else "1 / 1 GRÜN"
     for title, value, detail in (
         ("Instanzschutz", "1 PRIMÄR", "Unix-Socket · Peer-UID"),
-        ("Papierkorb", "ATOMAR", "Vorschau · Manifest · Restore"),
+        ("Dateischutz", "UNDO/REDO", "atomar · hashverkettet"),
         ("Diagnose", str(len(snapshot.entries)), "lokal · lesend · gefiltert"),
-        ("Entwicklung", "41 %", "27 erledigt · 39 offen"),
+        ("Entwicklung", "43 %", "29 erledigt · 38 offen"),
     ):
         cards.addWidget(_panel(QtWidgets, title, f"{value}\n{detail}", "card"))
     grid.addWidget(summary, 1, 1)
@@ -257,7 +259,7 @@ def build_window(
         "2\nQuelle prüfen",
         "3\nVorschau",
         "4\nFreigabe",
-        "5\nAtomar verschieben",
+        "5\nAtomar anwenden",
         "6\nBericht",
     ):
         action_layout.addWidget(
@@ -266,7 +268,7 @@ def build_window(
                 text,
                 enabled=False,
                 name="lockedPrimaryAction",
-                tooltip="Papierkorb-Kern aktiv; geführte Projektauswahl folgt mit P1-001/P1-003.",
+                tooltip="Undo/Redo-Kern aktiv; geführte Projektauswahl folgt mit P1-001/P1-003.",
             )
         )
     grid.addWidget(actions, 2, 1)
@@ -277,13 +279,13 @@ def build_window(
     flow.addWidget(
         _label(
             QtWidgets,
-            "1 Projekt  →  2 Pfadprüfung  →  3 Vorschau  →  4 Transaktion  →  5 Restore",
+            "1 Vorschau → 2 Intent → 3 Transaktion → 4 Journalabschluss → 5 Undo/Redo",
             "sectionTitle",
         )
     )
     progress = QtWidgets.QProgressBar()
     progress.setValue(DEVELOPMENT_PROGRESS)
-    progress.setFormat("Entwicklungsstand: 41 %")
+    progress.setFormat("Entwicklungsstand: 43 %")
     flow.addWidget(progress)
     grid.addWidget(workflow, 3, 1)
 
@@ -292,32 +294,21 @@ def build_window(
     work.addWidget(
         _panel(
             QtWidgets,
-            "P0-006 abgeschlossen",
-            "Destruktive Dateiaktionen dürfen reguläre Dateien und Verzeichnisse nur "
-            "innerhalb desselben Dateisystems atomar in einen projektbezogenen, "
-            "wiederherstellbaren Papierkorb verschieben.",
+            "P0-007 abgeschlossen",
+            "Jede freigegebene Papierkorbaktion erhält eine eindeutige Aktions-ID, "
+            "mindestens eine Transaktions-ID und eine absturzsicher angehängte, "
+            "hashverkettete Ereignisfolge. Undo arbeitet rückwärts, Redo vorwärts.",
             "hero",
         )
     )
-    trash_contract = _panel(
-        QtWidgets,
-        "Papierkorb-Sicherheitsvertrag",
-        "✓ unveränderliche Vorschau und Quellfingerabdruck\n"
-        "✓ eindeutige Transaktions-ID und Manifest mit 0600\n"
-        "✓ private Projektordner mit 0700\n"
-        "✓ os.replace statt Kopieren-und-Löschen\n"
-        "✓ Mountwechsel, Symlinks, Hardlinks und Konflikte blockiert\n"
-        "✓ Wiederherstellung nur bei unverändertem Payload und freiem Originalpfad\n"
-        "✗ keine dauerhafte Löschung",
-        "trashContractPanel",
-    )
+    trash_contract = build_trash_contract_panel(QtWidgets)
     work.addWidget(trash_contract)
     work.addWidget(
         _panel(
             QtWidgets,
             "Aktuelle Bediengrenze",
-            "Die Transaktions-API ist geprüft. Die grafische Datei- und Projektwahl bleibt "
-            "gesperrt, bis P1-001 und P1-003 sichere Auswahldialoge bereitstellen.",
+            "Journal, Undo/Redo und read-only Transaktionsübersicht sind geprüft. "
+            "Die produktive Projekt- und Dateiauswahl bleibt bis P1-001/P1-003 gesperrt.",
             "warningPanel",
         )
     )
@@ -329,6 +320,7 @@ def build_window(
             notes.append("Die Ansicht wurde auf die neuesten sicheren Einträge begrenzt.")
         work.addWidget(_panel(QtWidgets, "Diagnosehinweis", "\n".join(notes)))
     work.addStretch(1)
+
     workspace_scroll = _zone(QtWidgets.QScrollArea(), "workspaceScroll", 6)
     workspace_scroll.setWidgetResizable(True)
     workspace_scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -338,6 +330,15 @@ def build_window(
 
     context_body = QtWidgets.QWidget()
     context_layout = QtWidgets.QVBoxLayout(context_body)
+    context_layout.addWidget(
+        _panel(
+            QtWidgets,
+            "Undo-/Redo-Status",
+            "Append-only JSONL · Aktions- und Transaktions-IDs · SHA-256-Hashkette · "
+            "Journal 0600 · Intent/Abschluss-Recovery.",
+            "undoRedoStatusPanel",
+        )
+    )
     context_layout.addWidget(
         _panel(
             QtWidgets,
@@ -394,7 +395,7 @@ def build_window(
     bottom = QtWidgets.QHBoxLayout(action_bar)
     activation_status = _label(
         QtWidgets,
-        "✓ Primärinstanz aktiv · Papierkorb atomar · Diagnose ausschließlich lesend",
+        "✓ Primärinstanz aktiv · Papierkorb atomar · Undo/Redo hashverkettet · Diagnose lesend",
         "statusOk",
         safety=True,
     )
@@ -415,13 +416,17 @@ def build_window(
     footer_layout.addWidget(
         _label(
             QtWidgets,
-            "🛡 Peer-UID · Projektpapierkorb 0700 · Manifest 0600 · Journal 0600",
+            "🛡 Peer-UID · Projektpapierkorb 0700 · Manifest/Journal 0600 · Hashkette",
             safety=True,
         )
     )
     footer_layout.addStretch(1)
     footer_layout.addWidget(
-        _label(QtWidgets, "🔒 Keine dauerhafte Löschung · kein Upload · kein Auto-Export", safety=True)
+        _label(
+            QtWidgets,
+            "🔒 Kein dauerhaftes Löschen · keine Reparatur · kein Upload · kein Auto-Export",
+            safety=True,
+        )
     )
     grid.addWidget(footer, 6, 0, 1, 3)
 
@@ -473,7 +478,11 @@ def run_gui(
         from PySide6 import QtCore, QtWidgets
     except ImportError as exc:
         event = event_center.capture(
-            event_from_exception(exc, category="pyside6-import", context="PySide6 konnte nicht geladen werden.")
+            event_from_exception(
+                exc,
+                category="pyside6-import",
+                context="PySide6 konnte nicht geladen werden.",
+            )
         )
         print(format_event_for_user(event), file=sys.stderr)
         coordinator.close()
