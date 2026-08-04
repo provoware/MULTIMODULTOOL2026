@@ -12,10 +12,10 @@
 
 ## Fortschritt
 
-- Erledigt: **25**
-- Offen: **40**
-- Gesamt: **65**
-- Rechnerischer Entwicklungsfortschritt: **38 %**
+- Erledigt: **27**
+- Offen: **39**
+- Gesamt: **66**
+- Rechnerischer Entwicklungsfortschritt: **41 %**
 
 ## Erledigte Grundlagen
 
@@ -39,6 +39,7 @@
 - [x] **D-018** – Qt-Offscreen-GUI-Smoke-Test integriert.
 - [x] **D-019** – Zehnstufige Failpoint-Matrix für Einstellungen ergänzt.
 - [x] **D-020** – Rein lesende Diagnosezentrale mit Schweregrad-/Kennungsfilter und Kopierfunktion integriert. Abhängigkeit: `P0-004` | Abnahme: kein Löschen, Upload oder Auto-Export; Journalbytes bleiben unverändert. | Risiko: **niedrig**
+- [x] **D-021** – Parallelstart-Stresstest mit 20 nahezu gleichzeitigen Zweitstarts ergänzt. Abhängigkeit: `P0-005` | Abnahme: genau eine Primärinstanz, jede Kennung höchstens einmal, keine Socket- oder Metadatenreste. | Risiko: **niedrig**
 
 ## P0 – Startfähigkeit, Datensicherheit und Releaseblocker
 
@@ -47,7 +48,7 @@
 - [x] **P0-003** – Versionierte transaktionale Einstellungen mit Backup und Rollback. | Risiko: **hoch**
 - [x] **P0-004** – Zentrale Fehler- und Ereignisschicht mit globalem Dialog. | Risiko: **hoch**
 - [x] **P0-005** – Sicherer Linux-Single-Instance-Schutz. Abhängigkeit: `P0-002,P0-004` | Abnahme: zweiter Start aktiviert die bestehende Instanz; nur erlaubte Nachrichten; Peer-UID-Prüfung; veraltete Sperren sicher wiederhergestellt; beschädigte Sperren unverändert blockiert. | Risiko: **hoch**
-- [ ] **P0-006** – Papierkorbvertrag für destruktive Dateiaktionen. Abhängigkeit: `P0-002,P0-004` | Abnahme: Löschen verschiebt standardmäßig in einen wiederherstellbaren Projektpapierkorb. | Risiko: **hoch**
+- [x] **P0-006** – Atomaren, projektbezogenen Papierkorbvertrag implementieren. Abhängigkeit: `P0-002,P0-004` | Abnahme: Vorschau bleibt read-only; reguläre Dateien/Ordner werden nur per `os.replace` innerhalb desselben Dateisystems verschoben; Transaktionsmanifest und Restore sind geprüft; Symlink-, Hardlink-, Mount-, Speicher- und Konfliktzustände blockieren. | Risiko: **hoch**
 - [ ] **P0-007** – Undo-/Redo-Protokoll mit eindeutigen Aktions-IDs. Abhängigkeit: `P0-006` | Abnahme: zehn reversible Aktionen werden korrekt zurückgenommen. | Risiko: **hoch**
 - [ ] **P0-008** – Abbruch- und Wiederanlaufvertrag für lange Operationen. Abhängigkeit: `P0-003,P0-004` | Abnahme: Abbruch bleibt konsistent; Wiederaufnahme erzeugt keine Doppeloperation. | Risiko: **hoch**
 - [ ] **P0-009** – Installierbaren Linux-Releasekandidaten paketieren. Abhängigkeit: `P0-001,P0-004,P0-008` | Abnahme: Installation, Start und Deinstallation auf frischer Kubuntu-VM. | Risiko: **hoch**
