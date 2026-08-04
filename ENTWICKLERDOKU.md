@@ -6,151 +6,139 @@
 - Kubuntu 22.04/24.04, KDE Plasma, X11/Wayland, x86-64
 - Python 3.10+
 - PySide6 / Qt Widgets
-- Standardbibliothek für Setup, Manifest, XDG, Einstellungen und Repository-Prüfung
 - Start: `./start.sh`
 - Einrichtung: `./setup.sh`
-- Einstellungsformat: `schemaVersion` 1
+- Fortschritt: 36 Prozent, 23 erledigt, 41 offen
 
 ## 2. Startfluss
 
 ```text
 start.sh
-  ├─ Linux, Python, .venv und PySide6 prüfen
-  ├─ bei Bedarf setup.sh / tools/setup_assistant.py
-  ├─ python -m src.main --validate-only
-  │    ├─ Linux-Plattform prüfen
-  │    ├─ layout-manifest.json prüfen
-  │    ├─ XDG-Pfadplan rein lesend prüfen
-  │    └─ Einstellungen und Recovery-Möglichkeit rein lesend prüfen
+  ├─ Linux/Python/.venv/PySide6 prüfen
+  ├─ bei Bedarf setup.sh
   └─ python -m src.main
-       ├─ XDG-Verzeichnisse vor-/nachvalidieren und mit 0700 vorbereiten
-       ├─ settings.json laden
-       ├─ bei Defekt Backup oder Standardwerte atomar aktivieren
+       ├─ Plattform und Manifest rein lesend prüfen
+       ├─ XDG-Pfade berechnen und sicher anlegen
+       ├─ EventJournal im XDG-Logpfad validieren
+       ├─ Einstellungen laden oder wiederherstellen
+       ├─ Recovery-Ereignis zentral protokollieren
+       ├─ SafeApplication + Exception-Hooks installieren
        └─ Qt-Oberfläche mit Z01–Z09 starten
 ```
 
-## 3. Einstellungsarchitektur
+## 3. Fehler- und Ereignisarchitektur
 
-### Dateien
+### `src/error_events.py`
 
-| Datei | Aufgabe |
-|---|---|
-| `src/settings_manager.py` | Validierung, Lesen, atomarer Schreibweg, Sicherung, Quarantäne und Recovery |
-| `standards/settings-schema-v1.json` | maschinenlesbarer Strukturvertrag |
-| `docs/EINSTELLUNGSVERTRAG.md` | Sicherheits- und Betriebsvertrag |
-| `tests/test_settings_manager.py` | 15 transaktionale Regressionstests |
+- `ErrorEvent`: unveränderlicher Nutzer- und Logvertrag
+- `create_event()`: erzwingt alle Pflichtfelder
+- `event_from_exception()`: übersetzt beliebige Ausnahmen
+- `event_from_messages()`: übersetzt Listen aus Validatoren
+- `event_from_settings_result()`: übersetzt Recovery/Blockade
+- `SafeOperationError`: verbindliche spätere Dateioperationsfehler
+- `EventJournal`: private JSONL-Datei mit `0600` und `fsync`
+- `ErrorEventCenter`: zentraler In-Memory-/Journal-Verteiler
+- `install_exception_hooks()`: Hauptthread und Worker-Threads
 
-### Datenmodell
+### `src/error_dialog.py`
 
-```json
-{
-  "schemaVersion": 1,
-  "ui": {
-    "theme": "dark",
-    "fontScalePercent": 100,
-    "showTooltips": true
-  },
-  "safety": {
-    "defaultDryRun": true,
-    "confirmDestructiveActions": true
-  },
-  "workflow": {
-    "startArea": "start",
-    "showAdvancedOptions": false
-  }
-}
-```
+Der Qt-Dialog bleibt vom Kernmodul getrennt. `error_events.py` importiert PySide6 nicht und bleibt in CI/Diagnose ohne GUI-Abhängigkeit testbar.
 
-Unbekannte Felder sind verboten. Sicherheitswerte `defaultDryRun` und `confirmDestructiveActions` müssen im aktuellen Entwicklungsstand `true` bleiben.
+Objektkennungen:
 
-## 4. Transaktionaler Schreibalgorithmus
+- `errorCause`
+- `errorConsequence`
+- `errorDataState`
+- `errorSolution`
+- `errorDiagnosticId`
+- `errorNextStep`
 
-1. Python-Datenmodell vollständig validieren.
-2. XDG-Konfigurationspfad und Zieldateien prüfen.
-3. Temporäre Datei im selben Verzeichnis mit `0600` erzeugen.
-4. vollständiges JSON schreiben und Dateideskriptor mit `fsync` bestätigen.
-5. temporäre Datei erneut einlesen und validieren.
-6. aktive gültige Datei atomar als `settings.last-valid.json` sichern.
-7. temporäre Datei per `os.replace` aktivieren.
-8. aktive Datei und Verzeichnis nachvalidieren und mit `fsync` bestätigen.
-9. bei Fehler temporäre Reste entfernen und vorhandene aktive Datei erhalten.
-10. schlägt eine Nachvalidierung nach Austausch fehl, Rollback aus Sicherung ausführen.
+### `src/main.py`
 
-## 5. Recovery
+- `cli_entrypoint()` fängt unerwartete Bootstrap-Ausnahmen ab.
+- `SafeApplication.notify()` fängt Qt-Ereignisausnahmen ab.
+- ein Qt-Signal transportiert Worker-/Hook-Ereignisse sicher in den GUI-Thread.
+- Manifest-, XDG- und Settings-Fehler verwenden denselben Vertrag.
+
+## 4. Datenschutz
+
+`sanitize_text()`:
+
+- ersetzt Benutzerverzeichnis durch `~`,
+- entfernt typische GitHub-Token, Bearer-, Passwort-, Secret- und API-Key-Muster,
+- entfernt Steuerzeichen,
+- begrenzt Länge technischer Details.
+
+Das Journal enthält keine privaten Dateiinhalte. Eine vollständige Logrotation folgt erst mit `P3-003`.
+
+## 5. Einstellungs-Failpoints
+
+`write_settings(..., failpoint=...)` akzeptiert optional einen Test-Hook. Ohne Hook bleibt das Produktionsverhalten unverändert.
+
+Deklarierte Punkte:
 
 ```text
-settings.json gültig
-  └─ normal laden
-
-settings.json beschädigt
-  ├─ als settings.corrupt-<UTC>.json isolieren
-  ├─ settings.last-valid.json prüfen
-  ├─ gültig: atomar wiederherstellen
-  └─ ungültig/fehlend: sichere Standardwerte atomar schreiben
+before_temp_write
+after_temp_write
+before_fsync
+after_fsync
+before_backup
+after_backup
+before_replace
+after_replace
+before_postvalidate
+after_postvalidate
 ```
 
-Rein lesende Modi melden den geplanten Recovery-Weg, führen ihn aber nicht aus.
+`FailpointController` löst genau am gewählten Punkt `InjectedFailpoint` aus. Der Transaktionscode entfernt temporäre Dateien und liefert ein blockiertes, diagnostizierbares Ergebnis.
 
-## 6. GUI-Zonenvertrag
+## 6. Zustandsinvariante
 
-`src.main.ZONE_OBJECT_NAMES` enthält exakt:
+Nach jedem simulierten Ausfall gilt:
 
-1. `header`
-2. `navigation`
-3. `summaryCards`
-4. `primaryActionTiles`
-5. `workflowPanel`
-6. `workspaceScroll`
-7. `contextRail`
-8. `actionBar`
-9. `footer`
+```text
+aktive Einstellungen ∈ {vollständige alte Version, vollständige neue Version}
+```
 
-Jede Zone besitzt zusätzlich `zoneId` von `Z01` bis `Z09`.
+Zusätzlich:
 
-## 7. Offscreen-GUI-Smoke-Test
+- jede vorhandene Sicherung ist JSON- und schema-gültig,
+- keine temporäre Datei bleibt zurück,
+- keine Teilkonfiguration wird akzeptiert.
 
-`tests/test_gui_offscreen.py` verwendet `QT_QPA_PLATFORM=offscreen` und prüft:
+## 7. Wichtige Dateien
 
-- neun vorhandene und sichtbare Zonen,
-- korrekte Zonen-IDs,
-- scrollbaren Haupt- und Kontextbereich,
-- textuell sichtbare Sicherheitszustände,
-- sechs deaktivierte Hauptaktionen mit Tooltip,
-- keine Anlage der übergebenen Nutzerdatenpfade.
+| Datei | Verantwortung |
+|---|---|
+| `src/error_events.py` | zentrales Ereignismodell, Filter, Hooks, Journal |
+| `src/error_dialog.py` | globaler Qt-Fehlerdialog |
+| `src/main.py` | Bootstrap-, XDG-, Settings- und Qt-Integration |
+| `src/settings_manager.py` | atomare Einstellungen und Failpoints |
+| `tests/test_error_events.py` | Ereignis-, Journal-, Filter- und Hooktests |
+| `tests/test_settings_failpoints.py` | zehnstufige Ausfallmatrix |
+| `tests/test_gui_offscreen.py` | Zonen-, Scroll-, Sperr- und Dialogprüfung |
+| `docs/FEHLER_UND_EREIGNISVERTRAG.md` | verbindlicher Nutzer-/Sicherheitsvertrag |
 
-GitHub Actions installiert PySide6 erst nach den Standardbibliotheksprüfungen und führt den Test separat aus.
-
-## 8. Rückgabecodes von `src.main`
-
-- `0`: Prüfung erfolgreich oder GUI regulär beendet
-- `2`: Manifest ungültig
-- `3`: PySide6 fehlt
-- `4`: Nicht-Linux-System
-- `5`: XDG-Pfadprüfung blockiert
-- `6`: Einstellungsprüfung oder Recovery blockiert
-
-## 9. Lokale Prüfungen
+## 8. Lokale Prüfungen
 
 ```bash
+python3 -m py_compile src/*.py tests/*.py tools/*.py
 python3 -m src.main --validate-only
-python3 -m src.main --settings-only
 python3 tools/validate_repository.py
-python3 -m unittest tests.test_settings_manager -v
 python3 -m unittest discover -s tests -v
+python3 -m unittest tests.test_settings_failpoints -v
 QT_QPA_PLATFORM=offscreen python3 -m unittest tests.test_gui_offscreen -v
-python3 -m py_compile src/main.py src/settings_manager.py tests/test_settings_manager.py tests/test_gui_offscreen.py
 ```
 
-## 10. Sicherheitsregeln
+## 9. Entwicklungsregeln
 
-- keine Einstellungen, Logs oder Nutzerdaten im Quellbaum
-- keine Symlinks für App-Konfigurationsdateien
-- keine unbekannten Felder oder stillen Versionsannahmen
-- keine Passwörter, Tokens oder privaten Schlüssel in Einstellungen
-- keine produktive Dateiaktion ohne Vorschau und Recovery-Pfad
-- Geschäftslogik bleibt von Widgets getrennt
-- Prüfmodi bleiben ohne PySide6 und ohne Schreibzugriff nutzbar
+- Fehlerlogik bleibt von Widgets getrennt.
+- neue Dateioperationen verwenden zentrale Ereignistypen.
+- technische Details dürfen Pflichtfelder nicht ersetzen.
+- keine Geheimnisse oder private Dateiinhalte in Journal/Dialogs.
+- kein Start ohne sicheres Ereignisjournal nach XDG-Anlage.
+- Failpoints bleiben explizite Testinjektion; keine Umgebungsvariable aktiviert sie unbemerkt.
 
-## 11. Nächste Architekturgrenze
+## 10. Nächste Architekturgrenze
 
-P0-004 führt einen globalen Fehlerdialog und ein zentrales Ereignismodell ein. Er muss Einstellungs-Recovery, XDG-Fehler und unerwartete GUI-Ausnahmen in einfacher Sprache mit Ursache, Folge, Lösung und unverändertem Datenstand darstellen.
+`P0-005` führt einen Linux-Single-Instance-Schutz ein. Ein zweiter Start muss sicher an die bestehende Instanz übergeben werden und alle Fehler über die neue Ereignisschicht melden.

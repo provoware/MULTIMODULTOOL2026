@@ -1,4 +1,4 @@
-"""Linux-Desktop-App mit XDG-Pfaden und transaktionalen Einstellungen."""
+"""Linux-Desktop-App mit XDG-, Einstellungs- und zentraler Fehlerarchitektur."""
 
 from __future__ import annotations
 
@@ -6,6 +6,18 @@ import argparse
 from pathlib import Path
 import sys
 
+from .error_dialog import show_error_dialog
+from .error_events import (
+    ErrorEvent,
+    ErrorEventCenter,
+    EventJournal,
+    create_event,
+    event_from_exception,
+    event_from_messages,
+    event_from_settings_result,
+    format_event_for_user,
+    install_exception_hooks,
+)
 from .manifest_validator import format_validation_result, validate_manifest
 from .settings_manager import (
     SettingsLoadResult,
@@ -23,19 +35,12 @@ from .xdg_paths import (
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_PATH = PROJECT_ROOT / "layout-manifest.json"
-DEVELOPMENT_PROGRESS = 33
-COMPLETED_POINTS = 21
-OPEN_POINTS = 42
+DEVELOPMENT_PROGRESS = 36
+COMPLETED_POINTS = 23
+OPEN_POINTS = 41
 ZONE_OBJECT_NAMES = (
-    "header",
-    "navigation",
-    "summaryCards",
-    "primaryActionTiles",
-    "workflowPanel",
-    "workspaceScroll",
-    "contextRail",
-    "actionBar",
-    "footer",
+    "header", "navigation", "summaryCards", "primaryActionTiles", "workflowPanel",
+    "workspaceScroll", "contextRail", "actionBar", "footer",
 )
 
 
@@ -89,9 +94,9 @@ def _panel(QtWidgets, title: str, body: str, name: str = "panel"):
     return frame
 
 
-def _zone(widget, object_name: str, zone_id: str):
-    widget.setObjectName(object_name)
-    widget.setProperty("zoneId", zone_id)
+def _zone(widget, name: str, number: int):
+    widget.setObjectName(name)
+    widget.setProperty("zoneId", f"Z{number:02d}")
     return widget
 
 
@@ -111,141 +116,117 @@ def build_window(
     settings_text: str,
     paths: XDGPaths,
     settings_result: SettingsLoadResult,
+    event_center: ErrorEventCenter | None = None,
 ):
-    """Neun sichtbare und maschinenprüfbare Layoutzonen erzeugen."""
+    """Neun sichtbare, maschinenprüfbare Layoutzonen ohne Dateizugriff erzeugen."""
 
     window = QtWidgets.QMainWindow()
     window.setWindowTitle("MULTIMODULTOOL2026 – Linux")
     window.resize(1500, 900)
     window.setMinimumSize(1024, 680)
     central = QtWidgets.QWidget()
-    shell = QtWidgets.QGridLayout(central)
-    shell.setContentsMargins(12, 12, 12, 12)
-    shell.setSpacing(9)
-    shell.setColumnStretch(1, 1)
-    shell.setRowStretch(4, 1)
+    grid = QtWidgets.QGridLayout(central)
+    grid.setContentsMargins(12, 12, 12, 12)
+    grid.setSpacing(9)
+    grid.setColumnStretch(1, 1)
+    grid.setRowStretch(4, 1)
     window.setCentralWidget(central)
 
-    header = _zone(QtWidgets.QFrame(), "header", "Z01")
-    header_layout = QtWidgets.QHBoxLayout(header)
+    header = _zone(QtWidgets.QFrame(), "header", 1)
+    row = QtWidgets.QHBoxLayout(header)
     identity = QtWidgets.QVBoxLayout()
     identity.addWidget(_label(QtWidgets, "◈  MULTIMODULTOOL2026", "appTitle"))
-    identity.addWidget(_label(QtWidgets, "Erst prüfen, dann vorschauen, erst danach verändern.", "smallMuted"))
-    header_layout.addLayout(identity)
-    header_layout.addStretch(1)
-    header_layout.addWidget(
-        _label(QtWidgets, "● SYSTEM-, XDG- UND EINSTELLUNGSPRÜFUNG GRÜN", "statusOk", safety=True)
-    )
-    shell.addWidget(header, 0, 0, 1, 3)
+    identity.addWidget(_label(QtWidgets, "Fehler kontrolliert stoppen, Datenstand erklären, sicher fortsetzen.", "smallMuted"))
+    row.addLayout(identity)
+    row.addStretch(1)
+    row.addWidget(_label(QtWidgets, "● FEHLER-, XDG- UND EINSTELLUNGSPRÜFUNG GRÜN", "statusOk", safety=True))
+    grid.addWidget(header, 0, 0, 1, 3)
 
-    navigation = _zone(QtWidgets.QFrame(), "navigation", "Z02")
+    navigation = _zone(QtWidgets.QFrame(), "navigation", 2)
     navigation.setFixedWidth(178)
     nav = QtWidgets.QVBoxLayout(navigation)
     nav.addWidget(_label(QtWidgets, "HAUPTBEREICHE", "navTitle"))
     nav.addWidget(_button(QtWidgets, "⌂  Start"))
-    locked_tip = "Noch gesperrt, bis der sichere Kernworkflow vollständig ist."
+    lock_tip = "Noch gesperrt, bis der sichere Kernworkflow vollständig ist."
     for text in ("⌕  Analysieren", "▣  Duplikate", "↕  Organisieren", "✎  Umbenennen", "▤  Berichte", "♲  Papierkorb"):
-        nav.addWidget(_button(QtWidgets, text, enabled=False, name="lockedNavigation", tooltip=locked_tip))
+        nav.addWidget(_button(QtWidgets, text, enabled=False, name="lockedNavigation", tooltip=lock_tip))
     nav.addStretch(1)
-    nav.addWidget(_button(QtWidgets, "⚙  Einstellungen", enabled=False, tooltip="Dateiformat aktiv; Bedienseite folgt."))
+    nav.addWidget(_button(QtWidgets, "⚙  Einstellungen", enabled=False, tooltip="Datenformat aktiv; Bedienseite folgt."))
     nav.addWidget(_button(QtWidgets, "?  Hilfe"))
-    shell.addWidget(navigation, 1, 0, 5, 1)
+    grid.addWidget(navigation, 1, 0, 5, 1)
 
-    summary = _zone(QtWidgets.QWidget(), "summaryCards", "Z03")
+    summary = _zone(QtWidgets.QWidget(), "summaryCards", 3)
     cards = QtWidgets.QHBoxLayout(summary)
-    status = "WIEDERHERGESTELLT" if settings_result.recovered else "1 / 1 GRÜN"
+    settings_status = "WIEDERHERGESTELLT" if settings_result.recovered else "1 / 1 GRÜN"
+    latest = event_center.latest if event_center else None
+    error_status = "EREIGNIS VORHANDEN" if latest else "AKTIV"
     for title, value, detail in (
         ("System", "Linux / KDE", "X11 und Wayland"),
-        ("XDG-Speicher", "6 / 6 GRÜN", "Pfade 0700"),
-        ("Einstellungen", status, "Schema 1 · Dateien 0600"),
-        ("Entwicklung", "33 %", "21 erledigt · 42 offen"),
+        ("Einstellungen", settings_status, "Schema 1 · 0600"),
+        ("Fehlerzentrum", error_status, "6 Pflichtfelder · Journal 0600"),
+        ("Entwicklung", "36 %", "23 erledigt · 41 offen"),
     ):
         cards.addWidget(_panel(QtWidgets, title, f"{value}\n{detail}", "card"))
-    shell.addWidget(summary, 1, 1, 1, 1)
+    grid.addWidget(summary, 1, 1)
 
-    actions = _zone(QtWidgets.QWidget(), "primaryActionTiles", "Z04")
+    actions = _zone(QtWidgets.QWidget(), "primaryActionTiles", 4)
     action_layout = QtWidgets.QHBoxLayout(actions)
     for text in ("1\nOrdner wählen", "2\nBestand prüfen", "3\nRegeln wählen", "4\nVorschau", "5\nSicher anwenden", "6\nBericht"):
-        action_layout.addWidget(
-            _button(QtWidgets, text, enabled=False, name="lockedPrimaryAction", tooltip=locked_tip)
-        )
-    shell.addWidget(actions, 2, 1, 1, 1)
+        action_layout.addWidget(_button(QtWidgets, text, enabled=False, name="lockedPrimaryAction", tooltip=lock_tip))
+    grid.addWidget(actions, 2, 1)
 
-    workflow = _zone(QtWidgets.QFrame(), "workflowPanel", "Z05")
+    workflow = _zone(QtWidgets.QFrame(), "workflowPanel", 5)
     flow = QtWidgets.QVBoxLayout(workflow)
     flow.addWidget(_label(QtWidgets, "GEFÜHRTER SICHERHEITS-WORKFLOW", "navTitle"))
     flow.addWidget(_label(QtWidgets, "1 Quelle  →  2 Analyse  →  3 Vorschau  →  4 Freigabe  →  5 Bericht", "sectionTitle"))
     progress = QtWidgets.QProgressBar()
-    progress.setRange(0, 100)
     progress.setValue(DEVELOPMENT_PROGRESS)
-    progress.setFormat("Entwicklungsstand: 33 %")
+    progress.setFormat("Entwicklungsstand: 36 %")
     flow.addWidget(progress)
-    shell.addWidget(workflow, 3, 1, 1, 1)
+    grid.addWidget(workflow, 3, 1)
 
     workspace = QtWidgets.QWidget()
-    workspace_layout = QtWidgets.QVBoxLayout(workspace)
-    workspace_layout.addWidget(
-        _panel(
-            QtWidgets,
-            "P0-003 abgeschlossen",
-            "Versionierte Einstellungen werden vorvalidiert, atomar gespeichert und bei Beschädigung aus Backup oder sicheren Standardwerten wiederhergestellt.",
-            "hero",
-        )
-    )
-    row = QtWidgets.QHBoxLayout()
-    row.addWidget(_panel(QtWidgets, "1. Sicher laden", "Version, Felder, Typen und Wertebereiche prüfen."))
-    row.addWidget(_panel(QtWidgets, "2. Atomar speichern", "Temporäre Datei, fsync, Nachvalidierung und os.replace."))
-    row.addWidget(_panel(QtWidgets, "3. Zurückfallen", "Defekt isolieren und letzte gültige Sicherung aktivieren."))
-    workspace_layout.addLayout(row)
-    workspace_layout.addWidget(
-        _panel(QtWidgets, "Aktuelle Schutzgrenze", "Produktive Dateiaktionen bleiben gesperrt. Nächster Schritt: globale Fehlerzentrale.", "warningPanel")
-    )
-    workspace_layout.addStretch(1)
-    workspace_scroll = _zone(QtWidgets.QScrollArea(), "workspaceScroll", "Z06")
+    work = QtWidgets.QVBoxLayout(workspace)
+    work.addWidget(_panel(QtWidgets, "P0-004 abgeschlossen", "Zentrale Fehler- und Ereignisschicht ist aktiv. Als Nächstes folgt der Linux-Single-Instance-Schutz.", "hero"))
+    work.addWidget(_panel(QtWidgets, "Aktuelle Schutzgrenze", "Produktive Dateiaktionen bleiben gesperrt. Jeder Fehler nennt Ursache, Folge, Datenstand, Lösung, Diagnosekennung und sicheren nächsten Schritt.", "warningPanel"))
+    work.addWidget(_panel(QtWidgets, "Ereignisstatus", "Kein offener Fehler." if latest is None else f"{latest.severity.upper()} · {latest.diagnostic_id}\n{latest.data_state}"))
+    work.addStretch(1)
+    workspace_scroll = _zone(QtWidgets.QScrollArea(), "workspaceScroll", 6)
     workspace_scroll.setWidgetResizable(True)
-    workspace_scroll.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
     workspace_scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
     workspace_scroll.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAsNeeded)
     workspace_scroll.setWidget(workspace)
-    shell.addWidget(workspace_scroll, 4, 1, 1, 1)
+    grid.addWidget(workspace_scroll, 4, 1)
 
-    context = _zone(QtWidgets.QFrame(), "contextRail", "Z07")
-    context.setFixedWidth(290)
-    context_layout = QtWidgets.QVBoxLayout(context)
-    context_content = QtWidgets.QWidget()
-    context_items = QtWidgets.QVBoxLayout(context_content)
-    context_items.addWidget(_panel(QtWidgets, "Einstellungen", settings_text, "settingsPanel"))
-    context_items.addWidget(_panel(QtWidgets, "Systemprüfung", f"{validation_text}\n\n{path_text}"))
-    paths_text = "\n".join(f"✓ {name}: {_display_path(path)}" for name, path in paths.items())
-    context_items.addWidget(_panel(QtWidgets, "Sichere Speicherorte", paths_text))
-    context_items.addStretch(1)
+    context_body = QtWidgets.QWidget()
+    context_layout = QtWidgets.QVBoxLayout(context_body)
+    context_layout.addWidget(_panel(QtWidgets, "Sichere Speicherorte", "\n".join(f"✓ {name}: {_display_path(path)}" for name, path in paths.items())))
+    context_layout.addWidget(_panel(QtWidgets, "Prüfergebnisse", f"{validation_text}\n\n{path_text}\n\n{settings_text}"))
+    context_layout.addStretch(1)
     context_scroll = QtWidgets.QScrollArea()
     context_scroll.setObjectName("contextScroll")
     context_scroll.setWidgetResizable(True)
-    context_scroll.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
-    context_scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-    context_scroll.setWidget(context_content)
-    context_layout.addWidget(context_scroll)
-    shell.addWidget(context, 1, 2, 4, 1)
+    context_scroll.setWidget(context_body)
+    context = _zone(QtWidgets.QFrame(), "contextRail", 7)
+    context.setFixedWidth(300)
+    context_frame_layout = QtWidgets.QVBoxLayout(context)
+    context_frame_layout.addWidget(context_scroll)
+    grid.addWidget(context, 1, 2, 4, 1)
 
-    action_bar = _zone(QtWidgets.QFrame(), "actionBar", "Z08")
-    action_layout = QtWidgets.QHBoxLayout(action_bar)
-    action_layout.addWidget(
-        _label(QtWidgets, "✓ XDG-Pfade und versionierte Einstellungen sicher vorbereitet", "statusOk", safety=True)
-    )
-    action_layout.addStretch(1)
-    action_layout.addWidget(_button(QtWidgets, "Diagnose erneut prüfen", enabled=False, tooltip="Folgt mit P0-004."))
-    action_layout.addWidget(_button(QtWidgets, "Weiter zur Fehlerzentrale", enabled=False, tooltip="Wird mit P0-004 freigeschaltet."))
-    shell.addWidget(action_bar, 5, 1, 1, 2)
+    action_bar = _zone(QtWidgets.QFrame(), "actionBar", 8)
+    bottom = QtWidgets.QHBoxLayout(action_bar)
+    bottom.addWidget(_label(QtWidgets, "✓ Journal, Einstellungen und Datenstand kontrolliert", "statusOk", safety=True))
+    bottom.addStretch(1)
+    bottom.addWidget(_button(QtWidgets, "Diagnose erneut prüfen"))
+    bottom.addWidget(_button(QtWidgets, "Weiter zu Single-Instance", enabled=False, tooltip="Wird mit P0-005 freigeschaltet."))
+    grid.addWidget(action_bar, 5, 1, 1, 2)
 
-    footer = _zone(QtWidgets.QFrame(), "footer", "Z09")
+    footer = _zone(QtWidgets.QFrame(), "footer", 9)
     footer_layout = QtWidgets.QHBoxLayout(footer)
-    footer_layout.addWidget(
-        _label(QtWidgets, "🛡 XDG 0700 · Einstellungen 0600 · atomarer Austausch · Rollback bereit", safety=True)
-    )
+    footer_layout.addWidget(_label(QtWidgets, "🛡 XDG 0700 · Einstellungen/Journal 0600 · Geheimnisfilter aktiv", safety=True))
     footer_layout.addStretch(1)
-    footer_layout.addWidget(_label(QtWidgets, "🔒 Produktive Dateiaktionen weiterhin gesperrt"))
-    shell.addWidget(footer, 6, 0, 1, 3)
+    footer_layout.addWidget(_label(QtWidgets, "🔒 Produktive Dateiaktionen gesperrt", safety=True))
+    grid.addWidget(footer, 6, 0, 1, 3)
     return window
 
 
@@ -256,23 +237,37 @@ def load_stylesheet() -> str:
         return ""
 
 
-def run_gui(validation_text: str, path_text: str, settings_text: str, paths: XDGPaths, settings_result: SettingsLoadResult) -> int:
+def run_gui(
+    validation_text: str,
+    path_text: str,
+    settings_text: str,
+    paths: XDGPaths,
+    settings_result: SettingsLoadResult,
+    event_center: ErrorEventCenter,
+) -> int:
     try:
-        from PySide6 import QtCore, QtGui, QtWidgets
-    except ImportError:
-        print("FEHLER: PySide6 fehlt. Lösung: ./setup.sh ausführen.", file=sys.stderr)
+        from PySide6 import QtCore, QtWidgets
+    except ImportError as exc:
+        event = event_center.capture(event_from_exception(exc, category="pyside6-import", context="PySide6 konnte nicht geladen werden."))
+        print(format_event_for_user(event), file=sys.stderr)
         return 3
-    app = QtWidgets.QApplication(sys.argv)
+
+    class SafeApplication(QtWidgets.QApplication):
+        eventRaised = QtCore.Signal(object)
+
+        def notify(self, receiver, event):  # noqa: ANN001
+            try:
+                return super().notify(receiver, event)
+            except BaseException as exc:  # Qt event boundary
+                captured = event_center.capture(event_from_exception(exc, category="qt-event-exception", context="Eine Ausnahme während eines Qt-Ereignisses wurde abgefangen."))
+                self.eventRaised.emit(captured)
+                return False
+
+    app = SafeApplication(sys.argv)
     app.setApplicationName("MULTIMODULTOOL2026")
     app.setOrganizationName("provoware")
-    scale = settings_result.settings["ui"]["fontScalePercent"] / 100
-    font = QtGui.QFont(app.font())
-    if font.pointSizeF() > 0:
-        font.setPointSizeF(max(8.0, font.pointSizeF() * scale))
-        app.setFont(font)
-    style = load_stylesheet()
-    if style:
-        app.setStyleSheet(style)
+    if stylesheet := load_stylesheet():
+        app.setStyleSheet(stylesheet)
     window = build_window(
         QtWidgets,
         QtCore,
@@ -281,54 +276,88 @@ def run_gui(validation_text: str, path_text: str, settings_text: str, paths: XDG
         settings_text=settings_text,
         paths=paths,
         settings_result=settings_result,
+        event_center=event_center,
     )
+
+    def display_event(event: ErrorEvent) -> None:
+        show_error_dialog(QtWidgets, event, window)
+
+    app.eventRaised.connect(display_event)
+    install_exception_hooks(event_center, on_event=lambda event: app.eventRaised.emit(event))
     window.show()
+    if settings_result.recovered and event_center.latest is not None:
+        QtCore.QTimer.singleShot(0, lambda: display_event(event_center.latest))
     return app.exec()
+
+
+def _blocking(event: ErrorEvent, code: int) -> int:
+    print(format_event_for_user(event), file=sys.stderr)
+    return code
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     if not is_supported_platform():
-        print(platform_error_text(), file=sys.stderr)
-        return 4
+        return _blocking(create_event(category="platform", severity="error", cause=platform_error_text(), consequence="Der Start wurde blockiert.", data_state="Es wurden keine Daten verändert.", solution="Unter Kubuntu 22.04/24.04 starten.", next_step="Unter Linux ./start.sh ausführen."), 4)
 
-    manifest_result = validate_manifest(MANIFEST_PATH, PROJECT_ROOT)
-    manifest_text = format_validation_result(manifest_result)
+    manifest = validate_manifest(MANIFEST_PATH, PROJECT_ROOT)
+    manifest_text = format_validation_result(manifest)
     print(manifest_text)
-    if not manifest_result.is_valid:
-        return 2
+    if not manifest.is_valid:
+        return _blocking(event_from_messages(manifest.errors, category="manifest", cause_prefix="Der Projekt- und Layoutvertrag ist ungültig.", consequence="Oberfläche und produktive Funktionen bleiben gesperrt.", data_state="Keine XDG- oder Nutzerdaten wurden verändert.", solution="Manifestfehler im Repository beheben.", next_step="python3 tools/validate_repository.py ausführen."), 2)
 
     resolved = resolve_xdg_paths()
     if not resolved.is_valid or resolved.paths is None:
-        print(format_path_report(resolved, prepared=False), file=sys.stderr)
-        return 5
+        return _blocking(event_from_messages(resolved.errors, category="xdg-resolution", cause_prefix="XDG-Pfade konnten nicht sicher berechnet werden.", consequence="Der Start wurde vor Schreibzugriff blockiert.", data_state="Programm- und Nutzerdaten bleiben unverändert.", solution="XDG-Umgebungsvariablen korrigieren.", next_step="--paths-only erneut ausführen."), 5)
 
     if args.paths_only:
-        path_result = validate_xdg_paths(resolved.paths, project_root=PROJECT_ROOT)
-        print(format_path_report(path_result, include_paths=True, prepared=False))
-        return 0 if path_result.is_valid else 5
+        result = validate_xdg_paths(resolved.paths, project_root=PROJECT_ROOT)
+        print(format_path_report(result, include_paths=True, prepared=False))
+        return 0 if result.is_valid else 5
 
     if args.validate_only or args.settings_only:
-        path_result = validate_xdg_paths(resolved.paths, project_root=PROJECT_ROOT)
-        print(format_path_report(path_result, include_paths=False, prepared=False))
-        if not path_result.is_valid:
+        paths_result = validate_xdg_paths(resolved.paths, project_root=PROJECT_ROOT)
+        print(format_path_report(paths_result, include_paths=False, prepared=False))
+        if not paths_result.is_valid:
             return 5
         settings_result = inspect_settings(resolved.paths.config)
         print(format_settings_report(settings_result))
+        if settings_result.recovered:
+            print(format_event_for_user(event_from_settings_result(settings_result)))
         return 0 if settings_result.is_valid else 6
 
     path_result = ensure_xdg_paths(resolved.paths, project_root=PROJECT_ROOT)
     path_text = format_path_report(path_result, include_paths=False, prepared=True)
     print(path_text)
     if not path_result.is_valid or path_result.paths is None:
-        return 5
+        return _blocking(event_from_messages(path_result.errors, category="xdg-prepare", cause_prefix="XDG-Verzeichnisse konnten nicht sicher vorbereitet werden.", consequence="Einstellungen und Oberfläche bleiben gesperrt.", data_state="Produktive Nutzerdaten blieben unverändert.", solution="Rechte, Symlinks und Mountzustand prüfen.", next_step="--validate-only erneut ausführen."), 5)
+
+    journal = EventJournal(path_result.paths.logs)
+    journal_errors = journal.validate()
+    if journal_errors:
+        return _blocking(event_from_messages(journal_errors, category="event-journal", cause_prefix="Das Ereignisjournal ist nicht sicher nutzbar.", consequence="Die Anwendung startet ohne verlässliches Fehlerjournal nicht.", data_state="Einstellungen und Nutzerdaten wurden nicht verändert.", solution="Logpfad, Symlinks, Dateityp und Rechte 0600 korrigieren.", next_step="Logpfad prüfen und ./start.sh erneut ausführen."), 7)
+    event_center = ErrorEventCenter(journal)
+
     settings_result = load_or_recover_settings(path_result.paths.config)
     settings_text = format_settings_report(settings_result)
     print(settings_text)
+    if settings_result.recovered:
+        event_center.capture(event_from_settings_result(settings_result))
     if not settings_result.is_valid:
-        return 6
-    return run_gui(manifest_text, path_text, settings_text, path_result.paths, settings_result)
+        return _blocking(event_center.capture(event_from_settings_result(settings_result)), 6)
+
+    return run_gui(manifest_text, path_text, settings_text, path_result.paths, settings_result, event_center)
+
+
+def cli_entrypoint(argv: list[str] | None = None) -> int:
+    """Letzte Schutzschicht für unerwartete Bootstrap-Ausnahmen."""
+    try:
+        return main(argv)
+    except KeyboardInterrupt:
+        return _blocking(create_event(category="user-interrupt", severity="warning", cause="Der Start wurde durch den Nutzer unterbrochen.", consequence="Der aktuelle Startschritt wurde beendet.", data_state="Bereits bestätigte Dateien bleiben vollständig; keine weitere Aktion startete.", solution="Vor dem Neustart laufende Setup- oder Schreibvorgänge prüfen.", next_step="Danach ./start.sh erneut ausführen."), 130)
+    except BaseException as exc:
+        return _blocking(event_from_exception(exc, category="bootstrap-exception", context="Eine unerwartete Ausnahme während des Programmstarts wurde abgefangen.", data_state="Der Start wurde kontrolliert beendet; produktive Dateiaktionen waren gesperrt."), 70)
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(cli_entrypoint())

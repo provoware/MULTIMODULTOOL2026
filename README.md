@@ -1,15 +1,15 @@
 # MULTIMODULTOOL2026
 
-> **Entwicklungsfortschritt: 33 %**  
-> **Erledigte Punkte: 21**  
-> **Offene Punkte: 42**  
-> **Gesamtpunkte: 63**  
-> **Aktuelle Phase:** transaktionale Einstellungen und automatisierter Offscreen-GUI-Vertrag  
+> **Entwicklungsfortschritt: 36 %**  
+> **Erledigte Punkte: 23**  
+> **Offene Punkte: 41**  
+> **Gesamtpunkte: 64**  
+> **Aktuelle Phase:** zentrale Fehler- und Ereignisschicht mit Failpoint-geprüften Einstellungstransaktionen  
 > **Letzte Fortschrittsprüfung:** 2026-08-04
 
 > **Plattformvertrag:** Dieses Projekt wird ausschließlich für Linux-Desktop-Systeme entwickelt. Primäre Zielsysteme sind Kubuntu 22.04 LTS und Kubuntu 24.04 LTS. Windows, macOS, Android und iOS gehören nicht zum Entwicklungs-, Test- oder Releaseumfang.
 
-MULTIMODULTOOL2026 ist ein lokal arbeitendes Linux-Desktop-Werkzeug zur sicheren Analyse, Organisation, Benennung und Wiederauffindbarkeit großer Dateisammlungen.
+MULTIMODULTOOL2026 ist ein lokal arbeitendes Linux-Desktop-Werkzeug zur sicheren Analyse, Organisation, Benennung und Wiederauffindbarkeit großer Dateisammlungen. Produktive Dateioperationen bleiben gesperrt, bis Papierkorb, Undo, Single-Instance-Schutz und Wiederanlauf vollständig geprüft sind.
 
 ## Schnellstart unter Kubuntu
 
@@ -18,68 +18,113 @@ chmod +x start.sh setup.sh
 ./start.sh
 ```
 
-Fehlen Python-Komponenten, `.venv` oder PySide6, startet automatisch der geführte Einrichtungsassistent. Er prüft:
+Fehlen Python-Komponenten, `.venv` oder PySide6, startet automatisch der geführte Einrichtungsassistent. Unter KDE verwendet er nach Möglichkeit KDialog; andernfalls einen klaren Terminaldialog.
 
-- Linux und Python 3.10+
-- Verfügbarkeit von `python3-venv`
-- KDE Plasma sowie X11 oder Wayland
-- Schreibrecht im Projektordner
-- lokale `.venv`
-- PySide6-Import
-
-Unter KDE verwendet er nach Möglichkeit KDialog mit Schaltflächen; andernfalls einen klaren Terminaldialog. Systempakete und Projektumgebung benötigen jeweils eine ausdrückliche Bestätigung. Die neue `.venv` wird vollständig in einem temporären Ordner aufgebaut, geprüft und erst danach atomar aktiviert.
-
-Einrichtung nur prüfen:
+Nur Einrichtung prüfen:
 
 ```bash
 ./setup.sh --check-only
 ```
 
-Nichtinteraktive, ausdrücklich bestätigte Einrichtung:
-
-```bash
-./setup.sh --yes --no-gui-dialogs
-```
-
 ## Aktuell startbarer Stand
 
-Das PySide6-Grundgerüst bildet alle neun verbindlichen Layoutzonen sichtbar ab. Vor dem GUI-Start werden Linux-Plattform, lokale Umgebung, `layout-manifest.json`, XDG-Pfade und das versionierte Einstellungsformat geprüft. Beschädigte Einstellungen werden isoliert und automatisch aus der letzten gültigen Sicherung oder sicheren Standardwerten wiederhergestellt. Produktive Dateioperationen bleiben bis Fehlerzentrale, Papierkorb, Undo und Recovery-Worker deaktiviert.
+Vor dem GUI-Start werden geprüft:
 
+1. Linux-Plattform und lokale Python-Umgebung,
+2. `layout-manifest.json` und die neun Layoutzonen,
+3. XDG-Pfade und private Rechte `0700`,
+4. versionierte Einstellungen und Dateirechte `0600`,
+5. das zentrale Ereignisjournal im XDG-Logpfad.
 
-## Sichere XDG-Pfade und Einstellungen
+Beschädigte Einstellungen werden isoliert und aus der letzten gültigen Sicherung oder sicheren Standardwerten wiederhergestellt. Recovery und Fehler werden in einen einheitlichen Nutzervertrag übersetzt.
 
-Private Laufzeitdaten liegen ausschließlich in Linux-Benutzerverzeichnissen:
+## Zentrale Fehler- und Ereignisschicht
 
-- Konfiguration: `~/.config/multimodultool2026`
-- Nutzerdaten und Sicherungen: `~/.local/share/multimodultool2026`
-- Cache: `~/.cache/multimodultool2026`
-- Status und Logs: `~/.local/state/multimodultool2026`
+Jeder globale Fehlerdialog zeigt vollständig:
 
-Aktive Einstellungen liegen als `settings.json` mit Modus `0600` im XDG-Konfigurationspfad. Vor jedem Speichern erfolgen Schema-, Feld-, Typ-, Wertebereichs-, Pfad- und Symlinkprüfung. Geschrieben wird über eine temporäre Datei mit `fsync` und atomarem `os.replace`. Die vorherige gültige Version bleibt als `settings.last-valid.json` erhalten.
+- **Ursache**
+- **Folge**
+- **Datenstand**
+- **Lösung**
+- **Diagnosekennung**
+- **Sicherer nächster Schritt**
 
-Rein lesende Diagnose:
+Erfasst werden unbehandelte Hauptthread-, Worker- und Qt-Ereignisausnahmen, Manifest-/XDG-Fehler, Einstellungs-Recovery sowie spätere Dateioperationsfehler. Kann die GUI nicht geladen werden, erscheint derselbe Vertrag in der Konsole.
+
+Das private Ereignisjournal liegt unter:
+
+```text
+~/.local/state/multimodultool2026/logs/events.jsonl
+```
+
+Die Datei verwendet `0600`, wird mit `fsync` geschrieben und akzeptiert keine Symlinks. Benutzerpfade werden reduziert; typische Token-, Passwort-, Secret- und Bearer-Muster werden entfernt. Details: [`docs/FEHLER_UND_EREIGNISVERTRAG.md`](docs/FEHLER_UND_EREIGNISVERTRAG.md).
+
+## Failpoint-geprüfte Einstellungen
+
+Die Einstellungstransaktion wird an zehn künstlichen Unterbrechungspunkten geprüft:
+
+- vor/nach temporärem Schreiben,
+- vor/nach Datei-`fsync`,
+- vor/nach Backup,
+- vor/nach `os.replace`,
+- vor/nach Nachvalidierung.
+
+Für jeden Punkt muss `settings.json` entweder die vollständige alte oder die vollständige neue Konfiguration enthalten. Sicherungen bleiben schema-gültig, temporäre Dateien bleiben nicht zurück.
+
+Aktive Einstellungen:
+
+```text
+~/.config/multimodultool2026/settings.json
+```
+
+Letzte gültige Sicherung:
+
+```text
+~/.config/multimodultool2026/settings.last-valid.json
+```
+
+## Rein lesende Diagnose
 
 ```bash
 python3 -m src.main --validate-only
 python3 -m src.main --paths-only
 python3 -m src.main --settings-only
+python3 tools/validate_repository.py
 ```
+
+Die drei `src.main`-Diagnosemodi dürfen keine Verzeichnisse oder Dateien anlegen oder verändern.
+
+## Automatische Prüfungen
+
+```bash
+python3 -m unittest discover -s tests -v
+QT_QPA_PLATFORM=offscreen python3 -m unittest tests.test_gui_offscreen -v
+```
+
+GitHub Actions prüft bei Push und Pull Request:
+
+- Repository-, Plattform- und Dokumentationsvertrag,
+- Manifest, XDG-Pfade und Einstellungen,
+- Fehler-/Ereignisvertrag und Failpoint-Matrix,
+- Python-Syntax und JSON,
+- sämtliche Standardtests,
+- PySide6-Offscreen-GUI-Test einschließlich globalem Fehlerdialog.
+
+## Sichere XDG-Pfade
+
+- Konfiguration: `~/.config/multimodultool2026`
+- Nutzerdaten: `~/.local/share/multimodultool2026`
+- Cache: `~/.cache/multimodultool2026`
+- Status: `~/.local/state/multimodultool2026`
+- Logs: `~/.local/state/multimodultool2026/logs`
+- Sicherungen: `~/.local/share/multimodultool2026/backups`
 
 Verträge:
 
 - [`docs/XDG_PFADVERTRAG.md`](docs/XDG_PFADVERTRAG.md)
 - [`docs/EINSTELLUNGSVERTRAG.md`](docs/EINSTELLUNGSVERTRAG.md)
+- [`docs/FEHLER_UND_EREIGNISVERTRAG.md`](docs/FEHLER_UND_EREIGNISVERTRAG.md)
 - [`standards/settings-schema-v1.json`](standards/settings-schema-v1.json)
-
-## Automatische GUI-Prüfung
-
-GitHub Actions installiert PySide6 und startet die Oberfläche mit `QT_QPA_PLATFORM=offscreen`. Der Smoke-Test prüft ohne Zugriff auf private Nutzerdaten:
-
-- alle neun Layoutzonen,
-- sichtbare textuelle Sicherheitszustände,
-- Scrollbarkeit von Arbeits- und Kontextbereich,
-- deaktivierte, noch nicht freigegebene Aktionen,
-- keine Dateianlage allein durch den Fensteraufbau.
 
 ## Linux-Zielumfang
 
@@ -89,7 +134,6 @@ Unterstützt und verpflichtend zu testen:
 - Kubuntu 24.04 LTS, x86-64
 - KDE Plasma unter X11 und Wayland
 - Fenstergrößen von 1024 × 680 bis 4K
-- lokale Dateisysteme und eingehängte Linux-Datenträger
 
 Nicht Teil des Projekts:
 
@@ -98,15 +142,11 @@ Nicht Teil des Projekts:
 - Android- oder iOS-Versionen
 - Browser-, PWA- oder Web-App-Ausgabe
 
-## GitHub-Zugriff
-
-Der aktuell verbundene GitHub-Nutzer `provoware` besitzt Admin-Rechte. Diese Rechte werden durch GitHub und die installierte GitHub-App bereitgestellt, nicht durch Repository-Dateien. Tokens oder andere Geheimnisse werden niemals committed. Details: [`docs/GITHUB_ZUGRIFF.md`](docs/GITHUB_ZUGRIFF.md).
-
 ## Visuelle Leitvorlage
 
 ![Visuelle Layout- und Orientierungsvorlage](assets/ui-reference/multimodultool2026-ui-layout-reference-2026.webp)
 
-Die Abbildung bleibt die primäre grafische Orientierung. Grundaufbau, Zonenfolge und räumliche Logik bleiben bestehen, solange keine ausdrückliche Änderung verlangt wird.
+Grundaufbau, Zonenfolge und räumliche Logik bleiben bestehen, solange keine ausdrückliche Änderung verlangt wird.
 
 Verbindliche Quellen:
 
@@ -115,58 +155,21 @@ Verbindliche Quellen:
 - [`layout-manifest.json`](layout-manifest.json)
 - [`AGENTS.md`](AGENTS.md)
 
-## Prüfungen
-
-```bash
-python3 -m src.main --validate-only
-python3 tools/validate_repository.py
-python3 -m unittest discover -s tests -v
-```
-
-Der GitHub-Workflow `.github/workflows/repository-contract.yml` prüft bei Push und Pull Request Plattformvertrag, Pflichtdateien, Manifest, Fortschritt, Einrichtungsassistent, Python-Syntax und Unit-Tests.
-
 ## Pflichtdokumente
 
 | Datei | Zweck |
 |---|---|
 | [`CHANGELOG.md`](CHANGELOG.md) | Änderungen je Iteration |
-| [`ANLEITUNG_TOOL.md`](ANLEITUNG_TOOL.md) | Installation und Bedienung |
-| [`TODO.md`](TODO.md) | priorisierte Entwicklungsaufgaben |
-| [`SCHWACHSTELLEN.md`](SCHWACHSTELLEN.md) | bekannte Risiken und Gegenmaßnahmen |
-| [`UPGRADE_POOL.md`](UPGRADE_POOL.md) | bewertete spätere Linux-Ideen |
-| [`ENTWICKLERDOKU.md`](ENTWICKLERDOKU.md) | Architektur und Prüfungen |
-| [`docs/GITHUB_ZUGRIFF.md`](docs/GITHUB_ZUGRIFF.md) | externer Berechtigungs- und Geheimnisvertrag |
+| [`ANLEITUNG_TOOL.md`](ANLEITUNG_TOOL.md) | Installation, Bedienung und Fehlerhilfe |
+| [`TODO.md`](TODO.md) | priorisierte, prüfbare Aufgaben |
+| [`SCHWACHSTELLEN.md`](SCHWACHSTELLEN.md) | Risiken und Gegenmaßnahmen |
+| [`UPGRADE_POOL.md`](UPGRADE_POOL.md) | optionale Linux-Erweiterungen |
+| [`ENTWICKLERDOKU.md`](ENTWICKLERDOKU.md) | Architektur und Prüfverfahren |
+| [`docs/GITHUB_ZUGRIFF.md`](docs/GITHUB_ZUGRIFF.md) | externer Zugriffsvertrag |
 
-## Projektstruktur
+## Aktuelle Grenzen
 
-```text
-/
-├── .github/workflows/repository-contract.yml
-├── AGENTS.md
-├── ANLEITUNG_TOOL.md
-├── CHANGELOG.md
-├── ENTWICKLERDOKU.md
-├── README.md
-├── SCHWACHSTELLEN.md
-├── TODO.md
-├── UPGRADE_POOL.md
-├── layout-manifest.json
-├── requirements.txt
-├── setup.sh
-├── start.sh
-├── docs/GITHUB_ZUGRIFF.md
-├── src/
-├── tests/test_setup_assistant.py
-└── tools/setup_assistant.py
-```
-
-## Aktuelle Grenze
-
-Die Einrichtung ist automatisiert, aber der Download von PySide6 benötigt derzeit Internetzugang. Eine physische Erstinstallationsabnahme auf frischen Kubuntu-22.04- und 24.04-Systemen bleibt offen. Der direkt folgende Schritt ist `P0-002`: XDG-konforme Trennung von Programm-, Konfigurations-, Daten-, Cache- und Statuspfaden.
-
-## Prüfungen
-
-- Repository-Vertrag
-- Linux-, Manifest-, XDG- und Einstellungsprüfung
-- Unit-Tests
-- Offscreen-GUI-Smoke-Test
+- Das Ereignisjournal besitzt noch keine Rotation oder Größenbegrenzung; dies folgt mit `P3-003`.
+- Die physische Abnahme unter KDE Plasma, X11, Wayland und mehreren DPI-Stufen bleibt offen.
+- Produktive Dateioperationen sind weiterhin deaktiviert.
+- Der direkt folgende technische Schritt ist `P0-005`: Linux-Single-Instance-Schutz mit sicherer Übergabe weiterer Startaufrufe.

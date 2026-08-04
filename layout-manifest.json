@@ -7,23 +7,11 @@
     "repository": "provoware/MULTIMODULTOOL2026"
   },
   "platformPolicy": {
-    "supportedOperatingSystems": [
-      "linux"
-    ],
-    "primaryDistributions": [
-      "Kubuntu 22.04 LTS",
-      "Kubuntu 24.04 LTS"
-    ],
-    "desktopEnvironments": [
-      "KDE Plasma"
-    ],
-    "displayServers": [
-      "X11",
-      "Wayland"
-    ],
-    "architectures": [
-      "x86_64"
-    ],
+    "supportedOperatingSystems": ["linux"],
+    "primaryDistributions": ["Kubuntu 22.04 LTS", "Kubuntu 24.04 LTS"],
+    "desktopEnvironments": ["KDE Plasma"],
+    "displayServers": ["X11", "Wayland"],
+    "architectures": ["x86_64"],
     "unsupportedPlatformsMustBeBlocked": true,
     "browserOrPwaTarget": false,
     "crossPlatformCompatibilityIsGoal": false
@@ -59,87 +47,36 @@
       "final-security-status"
     ]
   },
+  "errorEventPolicy": {
+    "requiredDialogFields": [
+      "cause",
+      "consequence",
+      "dataState",
+      "solution",
+      "diagnosticId",
+      "safeNextStep"
+    ],
+    "eventJournalPath": "XDG_STATE_HOME/multimodultool2026/logs/events.jsonl",
+    "eventJournalMode": "0600",
+    "privateDataMustBeRedacted": true,
+    "unhandledExceptionsMustBeCaptured": true,
+    "fileOperationErrorsMustUseCentralContract": true,
+    "journalRotationDeferredTo": "P3-003"
+  },
   "zones": [
-    {
-      "id": "Z01",
-      "key": "app-header",
-      "order": 1,
-      "position": "top",
-      "required": true,
-      "role": "Project identity, global safety state and window-level actions"
-    },
-    {
-      "id": "Z02",
-      "key": "primary-navigation",
-      "order": 2,
-      "position": "left",
-      "required": true,
-      "role": "Stable access to main modules and system functions"
-    },
-    {
-      "id": "Z03",
-      "key": "summary-cards",
-      "order": 3,
-      "position": "top-center",
-      "required": true,
-      "role": "Sources, inventory, validation state and key metrics"
-    },
-    {
-      "id": "Z04",
-      "key": "primary-action-tiles",
-      "order": 4,
-      "position": "upper-center",
-      "required": true,
-      "role": "Large guided entry points for the main workflows"
-    },
-    {
-      "id": "Z05",
-      "key": "workflow-progress",
-      "order": 5,
-      "position": "center-top",
-      "required": true,
-      "role": "Current step, completed steps, blockers and progress"
-    },
-    {
-      "id": "Z06",
-      "key": "main-workspace",
-      "order": 6,
-      "position": "center",
-      "required": true,
-      "largestZone": true,
-      "role": "Selection, configuration, preview, validation and results"
-    },
-    {
-      "id": "Z07",
-      "key": "context-rail",
-      "order": 7,
-      "position": "right",
-      "required": true,
-      "role": "Contextual help, detail status, diagnostics and preview information"
-    },
-    {
-      "id": "Z08",
-      "key": "action-status-bar",
-      "order": 8,
-      "position": "bottom-center",
-      "required": true,
-      "role": "Validation state, undo or rollback, primary and secondary actions"
-    },
-    {
-      "id": "Z09",
-      "key": "final-security-status",
-      "order": 9,
-      "position": "bottom",
-      "required": true,
-      "role": "Privacy, storage, lock, change and final result state"
-    }
+    {"id": "Z01", "key": "app-header", "order": 1, "position": "top", "required": true, "role": "Project identity, global safety state and window-level actions"},
+    {"id": "Z02", "key": "primary-navigation", "order": 2, "position": "left", "required": true, "role": "Stable access to main modules and system functions"},
+    {"id": "Z03", "key": "summary-cards", "order": 3, "position": "top-center", "required": true, "role": "Sources, inventory, validation state and key metrics"},
+    {"id": "Z04", "key": "primary-action-tiles", "order": 4, "position": "upper-center", "required": true, "role": "Large guided entry points for the main workflows"},
+    {"id": "Z05", "key": "workflow-progress", "order": 5, "position": "center-top", "required": true, "role": "Current step, completed steps, blockers and progress"},
+    {"id": "Z06", "key": "main-workspace", "order": 6, "position": "center", "required": true, "largestZone": true, "role": "Selection, configuration, preview, validation and results"},
+    {"id": "Z07", "key": "context-rail", "order": 7, "position": "right", "required": true, "role": "Contextual help, detail status, diagnostics and preview information"},
+    {"id": "Z08", "key": "action-status-bar", "order": 8, "position": "bottom-center", "required": true, "role": "Validation state, undo or rollback, primary and secondary actions"},
+    {"id": "Z09", "key": "final-security-status", "order": 9, "position": "bottom", "required": true, "role": "Privacy, storage, lock, change and final result state"}
   ],
   "responsiveRules": {
     "linuxDesktop": {
-      "minimumViewport": {
-        "width": 1024,
-        "height": 680
-      },
+      "minimumViewport": {"width": 1024, "height": 680},
       "maximumTestedScalePercent": 200,
       "preserveThreeColumnShellWhenSpaceAllows": true,
       "contextRailMayCollapseAtMinimumWidth": true,
@@ -168,17 +105,7 @@
   },
   "validation": {
     "requiredZoneCount": 9,
-    "requiredZoneOrder": [
-      "Z01",
-      "Z02",
-      "Z03",
-      "Z04",
-      "Z05",
-      "Z06",
-      "Z07",
-      "Z08",
-      "Z09"
-    ],
+    "requiredZoneOrder": ["Z01", "Z02", "Z03", "Z04", "Z05", "Z06", "Z07", "Z08", "Z09"],
     "documentation": [
       "README.md",
       "docs/UI_BASISVORLAGE.md",
@@ -192,31 +119,7 @@
       "ENTWICKLERDOKU.md",
       "docs/XDG_PFADVERTRAG.md",
       "docs/EINSTELLUNGSVERTRAG.md",
-      "standards/settings-schema-v1.json"
-    ],
-    "offscreenGuiSmokeRequired": true,
-    "requiredZoneObjectNames": [
-      "header",
-      "navigation",
-      "summaryCards",
-      "primaryActionTiles",
-      "workflowPanel",
-      "workspaceScroll",
-      "contextRail",
-      "actionBar",
-      "footer"
+      "docs/FEHLER_UND_EREIGNISVERTRAG.md"
     ]
-  },
-  "settingsPolicy": {
-    "schemaVersion": 1,
-    "schemaPath": "standards/settings-schema-v1.json",
-    "activeFile": "settings.json",
-    "lastValidBackupFile": "settings.last-valid.json",
-    "fileMode": "0600",
-    "transactionalWriteRequired": true,
-    "preValidationRequired": true,
-    "postValidationRequired": true,
-    "automaticRollbackRequired": true,
-    "readOnlyValidationMustNotWrite": true
   }
 }

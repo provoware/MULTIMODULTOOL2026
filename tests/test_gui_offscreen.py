@@ -1,4 +1,4 @@
-"""Qt-Offscreen-Smoke-Test für die neun verbindlichen Layoutzonen."""
+"""Qt-Offscreen-Smoke-Test für Layoutzonen und globalen Fehlerdialog."""
 
 from __future__ import annotations
 
@@ -105,6 +105,41 @@ class OffscreenGuiSmokeTests(unittest.TestCase):
 
     def test_window_build_does_not_touch_user_data_paths(self) -> None:
         self.assertFalse(self._sentinel_root.exists())
+
+    def test_global_error_dialog_contains_all_required_fields(self) -> None:
+        from src.error_dialog import build_error_dialog
+        from src.error_events import create_event
+
+        event = create_event(
+            category="offscreen-dialog",
+            severity="error",
+            cause="Ursache sichtbar",
+            consequence="Folge sichtbar",
+            data_state="Datenstand unverändert",
+            solution="Lösung sichtbar",
+            next_step="Sicherer nächster Schritt sichtbar",
+        )
+        dialog = build_error_dialog(QtWidgets, event, self.window)
+        dialog.show()
+        self.app.processEvents()
+        try:
+            expected = {
+                "errorCause": event.cause,
+                "errorConsequence": event.consequence,
+                "errorDataState": event.data_state,
+                "errorSolution": event.solution,
+                "errorDiagnosticId": event.diagnostic_id,
+                "errorNextStep": event.next_step,
+            }
+            for object_name, text in expected.items():
+                with self.subTest(field=object_name):
+                    label = dialog.findChild(QtWidgets.QLabel, object_name)
+                    self.assertIsNotNone(label)
+                    self.assertTrue(label.isVisible())
+                    self.assertEqual(text, label.text())
+        finally:
+            dialog.close()
+            self.app.processEvents()
 
 
 if __name__ == "__main__":

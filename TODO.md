@@ -4,23 +4,23 @@
 
 ## Steuerungsregeln
 
-- Jede Aufgabe besitzt eine eindeutige ID, Priorität, Abhängigkeit, Abnahmekriterium und Risikostufe.
-- Eine Aufgabe wird erst als erledigt markiert, wenn Umsetzung, direkt relevante Prüfung, Dokumentation und GitHub-Commit bestätigt sind.
-- Neue Aufgaben werden vor Aufnahme auf Doppelungen, versteckte Abhängigkeiten, Datenrisiko und Bediennutzen geprüft.
-- P0 blockiert den Release. P1 bildet den laiengerechten Kern. P2 verbessert Bedienung und Transparenz. P3 härtet Architektur und Qualität. P4 bleibt bis zum stabilen Kern nachgeordnet.
-- Bei Zielkonflikten gilt: Datensicherheit vor Komfort, Nachvollziehbarkeit vor Geschwindigkeit, kleiner reversibler Patch vor riskantem Großumbau.
+- Jede Aufgabe besitzt eindeutige ID, Priorität, Abhängigkeit, Abnahmekriterium und Risikostufe.
+- Erledigt bedeutet: Umsetzung, direkt relevante Prüfung, Dokumentation und GitHub-Commit sind bestätigt.
+- Neue Aufgaben werden auf Doppelungen, versteckte Abhängigkeiten, Datenrisiko und Bediennutzen geprüft.
+- P0 blockiert den Release. P1 bildet den laiengerechten Kern. P2 verbessert Bedienung. P3 härtet Architektur. P4 bleibt bis zum stabilen Kern nachgeordnet.
+- Datensicherheit steht vor Komfort; ein kleiner reversibler Patch vor riskantem Großumbau.
 - Alle Aufgaben richten sich ausschließlich an Linux-Desktop-Systeme. Andere Betriebssysteme, Browser und PWA sind ausgeschlossen.
 
 ## Fortschritt
 
-- Erledigt: **21**
-- Offen: **42**
-- Gesamt: **63**
-- Rechnerischer Entwicklungsfortschritt: **33 %**
+- Erledigt: **23**
+- Offen: **41**
+- Gesamt: **64**
+- Rechnerischer Entwicklungsfortschritt: **36 %**
 
 ## Erledigte Grundlagen
 
-- [x] **D-001** – Repository bereinigt und neuer Projektstand auf `main` angelegt.
+- [x] **D-001** – Repository bereinigt und neuen Projektstand auf `main` angelegt.
 - [x] **D-002** – Visuelle UI-Referenz dauerhaft im Repository abgelegt.
 - [x] **D-003** – Verbindlichen UI-Layoutstandard dokumentiert.
 - [x] **D-004** – Maschinenlesbares `layout-manifest.json` eingeführt.
@@ -37,39 +37,38 @@
 - [x] **D-015** – Pflichtdokumente für Anleitung, Änderungen, Risiken, Upgrades und Entwicklung angelegt.
 - [x] **D-016** – Projektumfang verbindlich auf Linux-Desktop, Kubuntu und KDE Plasma begrenzt.
 - [x] **D-017** – Nicht-Linux-Startblocker und maschinenlesbaren Linux-Plattformvertrag ergänzt.
-- [x] **D-018** – Automatisierten Qt-Offscreen-GUI-Smoke-Test für alle neun Layoutzonen, Scrollbarkeit, sichtbare Sicherheitszustände und gesperrte Aktionen in Ubuntu-CI integriert.
-
-## Offene, priorisierte Aufgaben
+- [x] **D-018** – Qt-Offscreen-GUI-Smoke-Test für neun Layoutzonen, Scrollbarkeit, Sicherheitszustände und gesperrte Aktionen integriert.
+- [x] **D-019** – Failpoint-Testmatrix für temporäres Schreiben, `fsync`, Backup, `os.replace` und Nachvalidierung ergänzt. Abhängigkeit: `P0-003` | Abnahmekriterium: Alle zehn Failpoints hinterlassen ausschließlich eine vollständige alte oder neue Konfiguration und keine temporären Dateien. | Risiko: **niedrig**
 
 ## P0 – Startfähigkeit, Datensicherheit und Releaseblocker
 
-- [x] **P0-001** – PySide6-Installation über einen geführten Linux-Einrichtungsdialog automatisieren. Abhängigkeit: `D-011` | Abnahmekriterium: Frische Kubuntu-Installation startet nach höchstens zwei bestätigten Dialogen. | Risiko: **mittel** | Ergebnis: atomare `.venv`-Einrichtung, KDE-KDialog mit Terminal-Rückfall, System-, Sitzungs-, Rechte- und PySide6-Prüfung.
-- [x] **P0-002** – XDG-konforme Projekt- und Nutzerdatenpfade strikt vom Programmverzeichnis trennen. Abhängigkeit: `P0-001` | Abnahmekriterium: App nutzt sichere Linux-Benutzerpfade und schreibt nie ungefragt in den Quellbaum. | Risiko: **hoch** | Ergebnis: zentrale XDG-Pfadschicht für Konfiguration, Daten, Cache, Status, Logs und Sicherungen; Vor-/Nachvalidierung, Modus `0700`, Symlink-, Grenz-, Doppelziel- und Schreibprüfung.
-- [x] **P0-003** – Transaktionales Einstellungsformat mit Schema, Backup und Rollback einführen. Abhängigkeit: `P0-002` | Abnahmekriterium: Defekte Konfiguration wird erkannt und verlustfrei auf letzte gültige Version zurückgesetzt. | Risiko: **hoch** | Ergebnis: `schemaVersion` 1, strenge Feld-/Typ-/Grenzprüfung, Dateien mit `0600`, temporäre Datei mit `fsync`, atomarer Austausch, letzte gültige Sicherung, Quarantäne defekter Dateien, automatischer Rollback oder sichere Standardwerte.
-- [ ] **P0-004** – Globalen Fehlerdialog mit Ursache, Folge, Lösung und unverändertem Datenstand erstellen. Abhängigkeit: `D-008` | Abnahmekriterium: Jede unbehandelte Ausnahme wird verständlich protokolliert und beendet die App kontrolliert. | Risiko: **hoch**
-- [ ] **P0-005** – Linux-Single-Instance-Schutz und sichere Übergabe weiterer Startaufrufe implementieren. Abhängigkeit: `P0-002` | Abnahmekriterium: Zweiter Start öffnet das bestehende Fenster statt eine konkurrierende Instanz. | Risiko: **mittel**
-- [ ] **P0-006** – Papierkorbvertrag für alle späteren destruktiven Dateiaktionen definieren und testen. Abhängigkeit: `P0-002` | Abnahmekriterium: Löschen bedeutet standardmäßig Verschieben in wiederherstellbaren Projektpapierkorb. | Risiko: **hoch**
+- [x] **P0-001** – PySide6-Installation über einen geführten Linux-Einrichtungsdialog automatisieren. Abhängigkeit: `D-011` | Abnahmekriterium: Frische Kubuntu-Installation startet nach höchstens zwei bestätigten Dialogen. | Risiko: **mittel** | Ergebnis: atomare `.venv`, KDE-KDialog mit Terminal-Rückfall und Systemprüfung.
+- [x] **P0-002** – XDG-konforme Projekt- und Nutzerdatenpfade strikt vom Programmverzeichnis trennen. Abhängigkeit: `P0-001` | Abnahmekriterium: App nutzt sichere Linux-Benutzerpfade und schreibt nie ungefragt in den Quellbaum. | Risiko: **hoch** | Ergebnis: zentrale XDG-Pfadschicht, `0700`, Vor-/Nachvalidierung, Symlink- und Schreibprüfung.
+- [x] **P0-003** – Transaktionales Einstellungsformat mit Schema, Backup und Rollback einführen. Abhängigkeit: `P0-002` | Abnahmekriterium: Defekte Konfiguration wird erkannt und verlustfrei auf letzte gültige Version zurückgesetzt. | Risiko: **hoch** | Ergebnis: Schema 1, `0600`, temporäre Datei, `fsync`, atomarer Austausch, Quarantäne und Recovery.
+- [x] **P0-004** – Zentrale Fehler- und Ereignisschicht mit globalem Dialog entwickeln. Abhängigkeit: `D-008,P0-002,P0-003` | Abnahmekriterium: Unbehandelte Ausnahmen, XDG-Fehler, Einstellungs-Recovery und Dateioperationsfehler werden kontrolliert erfasst; jeder Dialog zeigt Ursache, Folge, Datenstand, Lösung, Diagnosekennung und sicheren nächsten Schritt. | Risiko: **hoch** | Ergebnis: UI-unabhängiges Ereignismodell, `sys.excepthook`, `threading.excepthook`, sichere Qt-`notify`-Schicht, globaler Dialog und privates XDG-JSONL-Journal mit `0600`.
+- [ ] **P0-005** – Linux-Single-Instance-Schutz und sichere Übergabe weiterer Startaufrufe implementieren. Abhängigkeit: `P0-002,P0-004` | Abnahmekriterium: Zweiter Start öffnet das bestehende Fenster statt einer konkurrierenden Instanz; veraltete Sperren werden sicher erkannt. | Risiko: **mittel**
+- [ ] **P0-006** – Papierkorbvertrag für alle späteren destruktiven Dateiaktionen definieren und testen. Abhängigkeit: `P0-002,P0-004` | Abnahmekriterium: Löschen bedeutet standardmäßig Verschieben in einen wiederherstellbaren Projektpapierkorb. | Risiko: **hoch**
 - [ ] **P0-007** – Undo-/Redo-Protokoll mit eindeutigen Aktions-IDs und Grenzen entwerfen. Abhängigkeit: `P0-006` | Abnahmekriterium: Mindestens zehn reversible Testaktionen können in korrekter Reihenfolge zurückgenommen werden. | Risiko: **hoch**
-- [ ] **P0-008** – Abbruch- und Wiederanlaufvertrag für lange Dateioperationen implementieren. Abhängigkeit: `P0-003` | Abnahmekriterium: Abbruch hinterlässt konsistenten Zustand; Wiederaufnahme erzeugt keine Doppeloperation. | Risiko: **hoch**
+- [ ] **P0-008** – Abbruch- und Wiederanlaufvertrag für lange Dateioperationen implementieren. Abhängigkeit: `P0-003,P0-004` | Abnahmekriterium: Abbruch hinterlässt konsistenten Zustand; Wiederaufnahme erzeugt keine Doppeloperation. | Risiko: **hoch**
 - [ ] **P0-009** – Ersten installierbaren Linux-Releasekandidaten für Kubuntu 22.04/24.04 paketieren. Abhängigkeit: `P0-001,P0-004,P0-008` | Abnahmekriterium: Saubere Kubuntu-VM installiert, startet, deinstalliert und hinterlässt keine privaten Daten. | Risiko: **hoch**
 
 ## P1 – Laienoptimierter Kernworkflow
 
 - [ ] **P1-001** – Geführten Startassistenten für Projektordner, Ziel und Sicherheitsmodus erstellen. Abhängigkeit: `P0-002` | Abnahmekriterium: Neuer Nutzer erreicht ohne Freitexteingabe einen gültigen Startzustand. | Risiko: **mittel**
-- [ ] **P1-002** – Kachelbasierte Modulnavigation mit aktivem Zustand und Zurück-Pfad umsetzen. Abhängigkeit: `D-008` | Abnahmekriterium: Jedes Modul ist mit höchstens zwei Klicks erreichbar und verlässt keinen Sackgassen-Zustand. | Risiko: **niedrig**
+- [ ] **P1-002** – Kachelbasierte Modulnavigation mit aktivem Zustand und Zurück-Pfad umsetzen. Abhängigkeit: `D-008` | Abnahmekriterium: Jedes Modul ist mit höchstens zwei Klicks erreichbar und besitzt keinen Sackgassen-Zustand. | Risiko: **niedrig**
 - [ ] **P1-003** – Linux-Ordnerauswahl mit Vorprüfung auf Rechte, Mountstatus, Erreichbarkeit und freien Speicher ergänzen. Abhängigkeit: `P1-001` | Abnahmekriterium: Ungültige Ziele werden vor Verarbeitung blockiert und mit Lösung erklärt. | Risiko: **hoch**
 - [ ] **P1-004** – Dateibestandsanalyse für Typ, Größe, Datum, Symlinks und Namensmuster entwickeln. Abhängigkeit: `P1-003` | Abnahmekriterium: Testbestand wird vollständig gezählt; Summen stimmen bytegenau; Symlinks werden eindeutig behandelt. | Risiko: **mittel**
-- [ ] **P1-005** – Vorschauansicht für geplante Änderungen mit Vorher-/Nachher-Vergleich erstellen. Abhängigkeit: `P1-004` | Abnahmekriterium: Keine Massenänderung kann ohne sichtbare vollständige Vorschau gestartet werden. | Risiko: **hoch**
+- [ ] **P1-005** – Vorschauansicht für geplante Änderungen mit Vorher-/Nachher-Vergleich erstellen. Abhängigkeit: `P1-004` | Abnahmekriterium: Keine Massenänderung kann ohne vollständige Vorschau gestartet werden. | Risiko: **hoch**
 - [ ] **P1-006** – Sicheren Massenumbenennungsworkflow mit Linux-Dateinamen- und Konfliktprüfung implementieren. Abhängigkeit: `P1-005,P0-007` | Abnahmekriterium: Doppelte Zielnamen werden vor Ausführung aufgelöst; Undo stellt Ursprungsnamen wieder her. | Risiko: **hoch**
 - [ ] **P1-007** – Duplikatfinder zunächst hashbasiert und read-only entwickeln. Abhängigkeit: `P1-004` | Abnahmekriterium: Identische Testdateien werden erkannt; keine Datei wird automatisch gelöscht. | Risiko: **mittel**
-- [ ] **P1-008** – Regelbasiertes Sortieren und Verschieben mit Trockenlauf implementieren. Abhängigkeit: `P1-005,P0-008` | Abnahmekriterium: Trockenlauf und echte Ausführung liefern dieselbe geplante Aktionsliste. | Risiko: **hoch**
-- [ ] **P1-009** – Ergebnisbericht mit Änderungen, Fehlern, Rückfallweg und Export erzeugen. Abhängigkeit: `P1-006,P1-008` | Abnahmekriterium: Jede Operation erzeugt einen verständlichen Bericht als JSON und Markdown. | Risiko: **mittel**
+- [ ] **P1-008** – Regelbasiertes Sortieren und Verschieben mit Trockenlauf implementieren. Abhängigkeit: `P1-005,P0-008` | Abnahmekriterium: Trockenlauf und Ausführung liefern dieselbe geplante Aktionsliste. | Risiko: **hoch**
+- [ ] **P1-009** – Ergebnisbericht mit Änderungen, Fehlern, Rückfallweg und Export erzeugen. Abhängigkeit: `P1-006,P1-008` | Abnahmekriterium: Jede Operation erzeugt verständliche Berichte als JSON und Markdown. | Risiko: **mittel**
 
 ## P2 – Bedienung, Barrierearmut und Transparenz
 
 - [ ] **P2-001** – Tastaturreihenfolge, Fokusrahmen und vollständige Bedienung ohne Maus unter KDE prüfen. Abhängigkeit: `P1-002` | Abnahmekriterium: Alle Hauptaktionen sind per Tastatur erreichbar und sichtbar fokussiert. | Risiko: **mittel**
 - [ ] **P2-002** – Linux-Schriftgrößen- und Zoomsystem ohne abgeschnittene Elemente implementieren. Abhängigkeit: `D-008` | Abnahmekriterium: Bei 80–200 Prozent Zoom bleiben Hauptaktionen und Status erreichbar. | Risiko: **mittel**
-- [ ] **P2-003** – Kontrastprüfung für Standard-, Neon- und Hochkontrasttheme automatisieren. Abhängigkeit: `D-008` | Abnahmekriterium: Text- und Fokuskontraste erreichen die festgelegten Mindestwerte. | Risiko: **mittel**
+- [ ] **P2-003** – Kontrastprüfung für Standard-, Neon- und Hochkontrasttheme automatisieren. Abhängigkeit: `D-008` | Abnahmekriterium: Text- und Fokuskontraste erreichen definierte Mindestwerte. | Risiko: **mittel**
 - [ ] **P2-004** – Kontextbezogene Hilfe in der rechten Leiste für jeden Arbeitsschritt erstellen. Abhängigkeit: `P1-001` | Abnahmekriterium: Jeder Schritt erklärt Zweck, Eingabe, Risiko und nächsten Klick. | Risiko: **niedrig**
 - [ ] **P2-005** – Statusmeldungen zusätzlich zu Farben mit Text und Symbol kennzeichnen. Abhängigkeit: `D-008` | Abnahmekriterium: Ampelzustände bleiben in Graustufen eindeutig verständlich. | Risiko: **niedrig**
 - [ ] **P2-006** – Leere Zustände, Ladezustände und Fehlzustände für alle Hauptzonen definieren. Abhängigkeit: `P1-002` | Abnahmekriterium: Keine Zone zeigt unkommentierte Leere oder endloses Laden. | Risiko: **mittel**
@@ -81,12 +80,12 @@
 
 - [ ] **P3-001** – Linux-Modulschnittstelle mit Manifest, Lebenszyklus und isoliertem Datenbereich definieren. Abhängigkeit: `P0-003` | Abnahmekriterium: Beispielmodul wird geladen, deaktiviert und aktualisiert, ohne Kerndaten zu verändern. | Risiko: **hoch**
 - [ ] **P3-002** – Zentrale Design-Tokens als einzige Quelle für QSS und Dokumentation einführen. Abhängigkeit: `D-008` | Abnahmekriterium: Farben, Abstände und Typografie werden aus einer Quelldatei erzeugt. | Risiko: **mittel**
-- [ ] **P3-003** – Logging mit Rotation, Datenschutzfilter, XDG-State-Pfad und verständlichen Ereigniscodes umsetzen. Abhängigkeit: `P0-004` | Abnahmekriterium: Logs enthalten keine privaten Dateiinhalte und überschreiten das Größenlimit nicht. | Risiko: **hoch**
+- [ ] **P3-003** – Logging mit Rotation, Datenschutzfilter, XDG-State-Pfad und verständlichen Ereigniscodes ausbauen. Abhängigkeit: `P0-004` | Abnahmekriterium: Logs enthalten keine privaten Dateiinhalte, rotieren sicher und überschreiten das Größenlimit nicht. | Risiko: **hoch**
 - [ ] **P3-004** – Linux-Testdaten-Generator für große, konfliktbehaftete Dateibestände entwickeln. Abhängigkeit: `P1-004` | Abnahmekriterium: Reproduzierbarer Bestand mit Duplikaten, Symlinks, Sonderzeichen und Pfadgrenzen wird erzeugt. | Risiko: **niedrig**
 - [ ] **P3-005** – Unit- und Integrationstestabdeckung auf mindestens 80 Prozent erhöhen. Abhängigkeit: `P3-004` | Abnahmekriterium: Messbericht erreicht mindestens 80 Prozent für sicherheitskritische Kernmodule. | Risiko: **mittel**
 - [ ] **P3-006** – Komplexitätsgrenzen und statische Qualitätsprüfung in Ubuntu-CI ergänzen. Abhängigkeit: `D-014` | Abnahmekriterium: CI blockiert Syntaxfehler, hohe Komplexität und unsichere Standardmuster. | Risiko: **mittel**
-- [ ] **P3-007** – Versioniertes Datenmigrationssystem mit Vor-/Nachvalidierung erstellen. Abhängigkeit: `P0-003` | Abnahmekriterium: Migrationen sind idempotent und können auf Testdaten zurückgerollt werden. | Risiko: **hoch**
-- [ ] **P3-008** – Reproduzierbare Linux-Build-ID aus Version und Quellhash einführen. Abhängigkeit: `P0-009` | Abnahmekriterium: App und Prüfbericht zeigen identische, reproduzierbare Build-ID. | Risiko: **mittel**
+- [ ] **P3-007** – Versioniertes Datenmigrationssystem mit Vor-/Nachvalidierung erstellen. Abhängigkeit: `P0-003` | Abnahmekriterium: Migrationen sind idempotent und auf Testdaten rückrollbar. | Risiko: **hoch**
+- [ ] **P3-008** – Reproduzierbare Linux-Build-ID aus Version und Quellhash einführen. Abhängigkeit: `P0-009` | Abnahmekriterium: App und Prüfbericht zeigen identische reproduzierbare Build-ID. | Risiko: **mittel**
 - [ ] **P3-009** – Linux-Release-Gate mit signierten Prüfergebnissen und Artefakthashes definieren. Abhängigkeit: `P3-005,P3-008` | Abnahmekriterium: Release wird nur bei grünen Pflichtprüfungen und passenden Hashes freigegeben. | Risiko: **hoch**
 
 ## P4 – Erweiterungen nach stabilem Kern
@@ -99,20 +98,11 @@
 - [ ] **P4-006** – Exportcenter für Berichte, Profile und Diagnosedaten entwickeln. Abhängigkeit: `P1-009` | Abnahmekriterium: Nutzer wählt Exporttyp und Ziel ausschließlich über sichere Dialoge. | Risiko: **mittel**
 - [ ] **P4-007** – Linux-Plugin-Sandbox und Berechtigungsmodell untersuchen. Abhängigkeit: `P3-001` | Abnahmekriterium: Machbarkeitsbericht benennt Grenzen, Angriffsflächen und sichere Minimalvariante. | Risiko: **hoch**
 - [ ] **P4-008** – Optionale portable Linux-Ausgabe ohne absolute Benutzerpfade entwickeln. Abhängigkeit: `P0-009,P3-007` | Abnahmekriterium: Projekt lässt sich auf zweitem Linux-Nutzerkonto ohne Pfadkorrektur öffnen. | Risiko: **hoch**
-- [ ] **P4-009** – Physische Abnahme auf Kubuntu 22.04/24.04, X11/Wayland und mehreren Auflösungen dokumentieren. Abhängigkeit: `P2-007,P3-009` | Abnahmekriterium: Abnahmeprotokoll enthält Systemprofil, Sitzungstyp, Auflösung, Ergebnis, Mängel und Rückfallentscheidung. | Risiko: **mittel**
+- [ ] **P4-009** – Physische Abnahme auf Kubuntu 22.04/24.04, X11/Wayland und mehreren Auflösungen dokumentieren. Abhängigkeit: `P2-007,P3-009` | Abnahmekriterium: Protokoll enthält Systemprofil, Sitzung, Auflösung, Ergebnis, Mängel und Rückfallentscheidung. | Risiko: **mittel**
 
 ## Aufnahme neuer Aufgaben
 
-Eine neue Aufgabe wird nur aufgenommen, wenn alle Punkte beantwortet sind:
-
-1. Welches konkrete Linux-Nutzerproblem wird gelöst?
-2. Welche Dateien, Daten und bestehenden Funktionen sind betroffen?
-3. Ist die Aufgabe bereits enthalten oder nur anders formuliert?
-4. Welche Vorbedingungen und Abhängigkeiten bestehen?
-5. Woran ist objektiv erkennbar, dass sie fertig ist?
-6. Wie wird Datenverlust verhindert und ein Rückfall ermöglicht?
-7. Welche direkt relevante Prüfung muss grün sein?
-8. Welche Pflichtdokumente müssen angepasst werden?
+Eine Aufgabe wird nur aufgenommen, wenn Nutzerproblem, betroffene Daten, Doppelungen, Abhängigkeiten, Abnahmekriterium, Rückfallweg, Prüfungen und Dokumentationsbedarf geklärt sind.
 
 ## Abschlussformat je Aufgabe
 
