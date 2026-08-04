@@ -1,10 +1,10 @@
 # MULTIMODULTOOL2026
 
-> **Entwicklungsfortschritt: 29 %**  
-> **Erledigte Punkte: 18**  
-> **Offene Punkte: 44**  
+> **Entwicklungsfortschritt: 31 %**  
+> **Erledigte Punkte: 19**  
+> **Offene Punkte: 43**  
 > **Gesamtpunkte: 62**  
-> **Aktuelle Phase:** geführte, sichere Linux-Ersteinrichtung abgeschlossen  
+> **Aktuelle Phase:** sichere XDG-Pfadtrennung und workflow-fokussiertes Grundlayout  
 > **Letzte Fortschrittsprüfung:** 2026-08-04
 
 > **Plattformvertrag:** Dieses Projekt wird ausschließlich für Linux-Desktop-Systeme entwickelt. Primäre Zielsysteme sind Kubuntu 22.04 LTS und Kubuntu 24.04 LTS. Windows, macOS, Android und iOS gehören nicht zum Entwicklungs-, Test- oder Releaseumfang.
@@ -18,17 +18,24 @@ chmod +x start.sh setup.sh
 ./start.sh
 ```
 
-Fehlen Python-Komponenten, `.venv` oder PySide6, startet automatisch der geführte Einrichtungsassistent. Er prüft Linux, Python 3.10+, `python3-venv`, KDE Plasma, X11/Wayland, Schreibrechte, `.venv` und PySide6.
+Fehlen Python-Komponenten, `.venv` oder PySide6, startet automatisch der geführte Einrichtungsassistent. Er prüft:
+
+- Linux und Python 3.10+
+- Verfügbarkeit von `python3-venv`
+- KDE Plasma sowie X11 oder Wayland
+- Schreibrecht im Projektordner
+- lokale `.venv`
+- PySide6-Import
 
 Unter KDE verwendet er nach Möglichkeit KDialog mit Schaltflächen; andernfalls einen klaren Terminaldialog. Systempakete und Projektumgebung benötigen jeweils eine ausdrückliche Bestätigung. Die neue `.venv` wird vollständig in einem temporären Ordner aufgebaut, geprüft und erst danach atomar aktiviert.
 
-Nur prüfen:
+Einrichtung nur prüfen:
 
 ```bash
 ./setup.sh --check-only
 ```
 
-Ausdrücklich bestätigte Terminaleinrichtung:
+Nichtinteraktive, ausdrücklich bestätigte Einrichtung:
 
 ```bash
 ./setup.sh --yes --no-gui-dialogs
@@ -36,7 +43,32 @@ Ausdrücklich bestätigte Terminaleinrichtung:
 
 ## Aktuell startbarer Stand
 
-Das PySide6-Grundgerüst bildet alle neun verbindlichen Layoutzonen sichtbar ab. Vor dem GUI-Start werden Linux-Plattform, lokale Umgebung und `layout-manifest.json` geprüft. Produktive Dateioperationen sind bis zur sicheren XDG-, Backup-, Papierkorb-, Undo- und Recovery-Architektur deaktiviert.
+Das PySide6-Grundgerüst bildet alle neun verbindlichen Layoutzonen sichtbar ab. Vor dem GUI-Start werden Linux-Plattform, lokale Umgebung, `layout-manifest.json` und der XDG-Pfadvertrag geprüft.
+
+Die Oberfläche wurde workflow-fokussiert überarbeitet: klare nummerierte Arbeitsschritte, sichtbare Sicherheitsgrenzen, ein hervorgehobener nächster Schritt und eine rechte Speicher-/Diagnoseleiste. Noch nicht freigegebene Dateiaktionen bleiben sichtbar gesperrt statt scheinbar funktionsfähig zu wirken.
+
+## Sichere XDG-Speichertrennung
+
+Beim normalen Start werden sechs private Linux-Benutzerbereiche mit Modus `0700` vorbereitet und mit einer temporären Schreibprobe nachvalidiert:
+
+| Bereich | Standardpfad |
+|---|---|
+| Konfiguration | `~/.config/multimodultool2026` |
+| Nutzerdaten | `~/.local/share/multimodultool2026` |
+| Cache | `~/.cache/multimodultool2026` |
+| Status | `~/.local/state/multimodultool2026` |
+| Protokolle | `~/.local/state/multimodultool2026/logs` |
+| Sicherungen | `~/.local/share/multimodultool2026/backups` |
+
+Vor der Anlage werden absolute Pfade, XDG-Grenzen, Überschneidungen mit dem Programmverzeichnis, doppelte Ziele, vorhandene Dateitypen und Symlinks geprüft. Nach der Anlage werden Existenz, Schreibbarkeit, Verzeichnisrechte und rückstandsfreie Schreibproben erneut geprüft.
+
+Nur den Pfadplan anzeigen:
+
+```bash
+python3 -m src.main --paths-only
+```
+
+`--validate-only` prüft den Pfadplan rein lesend und legt keine Verzeichnisse an. Details: [`docs/XDG_PFADVERTRAG.md`](docs/XDG_PFADVERTRAG.md).
 
 ## Linux-Zielumfang
 
@@ -80,7 +112,7 @@ python3 tools/validate_repository.py
 python3 -m unittest discover -s tests -v
 ```
 
-Der GitHub-Workflow `.github/workflows/repository-contract.yml` prüft Plattformvertrag, Pflichtdateien, Manifest, Fortschritt, Einrichtungsassistent, Python-Syntax und Unit-Tests.
+Der GitHub-Workflow `.github/workflows/repository-contract.yml` prüft bei Push und Pull Request Plattformvertrag, Pflichtdateien, Manifest, Fortschritt, Einrichtungsassistent, XDG-Pfadvertrag, Python-Syntax und Unit-Tests.
 
 ## Pflichtdokumente
 
@@ -92,12 +124,14 @@ Der GitHub-Workflow `.github/workflows/repository-contract.yml` prüft Plattform
 | [`SCHWACHSTELLEN.md`](SCHWACHSTELLEN.md) | bekannte Risiken und Gegenmaßnahmen |
 | [`UPGRADE_POOL.md`](UPGRADE_POOL.md) | bewertete spätere Linux-Ideen |
 | [`ENTWICKLERDOKU.md`](ENTWICKLERDOKU.md) | Architektur und Prüfungen |
-| [`docs/GITHUB_ZUGRIFF.md`](docs/GITHUB_ZUGRIFF.md) | Berechtigungs- und Geheimnisvertrag |
+| [`docs/GITHUB_ZUGRIFF.md`](docs/GITHUB_ZUGRIFF.md) | externer Berechtigungs- und Geheimnisvertrag |
+| [`docs/XDG_PFADVERTRAG.md`](docs/XDG_PFADVERTRAG.md) | Speicherorte, Grenzen, Rechte und Fehlerverhalten |
 
 ## Projektstruktur
 
 ```text
 /
+├── .github/workflows/repository-contract.yml
 ├── AGENTS.md
 ├── ANLEITUNG_TOOL.md
 ├── CHANGELOG.md
@@ -111,11 +145,15 @@ Der GitHub-Workflow `.github/workflows/repository-contract.yml` prüft Plattform
 ├── setup.sh
 ├── start.sh
 ├── docs/GITHUB_ZUGRIFF.md
+├── docs/XDG_PFADVERTRAG.md
 ├── src/
-├── tests/test_setup_assistant.py
+│   └── xdg_paths.py
+├── tests/
+│   ├── test_setup_assistant.py
+│   └── test_xdg_paths.py
 └── tools/setup_assistant.py
 ```
 
 ## Aktuelle Grenze
 
-Die Einrichtung ist automatisiert, aber der Download von PySide6 benötigt derzeit Internetzugang. Eine physische Erstinstallationsabnahme auf frischen Kubuntu-22.04- und 24.04-Systemen bleibt offen. Der direkt folgende Schritt ist `P0-002`: XDG-konforme Trennung von Programm-, Konfigurations-, Daten-, Cache- und Statuspfaden.
+Die Linux-Ersteinrichtung und XDG-Speichertrennung sind umgesetzt. Eine physische Erstinstallationsabnahme auf frischen Kubuntu-22.04- und 24.04-Systemen bleibt offen. Der direkt folgende Schritt ist `P0-003`: transaktionale Einstellungen mit Schema, Backup und Rollback.

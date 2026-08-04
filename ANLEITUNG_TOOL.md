@@ -2,7 +2,7 @@
 
 ## 1. Zweck des aktuellen Stands
 
-Der aktuelle Stand ist ein startbares Linux-Desktop-Grundgerüst mit geführter Ersteinrichtung. Echte Dateioperationen sind weiterhin deaktiviert.
+Der aktuelle Stand ist ein startbares Linux-Desktop-Grundgerüst mit geführter Ersteinrichtung, sicherer XDG-Speichertrennung und workflow-fokussierter Oberfläche. Echte Dateioperationen sind weiterhin deaktiviert.
 
 ## 2. Unterstützte Systeme
 
@@ -33,7 +33,11 @@ Die Startroutine prüft die lokale Umgebung. Fehlt etwas, öffnet sie automatisc
 - lokale `.venv`
 - PySide6
 
-Ampel: **GRÜN** bereit, **GELB** Hinweis oder unvollständig, **ROT** sicherheitsrelevante Blockade.
+Ampel:
+
+- **GRÜN:** bereit
+- **GELB:** noch nicht eingerichtet oder nur Hinweis
+- **ROT:** sicherheitsrelevante Blockade
 
 ## 5. Bestätigungen
 
@@ -42,7 +46,7 @@ Maximal zwei bestätigende Schritte können nötig sein:
 1. fehlende Ubuntu-Systempakete installieren,
 2. lokale Projektumgebung `.venv` erstellen.
 
-Vor jeder Bestätigung werden Befehle und Auswirkungen angezeigt. Abbrechen lässt bestehende Projektdaten unverändert.
+Vor jeder Bestätigung werden die exakten Befehle und Auswirkungen angezeigt. Abbrechen lässt bestehende Projektdaten unverändert.
 
 ## 6. Sichere Einrichtung
 
@@ -62,21 +66,62 @@ Terminal statt KDialog:
 ./setup.sh --no-gui-dialogs
 ```
 
-Ausdrücklich bestätigter Lauf:
+Automatischer ausdrücklich bestätigter Lauf:
 
 ```bash
 ./setup.sh --yes --no-gui-dialogs
 ```
 
+`--yes` sollte nur verwendet werden, wenn die angezeigten Installationsschritte vorher verstanden wurden.
+
 ## 7. Sicherheitsprinzip der `.venv`
 
-Die neue Umgebung wird zunächst als `.venv.setup-...` erstellt. Danach werden pip und `requirements.txt` installiert und PySide6 importiert. Erst bei grünem Ergebnis wird sie als `.venv` aktiviert. Eine bestehende `.venv` wird nicht vorher gelöscht. Symbolische Links an `.venv` werden blockiert.
+Die neue Umgebung wird zunächst als `.venv.setup-...` erstellt. Danach:
 
-## 8. Typische Fehler
+1. pip wird aktualisiert,
+2. `requirements.txt` wird installiert,
+3. PySide6 wird importiert,
+4. erst bei grünem Ergebnis wird die Umgebung als `.venv` aktiviert.
+
+Eine bestehende `.venv` wird nicht vorher gelöscht. Symbolische Links an `.venv` werden blockiert.
+
+## 8. Sichere Speicherorte
+
+Beim normalen Start legt das Tool seine privaten Linux-Benutzerbereiche außerhalb des Programmordners an:
+
+- Konfiguration: `~/.config/multimodultool2026`
+- Nutzerdaten: `~/.local/share/multimodultool2026`
+- Cache: `~/.cache/multimodultool2026`
+- Status: `~/.local/state/multimodultool2026`
+- Protokolle: `~/.local/state/multimodultool2026/logs`
+- Sicherungen: `~/.local/share/multimodultool2026/backups`
+
+Alle App-Verzeichnisse erhalten Modus `0700`. Vor und nach der Anlage werden absolute Pfade, zulässige Grenzen, Symlinks, Dateitypen, Schreibrechte und eine temporäre Schreibprobe geprüft.
+
+Nur berechnete Pfade anzeigen:
+
+```bash
+python3 -m src.main --paths-only
+```
+
+Rein lesend prüfen, ohne Verzeichnisse anzulegen:
+
+```bash
+python3 -m src.main --validate-only
+```
+
+### XDG-Pfadfehler
+
+**Ursache:** Ein XDG-Wert ist relativ, zeigt in den Programmordner, verwendet einen blockierten Symlink, ist doppelt belegt oder nicht beschreibbar.  
+**Folge:** Die Oberfläche startet nicht.  
+**Datenstand:** Es werden keine produktiven Dateien verändert. Temporäre Schreibtests werden sofort entfernt.  
+**Lösung:** Genannten Pfad korrigieren oder die betreffende `XDG_*_HOME`-Variable auf einen absoluten, eigenen Linux-Benutzerpfad setzen.
+
+## 9. Typische Fehler
 
 ### Python fehlt
 
-Unter Ubuntu/Kubuntu bietet der Assistent nach Bestätigung an:
+Der Assistent bietet unter Ubuntu/Kubuntu nach Bestätigung an:
 
 ```bash
 sudo apt-get update
@@ -95,7 +140,7 @@ Dies ist zunächst eine gelbe Warnung. Der Zielrahmen bleibt KDE Plasma unter X1
 
 Internetverbindung prüfen und `./setup.sh` erneut ausführen. Eine unvollständige temporäre Umgebung wird entfernt.
 
-## 9. Diagnose und Tests
+## 10. Diagnose und Tests
 
 ```bash
 python3 -m src.main --validate-only
@@ -103,10 +148,10 @@ python3 tools/validate_repository.py
 python3 -m unittest discover -s tests -v
 ```
 
-## 10. GitHub-Rechte
+## 11. GitHub-Rechte
 
 GitHub-Schreibrechte werden nicht im Projekt gespeichert. Keine Tokens in Dateien eintragen. Der aktuelle Zugriffsvertrag steht in `docs/GITHUB_ZUGRIFF.md`.
 
-## 11. Aktuelle Grenze
+## 12. Aktuelle Grenze
 
-Noch keine privaten oder unersetzlichen Dateibestände bearbeiten. Produktive Dateiaktionen folgen erst nach XDG-Pfaden, Einstellungen mit Rollback, Fehlerzentrale, Papierkorb, Undo und Abbruchschutz.
+Noch keine privaten oder unersetzlichen Dateibestände bearbeiten. Die XDG-Pfade sind gesichert; produktive Dateiaktionen folgen erst nach transaktionalen Einstellungen, Fehlerzentrale, Papierkorb, Undo und Abbruchschutz.
