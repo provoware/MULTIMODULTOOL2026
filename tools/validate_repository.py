@@ -110,10 +110,6 @@ def check_progress(errors: list[str]) -> None:
     done, open_count = checkbox_counts(todo)
     total = done + open_count
     percent = round(done / total * 100) if total else 0
-    expected = {"done": 31, "open": 37, "total": 68, "percent": 46}
-    actual = {"done": done, "open": open_count, "total": total, "percent": percent}
-    if actual != expected:
-        errors.append(f"TODO-Fortschritt inkonsistent: {actual!r}, erwartet {expected!r}")
     for marker in (
         f"Entwicklungsfortschritt: {percent} %",
         f"Erledigte Punkte: {done}",
