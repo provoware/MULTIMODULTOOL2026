@@ -14,46 +14,28 @@ sys.path.insert(0, str(ROOT))
 
 from src.manifest_validator import validate_manifest  # noqa: E402
 
-
 REQUIRED_FILES = (
     ".github/workflows/repository-contract.yml",
-    "AGENTS.md",
-    "ANLEITUNG_TOOL.md",
-    "CHANGELOG.md",
-    "ENTWICKLERDOKU.md",
-    "README.md",
-    "SCHWACHSTELLEN.md",
-    "TODO.md",
-    "UPGRADE_POOL.md",
+    "AGENTS.md", "ANLEITUNG_TOOL.md", "CHANGELOG.md", "ENTWICKLERDOKU.md",
+    "README.md", "SCHWACHSTELLEN.md", "TODO.md", "UPGRADE_POOL.md",
     "assets/ui-reference/multimodultool2026-ui-layout-reference-2026.webp",
-    "docs/UI_BASISVORLAGE.md",
-    "layout-manifest.json",
-    "requirements.txt",
-    "src/__init__.py",
-    "src/main.py",
-    "src/manifest_validator.py",
-    "src/theme.qss",
-    "standards/UI_LAYOUT_STANDARD_2026.md",
-    "start.sh",
-    "tests/__init__.py",
-    "tests/test_repository_contract.py",
-    "tools/validate_repository.py",
+    "docs/GITHUB_ZUGRIFF.md", "docs/UI_BASISVORLAGE.md",
+    "layout-manifest.json", "requirements.txt", "setup.sh", "start.sh",
+    "src/__init__.py", "src/main.py", "src/manifest_validator.py", "src/theme.qss",
+    "standards/UI_LAYOUT_STANDARD_2026.md", "tests/__init__.py",
+    "tests/test_repository_contract.py", "tests/test_setup_assistant.py",
+    "tools/setup_assistant.py", "tools/validate_repository.py",
 )
 
 MAINTAINED_DOCS = (
-    "CHANGELOG.md",
-    "ANLEITUNG_TOOL.md",
-    "TODO.md",
-    "SCHWACHSTELLEN.md",
-    "UPGRADE_POOL.md",
-    "ENTWICKLERDOKU.md",
+    "CHANGELOG.md", "ANLEITUNG_TOOL.md", "TODO.md", "SCHWACHSTELLEN.md",
+    "UPGRADE_POOL.md", "ENTWICKLERDOKU.md", "docs/GITHUB_ZUGRIFF.md",
 )
 
 
 def read_text(relative_path: str, errors: list[str]) -> str:
-    path = ROOT / relative_path
     try:
-        return path.read_text(encoding="utf-8")
+        return (ROOT / relative_path).read_text(encoding="utf-8")
     except OSError as exc:
         errors.append(f"{relative_path} kann nicht gelesen werden: {exc}")
         return ""
@@ -66,8 +48,7 @@ def check_required_files(errors: list[str]) -> None:
 
 
 def check_manifest(errors: list[str]) -> None:
-    result = validate_manifest(ROOT / "layout-manifest.json", ROOT)
-    errors.extend(result.errors)
+    errors.extend(validate_manifest(ROOT / "layout-manifest.json", ROOT).errors)
 
 
 def parse_todo_counts(todo_text: str) -> tuple[int, int]:
@@ -78,36 +59,24 @@ def parse_todo_counts(todo_text: str) -> tuple[int, int]:
 
 def check_progress_consistency(errors: list[str]) -> None:
     readme = read_text("README.md", errors)
-    todo = read_text("TODO.md", errors)
-    completed, open_items = parse_todo_counts(todo)
+    completed, open_items = parse_todo_counts(read_text("TODO.md", errors))
     total = completed + open_items
-    expected_percent = round((completed / total) * 100) if total else 0
-
+    expected = {
+        "percent": round((completed / total) * 100) if total else 0,
+        "completed": completed, "open": open_items, "total": total,
+    }
     patterns = {
         "percent": r"Entwicklungsfortschritt:\s*(\d+)\s*%",
         "completed": r"Erledigte Punkte:\s*(\d+)",
         "open": r"Offene Punkte:\s*(\d+)",
         "total": r"Gesamtpunkte:\s*(\d+)",
     }
-    extracted: dict[str, int] = {}
     for key, pattern in patterns.items():
         match = re.search(pattern, readme)
         if not match:
             errors.append(f"README-Fortschrittswert fehlt: {key}")
-        else:
-            extracted[key] = int(match.group(1))
-
-    expected = {
-        "percent": expected_percent,
-        "completed": completed,
-        "open": open_items,
-        "total": total,
-    }
-    for key, value in expected.items():
-        if key in extracted and extracted[key] != value:
-            errors.append(
-                f"README-{key} ist {extracted[key]}, aus TODO.md ergeben sich {value}."
-            )
+        elif int(match.group(1)) != expected[key]:
+            errors.append(f"README-{key} ist {match.group(1)}, aus TODO.md ergeben sich {expected[key]}.")
 
 
 def check_agents_policy(errors: list[str]) -> None:
@@ -118,6 +87,8 @@ def check_agents_policy(errors: list[str]) -> None:
     for phrase in ("Entwicklungsfortschritt", "Erledigte Punkte", "Offene Punkte"):
         if phrase not in agents:
             errors.append(f"AGENTS.md enthält die Fortschrittspflicht {phrase!r} nicht.")
+    if "GitHub-Zugriffsvertrag" not in agents:
+        errors.append("AGENTS.md enthält keinen GitHub-Zugriffsvertrag.")
 
 
 def check_linux_scope(errors: list[str]) -> None:
@@ -125,17 +96,12 @@ def check_linux_scope(errors: list[str]) -> None:
     agents = read_text("AGENTS.md", errors)
     main_source = read_text("src/main.py", errors)
     start_source = read_text("start.sh", errors)
-
-    required_readme_phrases = (
-        "ausschließlich für Linux-Desktop-Systeme",
-        "Kubuntu 22.04 LTS",
-        "Kubuntu 24.04 LTS",
-        "Windows, macOS, Android und iOS",
-    )
-    for phrase in required_readme_phrases:
+    for phrase in (
+        "ausschließlich für Linux-Desktop-Systeme", "Kubuntu 22.04 LTS",
+        "Kubuntu 24.04 LTS", "Windows, macOS, Android und iOS",
+    ):
         if phrase not in readme:
             errors.append(f"README-Linuxvertrag fehlt: {phrase!r}")
-
     if "Verbindlicher Plattformvertrag" not in agents:
         errors.append("AGENTS.md enthält keinen verbindlichen Linux-Plattformvertrag.")
     if "is_supported_platform" not in main_source:
@@ -146,8 +112,7 @@ def check_linux_scope(errors: list[str]) -> None:
 
 def check_todo_quality(errors: list[str]) -> None:
     todo = read_text("TODO.md", errors)
-    required_sections = ("## P0", "## P1", "## P2", "## P3", "## P4")
-    for heading in required_sections:
+    for heading in ("## P0", "## P1", "## P2", "## P3", "## P4"):
         if heading not in todo:
             errors.append(f"TODO-Prioritätsbereich fehlt: {heading}")
     ids = re.findall(r"\*\*([A-Z]\d?-\d{3})\*\*", todo)
@@ -160,20 +125,42 @@ def check_todo_quality(errors: list[str]) -> None:
         errors.append("TODO.md ist nicht verbindlich auf Linux begrenzt.")
 
 
+def check_setup_contract(errors: list[str]) -> None:
+    setup_source = read_text("tools/setup_assistant.py", errors)
+    setup_shell = read_text("setup.sh", errors)
+    start_source = read_text("start.sh", errors)
+    for phrase in ("--check-only", ".venv.setup-", "PySide6", "kde"):
+        if phrase not in setup_source:
+            errors.append(f"Einrichtungsassistent enthält Pflichtmerkmal nicht: {phrase}")
+    if "shell=True" in setup_source:
+        errors.append("Einrichtungsassistent verwendet unsichere Shell-Ausführung.")
+    if "setup.sh" not in start_source:
+        errors.append("start.sh ruft den Einrichtungsassistenten nicht auf.")
+    if "set -Eeuo pipefail" not in setup_shell:
+        errors.append("setup.sh verwendet keinen strikten Shell-Modus.")
+
+
+def check_github_access_contract(errors: list[str]) -> None:
+    access_doc = read_text("docs/GITHUB_ZUGRIFF.md", errors)
+    for phrase in ("nicht im Repository gespeichert", "GitHub-App", "Admin-Rechte"):
+        if phrase not in access_doc:
+            errors.append(f"GitHub-Zugriffsdokument fehlt Pflichtaussage: {phrase!r}")
+    if re.search(r"gh[pousr]_[A-Za-z0-9]{20,}", access_doc):
+        errors.append("GitHub-Zugriffsdokument enthält ein mögliches Token.")
+
+
 def check_python_syntax(errors: list[str]) -> None:
     for relative_path in (
-        "src/main.py",
-        "src/manifest_validator.py",
-        "tests/test_repository_contract.py",
+        "src/main.py", "src/manifest_validator.py", "tests/test_repository_contract.py",
+        "tests/test_setup_assistant.py", "tools/setup_assistant.py",
         "tools/validate_repository.py",
     ):
         source = read_text(relative_path, errors)
-        if not source:
-            continue
-        try:
-            compile(source, relative_path, "exec")
-        except SyntaxError as exc:
-            errors.append(f"Syntaxfehler in {relative_path}:{exc.lineno}: {exc.msg}")
+        if source:
+            try:
+                compile(source, relative_path, "exec")
+            except SyntaxError as exc:
+                errors.append(f"Syntaxfehler in {relative_path}:{exc.lineno}: {exc.msg}")
 
 
 def check_json(errors: list[str]) -> None:
@@ -194,29 +181,23 @@ def check_start_script(errors: list[str]) -> None:
 def main() -> int:
     errors: list[str] = []
     checks: Iterable[tuple[str, Callable[[list[str]], None]]] = (
-        ("Pflichtdateien", check_required_files),
-        ("Linux-Plattformvertrag", check_linux_scope),
-        ("Manifest", check_manifest),
-        ("Fortschritt", check_progress_consistency),
-        ("Dokumentationspflicht", check_agents_policy),
-        ("TODO-Qualität", check_todo_quality),
-        ("Python-Syntax", check_python_syntax),
-        ("JSON", check_json),
+        ("Pflichtdateien", check_required_files), ("Linux-Plattformvertrag", check_linux_scope),
+        ("Manifest", check_manifest), ("Fortschritt", check_progress_consistency),
+        ("Dokumentationspflicht", check_agents_policy), ("TODO-Qualität", check_todo_quality),
+        ("Einrichtungsassistent", check_setup_contract),
+        ("GitHub-Zugriffsvertrag", check_github_access_contract),
+        ("Python-Syntax", check_python_syntax), ("JSON", check_json),
         ("Startroutine", check_start_script),
     )
-
     for name, check in checks:
         before = len(errors)
         check(errors)
-        state = "GRÜN" if len(errors) == before else "ROT"
-        print(f"{state}: {name}")
-
+        print(f"{'GRÜN' if len(errors) == before else 'ROT'}: {name}")
     if errors:
         print("\nRepository-Vertrag verletzt:")
         for error in errors:
             print(f"- {error}")
         return 1
-
     print("\nGRÜN: Linux-Repository-Vertrag vollständig erfüllt.")
     return 0
 

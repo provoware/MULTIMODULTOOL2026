@@ -35,4 +35,6 @@ build/
 .env.*
 !.env.example
 .venv/
+.venv.setup-*/
+.venv.backup-*/
 venv/

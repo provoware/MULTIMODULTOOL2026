@@ -13,10 +13,10 @@
 
 ## Fortschritt
 
-- Erledigt: **17**
-- Offen: **45**
+- Erledigt: **18**
+- Offen: **44**
 - Gesamt: **62**
-- Rechnerischer Entwicklungsfortschritt: **27 %**
+- Rechnerischer Entwicklungsfortschritt: **29 %**
 
 ## Erledigte Grundlagen
 
@@ -42,7 +42,7 @@
 
 ## P0 – Startfähigkeit, Datensicherheit und Releaseblocker
 
-- [ ] **P0-001** – PySide6-Installation über einen geführten Linux-Einrichtungsdialog automatisieren. Abhängigkeit: `D-011` | Abnahmekriterium: Frische Kubuntu-Installation startet nach höchstens zwei bestätigten Dialogen. | Risiko: **mittel**
+- [x] **P0-001** – PySide6-Installation über einen geführten Linux-Einrichtungsdialog automatisieren. Abhängigkeit: `D-011` | Abnahmekriterium: Frische Kubuntu-Installation startet nach höchstens zwei bestätigten Dialogen. | Risiko: **mittel** | Ergebnis: atomare `.venv`-Einrichtung, KDE-KDialog mit Terminal-Rückfall, System-, Sitzungs-, Rechte- und PySide6-Prüfung.
 - [ ] **P0-002** – XDG-konforme Projekt- und Nutzerdatenpfade strikt vom Programmverzeichnis trennen. Abhängigkeit: `P0-001` | Abnahmekriterium: App nutzt sichere Linux-Benutzerpfade und schreibt nie ungefragt in den Quellbaum. | Risiko: **hoch**
 - [ ] **P0-003** – Transaktionales Einstellungsformat mit Schema, Backup und Rollback einführen. Abhängigkeit: `P0-002` | Abnahmekriterium: Defekte Konfiguration wird erkannt und verlustfrei auf letzte gültige Version zurückgesetzt. | Risiko: **hoch**
 - [ ] **P0-004** – Globalen Fehlerdialog mit Ursache, Folge, Lösung und unverändertem Datenstand erstellen. Abhängigkeit: `D-008` | Abnahmekriterium: Jede unbehandelte Ausnahme wird verständlich protokolliert und beendet die App kontrolliert. | Risiko: **hoch**
@@ -102,16 +102,7 @@
 
 ## Aufnahme neuer Aufgaben
 
-Eine neue Aufgabe wird nur aufgenommen, wenn alle Punkte beantwortet sind:
-
-1. Welches konkrete Linux-Nutzerproblem wird gelöst?
-2. Welche Dateien, Daten und bestehenden Funktionen sind betroffen?
-3. Ist die Aufgabe bereits enthalten oder nur anders formuliert?
-4. Welche Vorbedingungen und Abhängigkeiten bestehen?
-5. Woran ist objektiv erkennbar, dass sie fertig ist?
-6. Wie wird Datenverlust verhindert und ein Rückfall ermöglicht?
-7. Welche direkt relevante Prüfung muss grün sein?
-8. Welche Pflichtdokumente müssen angepasst werden?
+Eine neue Aufgabe wird nur aufgenommen, wenn Linux-Nutzerproblem, betroffene Daten, Doppelungsprüfung, Abhängigkeiten, objektives Abnahmekriterium, Rückfallweg, Pflichtprüfung und betroffene Dokumente bekannt sind.
 
 ## Abschlussformat je Aufgabe
 
