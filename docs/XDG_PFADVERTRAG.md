@@ -9,7 +9,7 @@
 - Logs: `$XDG_STATE_HOME/multimodultool2026/logs`
 - Sicherungen: `$XDG_DATA_HOME/multimodultool2026/backups`
 
-App-Verzeichnisse verwenden `0700`. Relative Pfade, Quellbaumziele, Symlinks, falsche Eigentümer, Doppelziele und unbeschreibbare Ziele blockieren den Start.
+App-Verzeichnisse verwenden `0700`. Relative Pfade, Quellbaumziele, Symlinks, falsche Eigentümer, Doppelziele und unbeschreibbare Ziele blockieren.
 
 ## Flüchtiger Instanzbereich
 
@@ -17,37 +17,26 @@ App-Verzeichnisse verwenden `0700`. Relative Pfade, Quellbaumziele, Symlinks, fa
 $XDG_RUNTIME_DIR/multimodultool2026
 ```
 
-Fehlt die Variable, darf nur `/run/user/<uid>` verwendet werden. Eine Ausweichlösung in `/tmp` ist verboten. App-Unterordner erhält `0700`; Socket und Metadaten `0600`.
+Fehlt die Variable, ist ausschließlich `/run/user/<uid>` erlaubt. `/tmp` ist verboten. App-Unterordner verwendet `0700`; Socket und Metadaten `0600`.
 
 ## Projektbezogene Transaktionsdaten
 
-Papierkorb-Payloads, Transaktionsmanifeste und das Undo-/Redo-Journal sind bewusst **keine allgemeinen XDG-App-Daten**. Sie liegen innerhalb des ausdrücklich gewählten Projekts, damit atomare Umbenennung, Wiederherstellung und eine portable Projekt-Historie möglich bleiben:
+Papierkorb, Undo-/Redo-Historie und Laufcheckpoints liegen bewusst innerhalb des ausdrücklich gewählten Projekts:
 
 ```text
 <Projekt>/.multimodultool2026/
-├── history/
-│   └── actions.jsonl
-└── trash/
-    └── transactions/
+├── history/actions.jsonl
+├── runs/<MMTRUN-ID>/
+└── trash/transactions/<MMTTRASH-ID>/
 ```
 
-Diese Ausnahme gilt ausschließlich für:
+Diese Ausnahme ist erforderlich, damit Dateioperationen und Wiederherstellung auf demselben Dateisystem bleiben. Sie darf nicht als allgemeiner App-Konfigurations-, Cache- oder Logpfad verwendet werden.
 
-- reversible Dateiaktionshistorie,
-- Papierkorb-Payloads,
-- Transaktionsmanifeste.
+Sicherheitsregeln:
 
-Sie darf nicht als Konfigurations-, Cache-, Diagnose-, App-Log- oder allgemeiner Sicherungspfad verwendet werden.
-
-## Sicherheitsregeln
-
-- Projektstamm muss absolut, vorhanden, sicher beschreibbar und dem aktuellen Nutzer zugeordnet sein.
-- interne Projektverzeichnisse verwenden `0700`.
-- Transaktionsmanifeste und `actions.jsonl` verwenden `0600`.
-- Journal enthält ausschließlich relative Projektpfade.
-- Pfade dürfen das Projekt nicht verlassen.
-- Symlink-Komponenten, Mountwechsel und unklare Eigentumsverhältnisse blockieren.
-- es gibt keinen Fallback in den Programmquellbaum, nach `/tmp` oder in einen fremden Mount.
-- rein lesende Vorschau, Journalinspektion und Transaktionsübersicht erzeugen keine Datei.
-
-Das XDG-App-Ereignisjournal und das projektbezogene Aktionsjournal erfüllen unterschiedliche Aufgaben und dürfen nicht miteinander vermischt werden.
+- Projektstamm absolut, vorhanden, sicher beschreibbar und dem aktuellen Nutzer zugeordnet,
+- interne Verzeichnisse `0700`, private Dateien `0600`,
+- keine absoluten Pfade in Plan oder Aktionsjournal,
+- keine Symlink-Komponenten oder Mountwechsel,
+- kein Fallback in Programmquellbaum, `/tmp` oder fremden Mount,
+- read-only Prüfungen erzeugen keine Transaktion.

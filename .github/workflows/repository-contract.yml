@@ -11,7 +11,7 @@ jobs:
   validate:
     name: Validate Linux project contract
     runs-on: ubuntu-latest
-    timeout-minutes: 18
+    timeout-minutes: 25
     env:
       QT_QPA_PLATFORM: offscreen
       PYTHONFAULTHANDLER: "1"
@@ -43,6 +43,12 @@ jobs:
       - name: Read-only Transaktionsübersicht ausdrücklich prüfen
         run: python3 -m unittest tests.test_transaction_overview -v
 
+      - name: Transaktionalen Abbruch- und Wiederanlaufvertrag prüfen
+        run: python3 -m unittest tests.test_run_control -v
+
+      - name: SIGKILL-Prozessabbruchmatrix prüfen
+        run: python3 -m unittest tests.test_run_control_sigkill -v
+
       - name: Single-Instance-Vertrag ausdrücklich prüfen
         run: python3 -m unittest tests.test_single_instance -v
 
@@ -61,5 +67,5 @@ jobs:
       - name: Offscreen-GUI-, Diagnose- und Fehlerdialog-Test ausführen
         run: python3 -m unittest tests.test_gui_offscreen -v
 
-      - name: Offscreen-Papierkorb- und Transaktionsvertrag prüfen
+      - name: Offscreen-Papierkorb-, Transaktions- und Wiederanlaufvertrag prüfen
         run: python3 -m unittest tests.test_gui_trash_contract -v

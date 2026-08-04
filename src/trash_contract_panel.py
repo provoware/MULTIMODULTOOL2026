@@ -1,8 +1,8 @@
-"""Read-only Qt panel for project trash and transaction history.
+"""Read-only Qt panels for trash, transaction history and long-run recovery.
 
 PySide6 is injected by the caller so the module remains importable without GUI
-dependencies. The panel exposes no restore, repair, delete, empty-trash, upload
-or export action.
+dependencies. No restore, repair, delete, empty-trash, run, cancel, upload or
+export action is exposed here.
 """
 
 from __future__ import annotations
@@ -110,6 +110,35 @@ def build_trash_contract_panel(QtWidgets, transaction_snapshot=None):
     notice.setWordWrap(True)
     overview_layout.addWidget(notice)
     layout.addWidget(overview)
+
+    run_contract = QtWidgets.QFrame()
+    run_contract.setObjectName("runControlContract")
+    run_layout = QtWidgets.QVBoxLayout(run_contract)
+    run_layout.setContentsMargins(10, 10, 10, 10)
+    run_title = QtWidgets.QLabel("Abbruch und Wiederanlauf – Vertragsansicht")
+    run_title.setObjectName("sectionTitle")
+    run_title.setWordWrap(True)
+    run_layout.addWidget(run_title)
+    run_rules = QtWidgets.QLabel(
+        "✓ eindeutige MMTRUN-Lauf-ID\n"
+        "✓ unveränderlicher Plan und atomarer Checkpoint\n"
+        "✓ private Laufordner 0700, Laufdateien 0600\n"
+        "✓ Abbruch nur vor Intent oder nach vollständig bestätigtem Schritt\n"
+        "✓ idempotenter Neustart aus Checkpoint, Journal und Manifest\n"
+        "✓ SIGKILL-Matrix vor/nach Intent, Dateioperation, fsync, Manifest und Journal\n"
+        "✗ keine Doppeloperation und kein stiller Zwischenzustand"
+    )
+    run_rules.setObjectName("runControlRules")
+    run_rules.setWordWrap(True)
+    run_layout.addWidget(run_rules)
+    run_status = QtWidgets.QLabel(
+        "Laufsteuerung geprüft. Diese Ansicht startet, stoppt oder repariert keinen Lauf."
+    )
+    run_status.setObjectName("runControlReadOnlyNotice")
+    run_status.setProperty("safetyStatus", True)
+    run_status.setWordWrap(True)
+    run_layout.addWidget(run_status)
+    layout.addWidget(run_contract)
 
     def populate() -> None:
         listing.clear()
