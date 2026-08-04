@@ -1,10 +1,32 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "schemaVersion": "1.0.0",
+  "schemaVersion": "1.1.0",
   "project": {
     "id": "multimodultool2026",
     "name": "MULTIMODULTOOL2026",
     "repository": "provoware/MULTIMODULTOOL2026"
+  },
+  "platformPolicy": {
+    "supportedOperatingSystems": [
+      "linux"
+    ],
+    "primaryDistributions": [
+      "Kubuntu 22.04 LTS",
+      "Kubuntu 24.04 LTS"
+    ],
+    "desktopEnvironments": [
+      "KDE Plasma"
+    ],
+    "displayServers": [
+      "X11",
+      "Wayland"
+    ],
+    "architectures": [
+      "x86_64"
+    ],
+    "unsupportedPlatformsMustBeBlocked": true,
+    "browserOrPwaTarget": false,
+    "crossPlatformCompatibilityIsGoal": false
   },
   "referenceAsset": {
     "path": "assets/ui-reference/multimodultool2026-ui-layout-reference-2026.webp",
@@ -113,17 +135,15 @@
     }
   ],
   "responsiveRules": {
-    "desktop": {
-      "preserveThreeColumnShell": true,
-      "contextRailVisibleByDefault": true
-    },
-    "tablet": {
-      "contextRailMayCollapse": true,
+    "linuxDesktop": {
+      "minimumViewport": {
+        "width": 1024,
+        "height": 680
+      },
+      "maximumTestedScalePercent": 200,
+      "preserveThreeColumnShellWhenSpaceAllows": true,
+      "contextRailMayCollapseAtMinimumWidth": true,
       "contextContentMustRemainReachable": true
-    },
-    "mobile": {
-      "stackZonesByOrder": true,
-      "navigationMayUseControlledDrawer": true
     },
     "global": {
       "noHiddenPrimaryActions": true,
@@ -163,7 +183,13 @@
       "README.md",
       "docs/UI_BASISVORLAGE.md",
       "standards/UI_LAYOUT_STANDARD_2026.md",
-      "AGENTS.md"
+      "AGENTS.md",
+      "ANLEITUNG_TOOL.md",
+      "CHANGELOG.md",
+      "TODO.md",
+      "SCHWACHSTELLEN.md",
+      "UPGRADE_POOL.md",
+      "ENTWICKLERDOKU.md"
     ]
   }
 }

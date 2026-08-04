@@ -1,0 +1,40 @@
+QWidget {
+    background: #071019;
+    color: #e8f1f6;
+    font-family: "Noto Sans", "DejaVu Sans", sans-serif;
+    font-size: 14px;
+}
+QMainWindow { background: #050b11; }
+QFrame#header, QFrame#footer, QFrame#navigation, QFrame#contextRail, QFrame#panel, QFrame#card {
+    background: #0b1620;
+    border: 1px solid #294252;
+    border-radius: 10px;
+}
+QFrame#header, QFrame#footer { background: #08151a; }
+QLabel#appTitle { font-size: 20px; font-weight: 700; }
+QLabel#sectionTitle, QLabel#cardValue { font-size: 16px; font-weight: 700; }
+QLabel#muted { color: #9fb0bd; }
+QLabel#statusOk { color: #45ef92; font-weight: 700; }
+QPushButton {
+    background: #0d1b26;
+    border: 1px solid #355264;
+    border-radius: 8px;
+    padding: 10px 14px;
+    text-align: left;
+}
+QPushButton:hover { background: #132837; border-color: #00dff5; }
+QPushButton:focus { border: 2px solid #f7d34a; }
+QPushButton[accent="cyan"] { border-color: #00dff5; }
+QPushButton[accent="magenta"] { border-color: #ff3fca; }
+QPushButton[accent="green"] { border-color: #45ef92; }
+QPushButton[accent="amber"] { border-color: #f7bd38; }
+QPushButton[accent="blue"] { border-color: #34a4ff; }
+QPushButton[accent="red"] { border-color: #ff5b64; }
+QProgressBar {
+    background: #071019;
+    border: 1px solid #355264;
+    border-radius: 7px;
+    min-height: 18px;
+    text-align: center;
+}
+QProgressBar::chunk { background: #00cfe8; border-radius: 6px; }

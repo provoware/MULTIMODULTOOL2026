@@ -1,0 +1,32 @@
+name: Linux Repository Contract
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate Linux project contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Repository-Vertrag prüfen
+        run: python3 tools/validate_repository.py
+
+      - name: Linux- und Manifest-Startprüfung ausführen
+        run: python3 -m src.main --validate-only
+
+      - name: Unit-Tests ausführen
+        run: python3 -m unittest discover -s tests -v
