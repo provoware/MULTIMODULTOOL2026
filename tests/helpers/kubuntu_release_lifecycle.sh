@@ -24,9 +24,9 @@ apt-get install -y --no-install-recommends ca-certificates software-properties-c
 add-apt-repository -y universe
 apt-get update
 printf "sddm shared/default-x-display-manager select sddm\n" | debconf-set-selections || true
-apt-get install -y --no-install-recommends kubuntu-desktop-minimal plasma-desktop
+apt-get install -y --no-install-recommends kubuntu-desktop plasma-desktop
 
-dpkg-query -W -f="${Status}\n" kubuntu-desktop-minimal | grep -q "install ok installed"
+dpkg-query -W -f="${Status}\n" kubuntu-desktop | grep -q "install ok installed"
 dpkg-query -W -f="${Status}\n" plasma-desktop | grep -q "install ok installed"
 
 useradd -m -u 1000 -s /bin/bash mmt
@@ -100,7 +100,7 @@ import json
 print(json.dumps({
   "schemaVersion": 1,
   "series": "'"$SERIES"'",
-  "kubuntuDesktopMinimal": True,
+  "kubuntuDesktop": True,
   "plasmaDesktop": True,
   "architecture": "amd64",
   "install": "passed",
