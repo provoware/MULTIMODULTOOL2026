@@ -19,23 +19,35 @@ $XDG_RUNTIME_DIR/multimodultool2026
 
 Fehlt die Variable, darf nur `/run/user/<uid>` verwendet werden. Eine Ausweichlösung in `/tmp` ist verboten. App-Unterordner erhält `0700`; Socket und Metadaten `0600`.
 
-## Projektbezogener Papierkorb
+## Projektbezogene Transaktionsdaten
 
-Der Papierkorb ist bewusst **kein XDG-App-Datenbereich**. Er liegt innerhalb des ausdrücklich gewählten Projekts, damit atomare Umbenennung und Wiederherstellung auf demselben Dateisystem möglich bleiben:
+Papierkorb-Payloads, Transaktionsmanifeste und das Undo-/Redo-Journal sind bewusst **keine allgemeinen XDG-App-Daten**. Sie liegen innerhalb des ausdrücklich gewählten Projekts, damit atomare Umbenennung, Wiederherstellung und eine portable Projekt-Historie möglich bleiben:
 
 ```text
-<Projekt>/.multimodultool2026/trash/transactions/
+<Projekt>/.multimodultool2026/
+├── history/
+│   └── actions.jsonl
+└── trash/
+    └── transactions/
 ```
 
-Diese Ausnahme gilt ausschließlich für transaktionsbezogene Payloads und Manifeste des gewählten Projekts. Sie darf nicht als allgemeiner Konfigurations-, Cache-, Log- oder App-Datenpfad verwendet werden.
+Diese Ausnahme gilt ausschließlich für:
 
-Sicherheitsregeln:
+- reversible Dateiaktionshistorie,
+- Papierkorb-Payloads,
+- Transaktionsmanifeste.
+
+Sie darf nicht als Konfigurations-, Cache-, Diagnose-, App-Log- oder allgemeiner Sicherungspfad verwendet werden.
+
+## Sicherheitsregeln
 
 - Projektstamm muss absolut, vorhanden, sicher beschreibbar und dem aktuellen Nutzer zugeordnet sein.
-- interne Projektpapierkorb-Verzeichnisse verwenden `0700`.
-- Transaktionsmanifeste verwenden `0600`.
+- interne Projektverzeichnisse verwenden `0700`.
+- Transaktionsmanifeste und `actions.jsonl` verwenden `0600`.
+- Journal enthält ausschließlich relative Projektpfade.
 - Pfade dürfen das Projekt nicht verlassen.
 - Symlink-Komponenten, Mountwechsel und unklare Eigentumsverhältnisse blockieren.
-- es gibt keinen Fallback in den Quellbaum des Programms, nach `/tmp` oder in einen fremden Mount.
+- es gibt keinen Fallback in den Programmquellbaum, nach `/tmp` oder in einen fremden Mount.
+- rein lesende Vorschau, Journalinspektion und Transaktionsübersicht erzeugen keine Datei.
 
-Rein lesende Vorschau und App-Prüfmodi erzeugen keine Papierkorbtransaktion.
+Das XDG-App-Ereignisjournal und das projektbezogene Aktionsjournal erfüllen unterschiedliche Aufgaben und dürfen nicht miteinander vermischt werden.

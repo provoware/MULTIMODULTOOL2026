@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "schemaVersion": "1.3.0",
+  "schemaVersion": "1.4.0",
   "project": {
     "id": "multimodultool2026",
     "name": "MULTIMODULTOOL2026",
@@ -74,6 +74,35 @@
     "damagedManifestMustRemainUnchanged": true,
     "centralErrorContractRequired": true
   },
+  "undoRedoPolicy": {
+    "projectRelative": true,
+    "journalPath": ".multimodultool2026/history/actions.jsonl",
+    "journalSchemaVersion": 1,
+    "historyDirectoryMode": "0700",
+    "journalMode": "0600",
+    "appendOnly": true,
+    "hashChain": "sha256",
+    "uniqueActionIdsRequired": true,
+    "uniqueTransactionIdsRequired": true,
+    "intentAndCompletionEventsRequired": true,
+    "undoOrder": "reverse",
+    "redoOrder": "forward",
+    "idempotentPerAction": true,
+    "conflictMustBlock": true,
+    "absolutePathsForbidden": true,
+    "minimumSequentialRoundTripActions": 10
+  },
+  "transactionOverviewPolicy": {
+    "readOnly": true,
+    "visibleStates": ["prepared", "trashed", "restored", "damaged"],
+    "repairAllowed": false,
+    "restoreAllowed": false,
+    "deleteAllowed": false,
+    "uploadAllowed": false,
+    "automaticExportAllowed": false,
+    "maximumRecords": 1000,
+    "manifestBytesMustRemainUnchanged": true
+  },
   "diagnosticsPolicy": {
     "readOnly": true,
     "filters": ["severity", "diagnostic-id"],
@@ -118,6 +147,6 @@
   "validation": {
     "requiredZoneCount": 9,
     "requiredZoneOrder": ["Z01", "Z02", "Z03", "Z04", "Z05", "Z06", "Z07", "Z08", "Z09"],
-    "documentation": ["README.md", "docs/UI_BASISVORLAGE.md", "standards/UI_LAYOUT_STANDARD_2026.md", "AGENTS.md", "ANLEITUNG_TOOL.md", "CHANGELOG.md", "TODO.md", "SCHWACHSTELLEN.md", "UPGRADE_POOL.md", "ENTWICKLERDOKU.md", "docs/XDG_PFADVERTRAG.md", "docs/EINSTELLUNGSVERTRAG.md", "docs/FEHLER_UND_EREIGNISVERTRAG.md", "docs/SINGLE_INSTANCE_UND_DIAGNOSEVERTRAG.md", "docs/PAPIERKORBVERTRAG.md"]
+    "documentation": ["README.md", "docs/UI_BASISVORLAGE.md", "standards/UI_LAYOUT_STANDARD_2026.md", "AGENTS.md", "ANLEITUNG_TOOL.md", "CHANGELOG.md", "TODO.md", "SCHWACHSTELLEN.md", "UPGRADE_POOL.md", "ENTWICKLERDOKU.md", "docs/XDG_PFADVERTRAG.md", "docs/EINSTELLUNGSVERTRAG.md", "docs/FEHLER_UND_EREIGNISVERTRAG.md", "docs/SINGLE_INSTANCE_UND_DIAGNOSEVERTRAG.md", "docs/PAPIERKORBVERTRAG.md", "docs/UNDO_REDO_UND_TRANSAKTIONSVERTRAG.md"]
   }
 }

@@ -18,24 +18,36 @@ Jeder globale Fehlerbericht enthält vollständig:
 - Einstellungs-Recovery
 - Single-Instance-Laufzeit-, Socket-, Metadaten- und Nachrichtenfehler
 - Projektpapierkorb-Vorschau, Transaktion und Wiederherstellung
+- Undo-/Redo-Intent, Journalabschluss, Hashkette und Reihenfolgekonflikte
+- read-only Transaktionsübersicht
 - spätere Dateioperationen über `SafeOperationError`
 
 ## Papierkorbereignisse
 
-`src/project_trash.py` verwendet ausschließlich `SafeOperationError(category="project-trash")`. Typische Ursachen sind:
+`src/project_trash.py` verwendet `SafeOperationError(category="project-trash")`. Typische Ursachen sind Projektgrenze, Symlink, Hardlink, Mountwechsel, Speichermangel, veränderte Quelle, Konflikt, beschädigtes Manifest, veränderter Payload oder fehlgeschlagene atomare Umbenennung.
 
-- Quelle außerhalb der Projektgrenze
-- Symlink oder Symlink-Komponente
-- zusätzlicher Hardlink
-- Mount- oder Dateisystemwechsel
-- unzureichender freier Speicher
-- Quelle seit der Vorschau verändert
-- belegte Transaktions-ID oder belegter Restore-Pfad
-- beschädigtes oder zu offenes Manifest
-- fehlender oder veränderter Payload
-- fehlgeschlagene atomare Umbenennung
+Der Datenstand muss präzise nennen, ob das Objekt vollständig am Originalpfad oder vollständig im privaten Transaktionsordner liegt. Dauerhaftes Löschen ist kein Fehler-Rückfallweg.
 
-Der Datenstand muss präzise nennen, ob das Objekt vollständig am Originalpfad oder vollständig im privaten Transaktionsordner liegt. Unklare Zustände dürfen nicht als erfolgreich gemeldet werden. Dauerhaftes Löschen ist kein Fehler-Rückfallweg.
+## Undo-/Redo-Ereignisse
+
+`src/undo_redo.py` verwendet `SafeOperationError(category="undo-redo-journal")`. Blockiert werden insbesondere:
+
+- ungültige oder doppelte Aktions-, Transaktions- oder Ereignis-ID
+- Lücke in der Sequenz
+- unterbrochene SHA-256-Hashkette
+- unbekannte oder unzulässige Zustandsfolge
+- Undo außerhalb der Rückwärtsreihenfolge
+- Redo außerhalb der Vorwärtsreihenfolge
+- neue Aktion bei vorhandener Redo-Kette
+- unsicherer Journalpfad, Symlink, Hardlink, Eigentümer oder Modus
+- widersprüchlicher Intent-, Manifest-, Payload- und Originalzustand
+- Journalgrößen- oder Ereignislimit überschritten
+
+Der Fehlerbericht muss nennen, ob die Dateioperation bereits vollständig durchgeführt wurde und lediglich das Abschlussereignis fehlt oder ob keine Dateiänderung stattfand. Vorhandene Journalzeilen dürfen nicht zur Fehlerbehebung verändert werden.
+
+## Transaktionsübersicht
+
+Ungültige Transaktionsverzeichnisse und beschädigte Manifeste werden in der Übersicht als `damaged` markiert. Dies ist eine read-only Diagnoseklassifizierung und keine automatische Reparatur. Manifestbytes, Payloads und Journal bleiben unverändert.
 
 ## Instanzereignisse
 
@@ -45,7 +57,7 @@ Der Datenstand muss präzise nennen, ob das Objekt vollständig am Originalpfad 
 
 Beschädigte Sperren werden niemals nur aufgrund eines Verbindungsfehlers gelöscht.
 
-## Ereignisjournal
+## Ereignisjournal der Anwendung
 
 ```text
 ~/.local/state/multimodultool2026/logs/events.jsonl
@@ -53,10 +65,12 @@ Beschädigte Sperren werden niemals nur aufgrund eines Verbindungsfehlers gelös
 
 Reguläre Datei, ein Hardlink, aktueller Eigentümer, keine Symlinks, Modus `0600`, JSONL und `fsync` je Eintrag. Private Pfade und typische Geheimnismuster werden reduziert.
 
+Das Projekt-Aktionsjournal unter `.multimodultool2026/history/actions.jsonl` ist davon getrennt. Es dokumentiert reversible Dateioperationen und speichert ausschließlich relative Projektpfade.
+
 ## Diagnoseansicht
 
-Die Diagnosezentrale liest dasselbe Journal nur mit `O_RDONLY` und `O_NOFOLLOW`. Sie verändert, repariert, löscht oder exportiert es nicht automatisch.
+Die Diagnosezentrale liest das App-Ereignisjournal nur mit `O_RDONLY` und `O_NOFOLLOW`. Sie verändert, repariert, löscht oder exportiert es nicht automatisch.
 
 ## Grenzen
 
-Journalrotation folgt `P3-003`. Physische KDE-X11-/Wayland-Abnahme sowie reale Sonder-Mount- und ACL-Tests bleiben offen.
+App-Journalrotation folgt `P3-003`. Prozessbasierte Kill-/Stromausfalltests, physische KDE-X11-/Wayland-Abnahme sowie reale Sonder-Mount- und ACL-Tests bleiben offen.
