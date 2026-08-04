@@ -15,36 +15,64 @@ Beim Start werden Linux, Python, PySide6, XDG-Pfade, Einstellungen, Ereignisjour
 
 ## Sicherer Projektpapierkorb
 
-Der Papierkorb-Kern ist entwickelt und automatisiert geprüft. Die spätere Nutzeroberfläche muss immer denselben Ablauf verwenden:
+Der spätere Nutzerworkflow muss immer diesen Ablauf verwenden:
 
 1. Projektordner über einen Auswahldialog bestimmen.
 2. Datei oder Ordner auswählen.
-3. **Vorschau** erzeugen – dabei wird noch nichts angelegt oder verschoben.
-4. Pfadgrenze, Mountstatus, Symlinks, Hardlinks, Konflikte, freien Speicher und Wiederherstellbarkeit prüfen.
-5. Transaktions-ID, Originalpfad, Papierkorbziel und Manifest anzeigen.
+3. Rein lesende Vorschau erzeugen.
+4. Projektgrenze, Mountstatus, Symlinks, Hardlinks, Konflikte, freien Speicher und Wiederherstellbarkeit prüfen.
+5. Aktions-ID, Transaktions-ID, Originalpfad, Papierkorbziel und Manifest anzeigen.
 6. Erst nach Bestätigung atomar in den Projektpapierkorb verschieben.
-7. Ergebnis und Wiederherstellungsweg anzeigen.
-
-Interner Speicherort:
+7. Ergebnis, Journalabschluss und Wiederherstellungsweg anzeigen.
 
 ```text
-<Projekt>/.multimodultool2026/trash/transactions/<MMTTRASH-ID>/
-├── manifest.json
-└── payload
+<Projekt>/.multimodultool2026/
+├── history/actions.jsonl
+└── trash/transactions/<MMTTRASH-ID>/
+    ├── manifest.json
+    └── payload
 ```
 
-Die Anwendung kopiert nicht und löscht anschließend. Sie verwendet nur eine atomare Umbenennung innerhalb desselben Dateisystems. Ein Mountwechsel wird blockiert.
+Die Anwendung kopiert nicht und löscht anschließend. Ein Mountwechsel wird blockiert.
 
-## Wiederherstellung
+## Undo
 
-Eine Transaktion kann nur wiederhergestellt werden, wenn:
+Undo darf ausschließlich die zuletzt aktive Aktion zurücknehmen:
 
-- das Manifest gültig und privat ist,
-- der Payload seit dem Verschieben unverändert blieb,
-- der ursprüngliche Elternordner sicher erreichbar ist,
-- am Originalpfad kein neues Objekt liegt.
+1. Journal- und Hashkette prüfen.
+2. `undo-intent` absturzsicher anhängen.
+3. Papierkorbmanifest, Payload und freien Originalpfad prüfen.
+4. Payload atomar zurückverschieben.
+5. `undo` als Abschluss anhängen.
 
-Bei einem Namenskonflikt wird nichts überschrieben. Beschädigte Manifeste und unklare Zustände bleiben unverändert und werden mit Diagnosekennung erklärt.
+Mehrere Undo-Schritte laufen in umgekehrter Ausführungsreihenfolge. Ein erneut angefordertes Undo derselben bereits zurückgenommenen Aktion verändert nichts.
+
+## Redo
+
+Redo darf ausschließlich die nächste zurückgenommene Aktion wiederholen:
+
+1. Originalquelle erneut prüfen.
+2. neue Papierkorb-Transaktions-ID erzeugen,
+3. `redo-intent` anhängen,
+4. Quelle atomar in einen neuen Transaktionsordner verschieben,
+5. `redo` anhängen.
+
+Mehrere Redo-Schritte laufen in ursprünglicher Ausführungsreihenfolge. Die Aktions-ID bleibt stabil. Eine neue Aktion wird blockiert, solange eine Redo-Kette vorhanden ist.
+
+## Unterbrochene Aktion
+
+Bleibt durch einen Prozessabbruch ein Intent ohne Abschluss zurück, wird nichts blind wiederholt. Manifest, Payload und Originalpfad werden verglichen. Nur bei eindeutigem Zustand wird das fehlende Abschlussereignis ergänzt. Widersprüchliche Zustände werden blockiert.
+
+## Rein lesende Transaktionsübersicht
+
+Die Übersicht zeigt und filtert:
+
+- `prepared`
+- `trashed`
+- `restored`
+- `damaged`
+
+Sie besitzt keine Schaltfläche zum Wiederherstellen, Reparieren, Löschen, Hochladen oder Exportieren. Beschädigte Zustände werden ausschließlich sichtbar markiert.
 
 ## Noch bewusst gesperrt
 
@@ -52,9 +80,8 @@ Bei einem Namenskonflikt wird nichts überschrieben. Beschädigte Manifeste und 
 - Massenaktionen
 - Papierkorb leeren
 - dauerhafte Löschung
-- Undo/Redo über mehrere Aktionen
-
-Diese Sperren verhindern, dass die geprüfte Kern-API vor dem geführten Projektworkflow unkontrolliert benutzt wird.
+- automatisches Verwerfen einer Redo-Kette
+- lange Operationen ohne den noch folgenden Abbruch-/Wiederanlaufvertrag
 
 ## Zweiter Start und Diagnose
 
@@ -69,10 +96,12 @@ python3 -m src.main --show-diagnostics
 ```bash
 python3 tools/validate_repository.py
 python3 -m unittest tests.test_project_trash -v
+python3 -m unittest tests.test_undo_redo -v
+python3 -m unittest tests.test_transaction_overview -v
 python3 -m unittest tests.test_single_instance_stress -v
 QT_QPA_PLATFORM=offscreen python3 -m unittest tests.test_gui_trash_contract -v
 ```
 
 ## Fehlerfall
 
-Keine Sperrdatei, kein Manifest und kein Payload darf manuell gelöscht oder überschrieben werden. Diagnosekennung sichern, Ursache prüfen und erst nach grüner Vorprüfung fortfahren.
+Keine Sperrdatei, kein Manifest, kein Payload und keine Journalzeile manuell löschen oder überschreiben. Diagnosekennung sichern, Ursache prüfen und erst nach grüner Vorprüfung fortfahren.
