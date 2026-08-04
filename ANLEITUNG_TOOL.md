@@ -79,3 +79,20 @@ python3 -m unittest tests.test_run_control -v
 python3 -m unittest tests.test_run_control_sigkill -v
 QT_QPA_PLATFORM=offscreen python3 -m unittest tests.test_gui_trash_contract -v
 ```
+
+## Releasekandidat installieren
+
+```bash
+./release-manager.sh verify ./multimodultool2026_0.9.0~rc1_amd64.deb
+sudo ./release-manager.sh install ./multimodultool2026_0.9.0~rc1_amd64.deb --yes
+multimodultool2026 --verify-installation
+```
+
+Upgrade und Rollback:
+
+```bash
+sudo ./release-manager.sh upgrade ./multimodultool2026_0.9.0~rc1_amd64.deb --yes
+sudo ./release-manager.sh rollback --yes
+```
+
+Normale Entfernung bewahrt XDG-Nutzerdaten. Der vollständige Purge benötigt zusätzlich `--purge-system-state --purge-current-user-data --yes` und wird bei Symlinks oder unklarer Nutzerzuordnung blockiert.

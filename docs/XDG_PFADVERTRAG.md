@@ -40,3 +40,7 @@ Sicherheitsregeln:
 - keine Symlink-Komponenten oder Mountwechsel,
 - kein Fallback in Programmquellbaum, `/tmp` oder fremden Mount,
 - read-only Prüfungen erzeugen keine Transaktion.
+
+## Installierte Offline-Runtime
+
+Der Systempaketinhalt liegt unter `/usr/lib/multimodultool2026`. Der erste Start erzeugt pro Build-ID ausschließlich unter `$XDG_DATA_HOME/multimodultool2026/runtime/` einen privaten venv-Slot. Upgrade und Rollback überschreiben keinen bestehenden Slot. Normale Paketentfernung bewahrt XDG-Daten; ein vollständiger Purge ist separat, explizit und auf die bekannten Pfade eines eindeutig bestimmten Nicht-root-Nutzers begrenzt.
