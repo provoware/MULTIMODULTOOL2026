@@ -1,4 +1,4 @@
-"""Linux-Desktop-App mit XDG-, Fehler- und Single-Instance-Schutz."""
+"""Linux-Desktop-App mit XDG-, Fehler-, Instanz- und Papierkorbschutz."""
 
 from __future__ import annotations
 
@@ -42,9 +42,9 @@ from .xdg_paths import (
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_PATH = PROJECT_ROOT / "layout-manifest.json"
-DEVELOPMENT_PROGRESS = 38
-COMPLETED_POINTS = 25
-OPEN_POINTS = 40
+DEVELOPMENT_PROGRESS = 41
+COMPLETED_POINTS = 27
+OPEN_POINTS = 39
 ZONE_OBJECT_NAMES = (
     "header",
     "navigation",
@@ -149,9 +149,10 @@ def build_window(
     diagnostics: DiagnosticSnapshot | None = None,
     event_center: ErrorEventCenter | None = None,
 ):
-    """Neun sichtbare Layoutzonen erzeugen; übergebene Diagnosen nur anzeigen."""
+    """Neun sichtbare Layoutzonen ohne Dateioperation erzeugen."""
 
     snapshot = diagnostics or DiagnosticSnapshot(())
+    latest = event_center.latest if event_center else None
     window = QtWidgets.QMainWindow()
     window.setObjectName("mainWindow")
     window.setWindowTitle("MULTIMODULTOOL2026 – Linux")
@@ -172,7 +173,7 @@ def build_window(
     identity.addWidget(
         _label(
             QtWidgets,
-            "Eine Instanz, kontrollierte Übergabe, lokale Diagnose ohne Datenabfluss.",
+            "Eine Instanz · atomarer Projektpapierkorb · lokale Diagnose.",
             "smallMuted",
         )
     )
@@ -181,7 +182,7 @@ def build_window(
     header_layout.addWidget(
         _label(
             QtWidgets,
-            "● SINGLE-INSTANCE-, XDG- UND FEHLERPRÜFUNG GRÜN",
+            "● INSTANZ-, PAPIERKORB- UND FEHLERPRÜFUNG GRÜN",
             "statusOk",
             safety=True,
         )
@@ -189,26 +190,32 @@ def build_window(
     grid.addWidget(header, 0, 0, 1, 3)
 
     navigation = _zone(QtWidgets.QFrame(), "navigation", 2)
-    navigation.setFixedWidth(190)
+    navigation.setFixedWidth(198)
     nav = QtWidgets.QVBoxLayout(navigation)
     nav.addWidget(_label(QtWidgets, "HAUPTBEREICHE", "navTitle"))
     nav.addWidget(_button(QtWidgets, "⌂  Start"))
+    trash_button = _button(
+        QtWidgets,
+        "♲  Papierkorbvertrag",
+        name="trashNavigation",
+        tooltip="Atomaren, wiederherstellbaren Projektpapierkorb anzeigen.",
+    )
+    trash_button.setProperty("active", True)
+    nav.addWidget(trash_button)
     diagnosis_button = _button(
         QtWidgets,
         "⚕  Diagnose",
         name="diagnosticsNavigation",
         tooltip="Lokale bereinigte Ereignisse ausschließlich lesend anzeigen.",
     )
-    diagnosis_button.setProperty("active", True)
     nav.addWidget(diagnosis_button)
-    lock_tip = "Noch gesperrt, bis Papierkorb, Undo und Wiederanlauf geprüft sind."
+    lock_tip = "Noch gesperrt, bis Undo und Wiederanlauf vollständig geprüft sind."
     for text in (
         "⌕  Analysieren",
         "▣  Duplikate",
         "↕  Organisieren",
         "✎  Umbenennen",
         "▤  Berichte",
-        "♲  Papierkorb",
     ):
         nav.addWidget(
             _button(
@@ -234,12 +241,11 @@ def build_window(
     summary = _zone(QtWidgets.QWidget(), "summaryCards", 3)
     cards = QtWidgets.QHBoxLayout(summary)
     settings_status = "WIEDERHERGESTELLT" if settings_result.recovered else "1 / 1 GRÜN"
-    latest = event_center.latest if event_center else None
     for title, value, detail in (
         ("Instanzschutz", "1 PRIMÄR", "Unix-Socket · Peer-UID"),
-        ("Einstellungen", settings_status, "Schema 1 · 0600"),
+        ("Papierkorb", "ATOMAR", "Vorschau · Manifest · Restore"),
         ("Diagnose", str(len(snapshot.entries)), "lokal · lesend · gefiltert"),
-        ("Entwicklung", "38 %", "25 erledigt · 40 offen"),
+        ("Entwicklung", "41 %", "27 erledigt · 39 offen"),
     ):
         cards.addWidget(_panel(QtWidgets, title, f"{value}\n{detail}", "card"))
     grid.addWidget(summary, 1, 1)
@@ -247,11 +253,11 @@ def build_window(
     actions = _zone(QtWidgets.QWidget(), "primaryActionTiles", 4)
     action_layout = QtWidgets.QHBoxLayout(actions)
     for text in (
-        "1\nOrdner wählen",
-        "2\nBestand prüfen",
-        "3\nRegeln wählen",
-        "4\nVorschau",
-        "5\nSicher anwenden",
+        "1\nProjekt wählen",
+        "2\nQuelle prüfen",
+        "3\nVorschau",
+        "4\nFreigabe",
+        "5\nAtomar verschieben",
         "6\nBericht",
     ):
         action_layout.addWidget(
@@ -260,7 +266,7 @@ def build_window(
                 text,
                 enabled=False,
                 name="lockedPrimaryAction",
-                tooltip=lock_tip,
+                tooltip="Papierkorb-Kern aktiv; geführte Projektauswahl folgt mit P1-001/P1-003.",
             )
         )
     grid.addWidget(actions, 2, 1)
@@ -271,13 +277,13 @@ def build_window(
     flow.addWidget(
         _label(
             QtWidgets,
-            "1 Quelle  →  2 Analyse  →  3 Vorschau  →  4 Freigabe  →  5 Bericht",
+            "1 Projekt  →  2 Pfadprüfung  →  3 Vorschau  →  4 Transaktion  →  5 Restore",
             "sectionTitle",
         )
     )
     progress = QtWidgets.QProgressBar()
     progress.setValue(DEVELOPMENT_PROGRESS)
-    progress.setFormat("Entwicklungsstand: 38 %")
+    progress.setFormat("Entwicklungsstand: 41 %")
     flow.addWidget(progress)
     grid.addWidget(workflow, 3, 1)
 
@@ -286,18 +292,32 @@ def build_window(
     work.addWidget(
         _panel(
             QtWidgets,
-            "P0-005 abgeschlossen",
-            "Ein zweiter Linux-Start aktiviert die vorhandene Instanz und übergibt "
-            "nur die erlaubte Aktion sowie optional eine geprüfte Diagnosekennung.",
+            "P0-006 abgeschlossen",
+            "Destruktive Dateiaktionen dürfen reguläre Dateien und Verzeichnisse nur "
+            "innerhalb desselben Dateisystems atomar in einen projektbezogenen, "
+            "wiederherstellbaren Papierkorb verschieben.",
             "hero",
         )
     )
+    trash_contract = _panel(
+        QtWidgets,
+        "Papierkorb-Sicherheitsvertrag",
+        "✓ unveränderliche Vorschau und Quellfingerabdruck\n"
+        "✓ eindeutige Transaktions-ID und Manifest mit 0600\n"
+        "✓ private Projektordner mit 0700\n"
+        "✓ os.replace statt Kopieren-und-Löschen\n"
+        "✓ Mountwechsel, Symlinks, Hardlinks und Konflikte blockiert\n"
+        "✓ Wiederherstellung nur bei unverändertem Payload und freiem Originalpfad\n"
+        "✗ keine dauerhafte Löschung",
+        "trashContractPanel",
+    )
+    work.addWidget(trash_contract)
     work.addWidget(
         _panel(
             QtWidgets,
-            "Aktuelle Schutzgrenze",
-            "Freie Argumentlisten, Dateipfade, Upload, Löschen und automatischer Export "
-            "sind im Instanz- und Diagnosekanal ausdrücklich blockiert.",
+            "Aktuelle Bediengrenze",
+            "Die Transaktions-API ist geprüft. Die grafische Datei- und Projektwahl bleibt "
+            "gesperrt, bis P1-001 und P1-003 sichere Auswahldialoge bereitstellen.",
             "warningPanel",
         )
     )
@@ -311,17 +331,22 @@ def build_window(
     work.addStretch(1)
     workspace_scroll = _zone(QtWidgets.QScrollArea(), "workspaceScroll", 6)
     workspace_scroll.setWidgetResizable(True)
-    workspace_scroll.setHorizontalScrollBarPolicy(
-        QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-    )
-    workspace_scroll.setVerticalScrollBarPolicy(
-        QtCore.Qt.ScrollBarPolicy.ScrollBarAsNeeded
-    )
+    workspace_scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+    workspace_scroll.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAsNeeded)
     workspace_scroll.setWidget(workspace)
     grid.addWidget(workspace_scroll, 4, 1)
 
     context_body = QtWidgets.QWidget()
     context_layout = QtWidgets.QVBoxLayout(context_body)
+    context_layout.addWidget(
+        _panel(
+            QtWidgets,
+            "Papierkorbstatus",
+            "Projektlokal · gleiches Dateisystem · Manifest 0600 · Verzeichnisse 0700 · "
+            "Namenskonflikte blockieren Restore.",
+            "trashStatusPanel",
+        )
+    )
     context_layout.addWidget(
         _panel(
             QtWidgets,
@@ -357,21 +382,19 @@ def build_window(
     context_scroll = QtWidgets.QScrollArea()
     context_scroll.setObjectName("contextScroll")
     context_scroll.setWidgetResizable(True)
-    context_scroll.setHorizontalScrollBarPolicy(
-        QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff
-    )
+    context_scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
     context_scroll.setWidget(context_body)
     context = _zone(QtWidgets.QFrame(), "contextRail", 7)
-    context.setFixedWidth(310)
-    context_frame_layout = QtWidgets.QVBoxLayout(context)
-    context_frame_layout.addWidget(context_scroll)
+    context.setFixedWidth(320)
+    context_layout_outer = QtWidgets.QVBoxLayout(context)
+    context_layout_outer.addWidget(context_scroll)
     grid.addWidget(context, 1, 2, 4, 1)
 
     action_bar = _zone(QtWidgets.QFrame(), "actionBar", 8)
     bottom = QtWidgets.QHBoxLayout(action_bar)
     activation_status = _label(
         QtWidgets,
-        "✓ Primäre Instanz aktiv · Diagnose ausschließlich lesend",
+        "✓ Primärinstanz aktiv · Papierkorb atomar · Diagnose ausschließlich lesend",
         "statusOk",
         safety=True,
     )
@@ -392,18 +415,19 @@ def build_window(
     footer_layout.addWidget(
         _label(
             QtWidgets,
-            "🛡 Peer-UID · Runtime 0700 · Socket/Metadaten 0600 · Journal 0600",
+            "🛡 Peer-UID · Projektpapierkorb 0700 · Manifest 0600 · Journal 0600",
             safety=True,
         )
     )
     footer_layout.addStretch(1)
     footer_layout.addWidget(
-        _label(QtWidgets, "🔒 Kein Upload · kein Löschen · kein Auto-Export", safety=True)
+        _label(QtWidgets, "🔒 Keine dauerhafte Löschung · kein Upload · kein Auto-Export", safety=True)
     )
     grid.addWidget(footer, 6, 0, 1, 3)
 
     diagnosis_button.clicked.connect(lambda: diagnostics_controller.focus_diagnostic())
     focus_button.clicked.connect(lambda: diagnostics_controller.focus_diagnostic())
+    trash_button.clicked.connect(lambda: workspace_scroll.ensureWidgetVisible(trash_contract))
     window.diagnosticsController = diagnostics_controller
     window.instanceActivationStatus = activation_status
     return window
@@ -431,11 +455,7 @@ def _activate_window(window, request: LaunchRequest) -> None:
         controller.focus_diagnostic(request.diagnostic_id)
     status = getattr(window, "instanceActivationStatus", None)
     if status is not None:
-        suffix = (
-            f" · Filter {request.diagnostic_id}"
-            if request.diagnostic_id
-            else ""
-        )
+        suffix = f" · Filter {request.diagnostic_id}" if request.diagnostic_id else ""
         status.setText("✓ Vorhandene Instanz sicher aktiviert" + suffix)
 
 
@@ -453,11 +473,7 @@ def run_gui(
         from PySide6 import QtCore, QtWidgets
     except ImportError as exc:
         event = event_center.capture(
-            event_from_exception(
-                exc,
-                category="pyside6-import",
-                context="PySide6 konnte nicht geladen werden.",
-            )
+            event_from_exception(exc, category="pyside6-import", context="PySide6 konnte nicht geladen werden.")
         )
         print(format_event_for_user(event), file=sys.stderr)
         coordinator.close()
@@ -517,7 +533,7 @@ def run_gui(
     install_exception_hooks(event_center, on_event=lambda event: app.eventRaised.emit(event))
 
     def process_secondary_requests() -> None:
-        for request in coordinator.drain_messages():
+        for request in coordinator.drain_messages(limit=100):
             _activate_window(window, request)
 
     instance_timer = QtCore.QTimer(window)
@@ -549,18 +565,18 @@ def _instance_event(result: InstanceResult, *, blocked: bool) -> ErrorEvent:
             severity="error",
             cause=result.message,
             consequence="Der neue Programmstart wurde kontrolliert blockiert.",
-            data_state="Die bestehende Instanz, Sperrdateien und Nutzerdaten blieben unverändert.",
-            solution="XDG-Laufzeitpfad, Eigentümer, Dateityp und gemeldete Instanzmetadaten prüfen.",
-            next_step="Die gemeldete Sperre nicht manuell überschreiben; Diagnose sichern und den Start erneut prüfen.",
+            data_state="Bestehende Instanz, Sperrdateien und Nutzerdaten blieben unverändert.",
+            solution="XDG-Laufzeitpfad, Eigentümer, Dateityp und Instanzmetadaten prüfen.",
+            next_step="Die Sperre nicht manuell überschreiben; Diagnose sichern und erneut prüfen.",
         )
     return create_event(
         category="single-instance-recovery",
         severity="warning",
         cause=result.message,
         consequence="Der aktuelle Start übernimmt kontrolliert die primäre Instanzrolle.",
-        data_state="Nur eine nachweislich veraltete lokale Socket- und Metadatensperre wurde entfernt.",
-        solution="Keine Korrektur erforderlich; Instanzstatus in der Oberfläche prüfen.",
-        next_step="Mit der rein lesenden Diagnose oder dem freigegebenen Workflow fortfahren.",
+        data_state="Nur eine eindeutig veraltete Socket- und Metadatensperre wurde entfernt.",
+        solution="Keine Korrektur erforderlich; Instanzstatus prüfen.",
+        next_step="Mit Diagnose oder freigegebenem Workflow fortfahren.",
     )
 
 
@@ -691,10 +707,7 @@ def main(argv: list[str] | None = None) -> int:
         print("GRÜN: Bestehende MULTIMODULTOOL2026-Instanz wurde sicher aktiviert.")
         return 0
     if instance_result.is_blocked:
-        return _blocking(
-            event_center.capture(_instance_event(instance_result, blocked=True)),
-            8,
-        )
+        return _blocking(event_center.capture(_instance_event(instance_result, blocked=True)), 8)
     if instance_result.recovered_stale:
         event_center.capture(_instance_event(instance_result, blocked=False))
 
@@ -705,10 +718,7 @@ def main(argv: list[str] | None = None) -> int:
         event_center.capture(event_from_settings_result(settings_result))
     if not settings_result.is_valid:
         coordinator.close()
-        return _blocking(
-            event_center.capture(event_from_settings_result(settings_result)),
-            6,
-        )
+        return _blocking(event_center.capture(event_from_settings_result(settings_result)), 6)
 
     return run_gui(
         manifest_text,
