@@ -26,9 +26,12 @@ jobs:
         run: |
           git config user.name 'provoware-release-bot'
           git config user.email 'provoware-release-bot@users.noreply.github.com'
-          git add src/main.py README.md TODO.md
+          git add \
+            src/main.py README.md TODO.md AGENTS.md ANLEITUNG_TOOL.md \
+            CHANGELOG.md ENTWICKLERDOKU.md SCHWACHSTELLEN.md UPGRADE_POOL.md \
+            docs/XDG_PFADVERTRAG.md docs/FEHLER_UND_EREIGNISVERTRAG.md
           git diff --cached --check
           if ! git diff --cached --quiet; then
-            git commit -m 'P0-009: Synchronize release progress metadata'
+            git commit -m 'P0-009: Synchronize release progress and documentation'
             git push origin HEAD:p0-009-installable-linux-rc
           fi
