@@ -139,7 +139,8 @@ def check_run_contract(errors: list[str]) -> None:
         "MMTRUN-", "plan.json", "checkpoint.json", "cancel.request", "run.lock",
         "fcntl.flock", "os.replace", "resume_run", "request_cancel",
         "before-intent", "after-journal-completion", "_write_manifest_atomic",
-        "UndoRedoJournal", "inspect_transaction", "0o700", "0o600",
+        "UndoRedoJournal", "inspect_transaction",
+        "PRIVATE_DIRECTORY_MODE", "PRIVATE_FILE_MODE",
     ):
         if marker not in run:
             errors.append(f"Abbruch-/Wiederanlaufvertrag fehlt: {marker}")
