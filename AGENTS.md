@@ -14,59 +14,47 @@ Dieses Repository wird als laienoptimiertes, transparentes und datensicheres Lin
 ## Grundlegende Sicherheitsverträge
 
 - XDG-App-Verzeichnisse verwenden `0700`, private Dateien `0600`.
-- Einstellungen werden vorvalidiert, temporär geschrieben, mit `fsync` bestätigt und atomar ersetzt.
+- Einstellungen werden vorvalidiert, mit `fsync` bestätigt und atomar ersetzt.
 - Jeder globale Fehler nennt Ursache, Folge, Datenstand, Lösung, Diagnosekennung und sicheren nächsten Schritt.
-- Normale GUI-Starts verwenden genau eine Linux-Primärinstanz mit Unix-Socket und Peer-UID-Prüfung.
-- Diagnose bleibt rein lesend; Löschen, Upload, Reparatur und Auto-Export sind verboten.
+- Normale GUI-Starts verwenden genau eine Linux-Primärinstanz mit Peer-UID-Prüfung.
+- Diagnose und Transaktionsübersicht bleiben rein lesend.
 
-## Projektpapierkorbvertrag
+## Projekttransaktionen
 
-- Destruktive Dateiaktionen dürfen reguläre Dateien und Verzeichnisse nur in den projektbezogenen Papierkorb verschieben.
-- Vor jeder Aktion sind Projektgrenze, Mountstatus, Symlinks, Hardlinks, Namenskonflikte, freier Speicher und Wiederherstellbarkeit zu prüfen.
-- Ausführung und Restore verwenden ausschließlich `os.replace` innerhalb desselben Dateisystems.
-- Kopieren mit anschließendem Löschen und dauerhaftes Leeren sind verboten.
-- Transaktionsordner verwenden `0700`; `manifest.json` verwendet `0600` und Schema 1.
-- Beschädigte Manifeste, veränderte Payloads und Konflikte bleiben unverändert.
+- Dateiaktionen verwenden den projektbezogenen Papierkorb und ausschließlich `os.replace` im selben Dateisystem.
+- Jede reversible Aktion besitzt Aktions- und Transaktions-ID.
+- `history/actions.jsonl` ist append-only, `0600` und SHA-256-hashverkettet.
+- Undo läuft rückwärts, Redo vorwärts; Konflikte und beschädigte Zustände blockieren.
+- Dauerhaftes Löschen, Copy-delete-Fallback und stilles Überschreiben sind verboten.
 
-## Undo-/Redo-Vertrag
+## Abbruch- und Wiederanlaufvertrag
 
-- Jede Dateioperation erhält eindeutige Aktions-, Transaktions- und Ereignis-IDs.
-- Das Projektjournal liegt unter `.multimodultool2026/history/actions.jsonl`.
-- Journalordner verwendet `0700`, Journaldatei `0600`.
-- Das Journal ist append-only; bestehende Zeilen werden nie geändert oder entfernt.
-- Ereignisse sind lückenlos sequenziert und über SHA-256 verkettet.
-- Vor einer Dateioperation wird ein Intent, danach ein Abschlussereignis angehängt.
-- Undo ist nur für die letzte aktive Aktion zulässig und läuft rückwärts.
-- Redo ist nur für die nächste zurückgenommene Aktion zulässig und läuft vorwärts.
-- Wiederholtes Undo oder Redo darf keine Doppeloperation erzeugen.
-- Neue Aktionen bleiben blockiert, solange eine Redo-Kette vorhanden ist.
-- Unterbrochene Intents werden nur bei eindeutigem Manifest- und Dateizustand abgeschlossen.
-- Hashfehler, widersprüchliche Zustände und Reihenfolgekonflikte blockieren unverändert.
+- Jeder lange Lauf besitzt eine eindeutige `MMTRUN-`-ID.
+- Der Plan ist unveränderlich und SHA-256-geprüft.
+- Checkpoints werden atomar ersetzt und nachvalidiert.
+- Laufordner verwenden `0700`; Plan, Checkpoint, Sperre und Abbruchanforderung `0600`.
+- Ein `flock` erlaubt genau einen schreibenden Laufprozess.
+- Externe Abbruchanforderungen verändern ausschließlich `cancel.request`; nur der aktive Prozess schreibt Checkpoints.
+- Abbruch wird nur vor einem neuen Intent oder nach einem vollständig bestätigten Schritt akzeptiert.
+- Wiederanlauf gleicht Checkpoint, Journal, Manifest, Originalpfad und Payload gemeinsam ab.
+- Bereits ausgeführte Dateioperationen dürfen nicht wiederholt werden.
+- Widersprüchliche Zustände bleiben unverändert und werden über `SafeOperationError` erklärt.
+- Verbindliche Details: `docs/ABBRUCH_UND_WIEDERANLAUFVERTRAG.md`.
 
-## Read-only Transaktionsübersicht
+## Prozessabbruchmatrix
 
-- Sichtbare Zustände: `prepared`, `trashed`, `restored`, `damaged`.
-- Filterung verändert keine Transaktionsdatei.
-- Beschädigte Zustände werden nur markiert.
-- Restore, Reparatur, Löschen, Upload und Auto-Export sind nicht zulässig.
-
-## Parallelstartvertrag
-
-- Der Stresstest startet 20 nahezu gleichzeitige Zweitinstanzen.
-- Genau eine Primärinstanz bleibt bestehen.
-- Jede gültige Aktivierungskennung kommt höchstens einmal an.
-- Nach dem Schließen bleiben keine Socket- oder Metadatenreste.
+Die CI muss echte Linux-`SIGKILL`-Abbrüche vor und nach Intent, Dateioperation, `fsync`, Manifestabschluss und Journalabschluss prüfen. Nach jedem Neustart ist genau eine vollständige Aktion zulässig; temporäre Dateien, doppelte Payloads und verlorene Journalabschlüsse sind Fehler.
 
 ## UI-Basis
 
-Die visuelle Referenz unter `assets/ui-reference/` bleibt bindende Orientierung. Die neun Zonen bleiben erhalten. Produktive Projekt- und Dateiauswahl bleibt bis zum geführten Projektworkflow gesperrt.
+Die visuelle Referenz unter `assets/ui-reference/` bleibt bindende Orientierung. Die neun Zonen bleiben erhalten. Sicherheitszustände sind immer textuell sichtbar. Produktive Projekt- und Dateiauswahl bleibt bis zum geführten Workflow gesperrt.
 
 ## Ablauf jeder Iteration
 
 ### Vorprüfung
 
 - Ausgangscommit, Zielbranch, Konto und mindestens `push` prüfen.
-- Datenverlust-, Datenschutz-, Linux-, Mount-, Symlink-, Journal-, UI- und Rückfallrisiken bewerten.
+- Datenverlust-, Datenschutz-, Linux-, Mount-, Symlink-, Journal-, Prozessabbruch-, UI- und Rückfallrisiken bewerten.
 - TODO, Schwachstellen und Upgrade-Pool entdoppeln.
 - kleinsten vollständigen reversiblen Patch planen.
 
@@ -76,7 +64,7 @@ Die visuelle Referenz unter `assets/ui-reference/` bleibt bindende Orientierung.
 - keine neue Abhängigkeit ohne dokumentierten Grund
 - produktive Dateiaktionen nur nach Vorschau, Validierung und Rückfallweg
 - kleine testbare Linux-Module
-- keine Zugangsdaten, privaten Dateiinhalte oder absoluten Projektpfade im Aktionsjournal
+- keine Zugangsdaten, privaten Dateiinhalte oder absoluten Projektpfade in Journalen
 - Fehler ausschließlich über die zentrale Ereignisschicht erklären
 
 ### Nachvalidierung
@@ -88,17 +76,15 @@ python3 -m unittest discover -s tests -p "test_*.py" -v
 python3 -m unittest tests.test_project_trash -v
 python3 -m unittest tests.test_undo_redo -v
 python3 -m unittest tests.test_transaction_overview -v
+python3 -m unittest tests.test_run_control -v
+python3 -m unittest tests.test_run_control_sigkill -v
 python3 -m unittest tests.test_single_instance_stress -v
 python3 -m unittest tests.test_settings_failpoints -v
 QT_QPA_PLATFORM=offscreen python3 -m unittest tests.test_gui_offscreen -v
 QT_QPA_PLATFORM=offscreen python3 -m unittest tests.test_gui_trash_contract -v
 ```
 
-Nicht physisch geprüfte KDE-, X11-, Wayland-, DPI-, ACL-, Mount- oder Prozessabbruchfälle werden offen benannt.
-
-## Pflichtpflege
-
-Betroffene Dateien werden im selben Commit aktualisiert: `README.md`, `TODO.md`, `CHANGELOG.md`, `ANLEITUNG_TOOL.md`, `SCHWACHSTELLEN.md`, `UPGRADE_POOL.md`, `ENTWICKLERDOKU.md` sowie die Verträge unter `docs/`.
+Nicht physisch geprüfte KDE-, X11-, Wayland-, DPI-, ACL-, Mount-, Stromausfall- oder Hardwarecachefälle werden offen benannt.
 
 ## Fortschritts- und GitHub-Vertrag
 
