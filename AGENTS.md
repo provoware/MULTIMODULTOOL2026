@@ -2,84 +2,62 @@
 
 ## Projektauftrag
 
-Dieses Repository wird als modulares, laienoptimiertes, transparentes und datensicheres Linux-Desktop-Werkzeug entwickelt. Änderungen müssen verständlich, prüfbar, rückbaubar und mit dem aktuellen GitHub-Stand synchronisiert sein.
+Dieses Repository wird als laienoptimiertes, transparentes und datensicheres Linux-Desktop-Werkzeug entwickelt. Änderungen müssen verständlich, prüfbar, rückbaubar und mit GitHub synchronisiert sein.
 
 ## Plattformvertrag
 
 - ausschließlich Linux-Desktop
-- primär Kubuntu 22.04/24.04, KDE Plasma, X11 und Wayland, x86-64
+- primär Kubuntu 22.04/24.04, KDE Plasma, X11/Wayland, x86-64
 - keine Windows-, macOS-, Android-, iOS-, Browser- oder PWA-Sonderlogik
 - Nicht-Linux-Systeme werden vor Datenänderungen blockiert
 
-## XDG- und Dateirechtevertrag
+## Grundlegende Sicherheitsverträge
 
-- Programmcode und private Laufzeitdaten bleiben getrennt.
-- Konfiguration, Daten, Cache, Status, Logs und Sicherungen liegen in validierten XDG-Benutzerpfaden.
-- App-Verzeichnisse verwenden `0700`; private Dateien `0600`.
-- Relative Pfade, Ziele im Quellbaum, Symlinks, falsche Eigentümer, zusätzliche Hardlinks und unsichere Dateitypen blockieren den Start.
-- Rein lesende Prüfungen dürfen keine Dateien oder Verzeichnisse erzeugen.
+- XDG-App-Verzeichnisse verwenden `0700`, private Dateien `0600`.
+- Einstellungen werden vorvalidiert, temporär geschrieben, mit `fsync` bestätigt und atomar ersetzt.
+- Jeder globale Fehler nennt Ursache, Folge, Datenstand, Lösung, Diagnosekennung und sicheren nächsten Schritt.
+- Normale GUI-Starts verwenden genau eine Linux-Primärinstanz mit Unix-Socket und Peer-UID-Prüfung.
+- Diagnose bleibt rein lesend; Löschen, Upload, Reparatur und Auto-Export sind verboten.
 
-## Einstellungsvertrag
+## Projektpapierkorbvertrag
 
-- `settings.json` verwendet `schemaVersion` 1 und liegt ausschließlich im XDG-Konfigurationspfad.
-- Schreiben benötigt Vorvalidierung, temporäre Datei, `fsync`, Nachvalidierung und atomaren Austausch.
-- Letzte gültige Version bleibt als `settings.last-valid.json` erhalten.
-- Failpoint-Matrix prüft alte oder neue vollständige Konfiguration an zehn Unterbrechungsstellen.
+- Destruktive Dateiaktionen dürfen reguläre Dateien und Verzeichnisse standardmäßig nur in den projektbezogenen Papierkorb verschieben.
+- Vor jeder Aktion sind Projektgrenze, Mountstatus, Symlink-Komponenten, Hardlinks, Namenskonflikte, freier Speicher und Wiederherstellbarkeit zu prüfen.
+- Die Vorschau ist rein lesend und enthält eindeutige Transaktions-ID, Zielpfade, Methode und Quellfingerabdruck.
+- Ausführung und Wiederherstellung verwenden ausschließlich `os.replace` innerhalb desselben Dateisystems.
+- Kopieren mit anschließendem Löschen ist verboten.
+- Transaktionsordner verwenden `0700`; `manifest.json` verwendet `0600` und Schema 1.
+- Beschädigte Manifeste, veränderte Payloads und Konflikte bleiben unverändert und werden über `SafeOperationError` erklärt.
+- Eine Funktion zum dauerhaften Löschen oder Leeren des Papierkorbs ist nicht freigegeben.
+- Verbindliche Details: `docs/PAPIERKORBVERTRAG.md`.
 
-## Fehler- und Ereignisvertrag
+## Parallelstartvertrag
 
-Jeder globale Fehlerbericht nennt vollständig:
+- Der Stresstest startet 20 nahezu gleichzeitige Zweitinstanzen.
+- Genau eine Primärinstanz muss bestehen bleiben.
+- Jede gültige Aktivierungskennung darf höchstens einmal ankommen.
+- Nach dem Schließen dürfen keine Socket- oder Metadatenreste verbleiben.
 
-1. Ursache
-2. Folge
-3. Datenstand
-4. Lösung
-5. Diagnosekennung
-6. sicheren nächsten Schritt
+## UI-Basis
 
-Unbehandelte Hauptthread-, Worker- und Qt-Ausnahmen sowie Manifest-, XDG-, Einstellungs-, Instanz- und spätere Dateioperationsfehler verwenden denselben Vertrag. Private Pfade und typische Geheimnismuster werden vor Dialog und Journal reduziert.
-
-## Single-Instance-Vertrag
-
-- Normale GUI-Starts verwenden genau eine primäre Linux-Instanz.
-- Koordination erfolgt über privaten Unix-Domain-Socket unter `$XDG_RUNTIME_DIR/multimodultool2026`.
-- Server prüft Linux-Peer-UID mittels `SO_PEERCRED`.
-- Erlaubte Nachrichten: `activate` und `show-diagnostics`; optional eine validierte Diagnosekennung.
-- Dateipfade, freie Argumentlisten, private Inhalte und beliebige Befehle sind verboten.
-- Veraltete Sperren werden nur bei eindeutigem totem Prozess oder anderer Boot-Kennung entfernt.
-- Beschädigte, fremde oder zweifelhafte Sperren bleiben unverändert und blockieren den Start mit vollständigem Fehlervertrag.
-- Rein lesende CLI-Prüfmodi umgehen den GUI-Instanzschutz und bleiben parallel nutzbar.
-
-## Diagnosevertrag
-
-- Diagnosezentrale liest ausschließlich das lokale bereinigte Ereignisjournal.
-- Filter erlaubt nur Schweregrad und Diagnosekennung.
-- Einzelne bereinigte Berichte dürfen kopiert werden.
-- Löschen, Upload, automatischer Export und Journalreparatur sind in der Diagnosezentrale verboten.
-- Größen- und Datensatzgrenzen verhindern unkontrolliertes Laden.
-- Ungültige Zeilen werden übersprungen und gemeldet, aber nie verändert.
-
-## Verbindliche UI-Basis
-
-Die visuelle Referenz unter `assets/ui-reference/` bleibt primäre Orientierung. Neun Zonen, linke Navigation, zentrale Arbeitsfläche, rechte Kontextleiste und untere Sicherheitsbereiche bleiben erhalten. Strukturelle Abweichungen benötigen ausdrückliche Nutzerfreigabe.
+Die visuelle Referenz unter `assets/ui-reference/` bleibt bindende Orientierung. Die neun Zonen bleiben erhalten. Der Papierkorbvertrag darf als separates read-only Panel vorbereitet werden; produktive Dateiauswahl bleibt bis zum geführten Projektworkflow gesperrt.
 
 ## Ablauf jeder Iteration
 
 ### Vorprüfung
 
-- Ziel, Nutzen und Nutzerwirkung festlegen
-- Ausgangscommit, Zielbranch, Konto und mindestens `push` prüfen
-- Datenverlust-, Datenschutz-, Linux-, UI- und Rückfallrisiken bewerten
-- TODO, Schwachstellen und Upgrade-Pool auf Doppelungen prüfen
-- kleinsten vollständigen reversiblen Patch planen
+- Ausgangscommit, Zielbranch, Konto und mindestens `push` prüfen.
+- Datenverlust-, Datenschutz-, Linux-, Mount-, Symlink-, UI- und Rückfallrisiken bewerten.
+- TODO, Schwachstellen und Upgrade-Pool entdoppeln.
+- kleinsten vollständigen reversiblen Patch planen.
 
 ### Umsetzung
 
 - keine stillen Löschungen oder Überschreibungen
 - keine neue Abhängigkeit ohne dokumentierten Grund
-- produktive Dateiaktionen erst nach Vorschau, Validierung und Rückfallweg
-- neue Funktionen in kleine testbare Linux-Module trennen
-- keine Zugangsdaten, privaten Dateiinhalte oder unnötigen vollständigen Pfade protokollieren
+- produktive Dateiaktionen nur nach Vorschau, Validierung und Rückfallweg
+- kleine testbare Linux-Module
+- keine Zugangsdaten oder privaten Dateiinhalte protokollieren
 - Fehler ausschließlich über die zentrale Ereignisschicht erklären
 
 ### Nachvalidierung
@@ -87,42 +65,24 @@ Die visuelle Referenz unter `assets/ui-reference/` bleibt primäre Orientierung.
 ```bash
 python3 -m src.main --validate-only
 python3 tools/validate_repository.py
-python3 -m unittest discover -s tests -v
-python3 -m unittest tests.test_single_instance -v
-python3 -m unittest tests.test_diagnostics_center -v
+python3 -m unittest discover -s tests -p "test_*.py" -v
+python3 -m unittest tests.test_project_trash -v
+python3 -m unittest tests.test_single_instance_stress -v
 python3 -m unittest tests.test_settings_failpoints -v
 QT_QPA_PLATFORM=offscreen python3 -m unittest tests.test_gui_offscreen -v
+QT_QPA_PLATFORM=offscreen python3 -m unittest tests.test_gui_trash_contract -v
 ```
 
-Bei UI-/Laufzeitänderungen sind KDE, X11, Wayland, Fokus, Skalierung und abgeschnittene Inhalte zu bewerten. Nicht physisch geprüfte Bereiche werden offen benannt.
+Nicht physisch geprüfte KDE-, X11-, Wayland-, DPI-, ACL- oder Mountfälle werden offen benannt.
 
-## Pflichtpflege jeder Iteration
+## Pflichtpflege
 
-Auf Änderungsbedarf prüfen und betroffene Dateien im selben Commit aktualisieren:
+Betroffene Dateien werden im selben Commit aktualisiert: `README.md`, `TODO.md`, `CHANGELOG.md`, `ANLEITUNG_TOOL.md`, `SCHWACHSTELLEN.md`, `UPGRADE_POOL.md`, `ENTWICKLERDOKU.md` sowie die Verträge unter `docs/`.
 
-- `CHANGELOG.md`
-- `ANLEITUNG_TOOL.md`
-- `TODO.md`
-- `SCHWACHSTELLEN.md`
-- `UPGRADE_POOL.md`
-- `ENTWICKLERDOKU.md`
-- `README.md`
-- `docs/GITHUB_ZUGRIFF.md`
-- `docs/XDG_PFADVERTRAG.md`
-- `docs/EINSTELLUNGSVERTRAG.md`
-- `docs/FEHLER_UND_EREIGNISVERTRAG.md`
-- `docs/SINGLE_INSTANCE_UND_DIAGNOSEVERTRAG.md`
+## Fortschritts- und GitHub-Vertrag
 
-Dokumente ohne Änderungsbedarf werden nicht künstlich verändert.
-
-## Fortschrittsvertrag
-
-- Quelle ist ausschließlich die Checkbox-Zahl in `TODO.md`.
-- `- [x]` zählt erledigt, `- [ ]` offen.
-- Fortschritt = gerundet `erledigt / gesamt × 100`.
+- Fortschrittsquelle ist ausschließlich die Checkbox-Zahl in `TODO.md`.
 - README und TODO müssen exakt übereinstimmen.
-- Eine Aufgabe gilt erst nach Umsetzung, Abnahme, Dokumentation, grünem CI-Lauf und GitHub-Commit als erledigt.
-
-## GitHub-Pflicht
-
-Jede abgeschlossene Iteration wird auf `provoware/MULTIMODULTOOL2026` übertragen. Abschluss benötigt Zielbranch, Commit-SHA, grüne relevante Prüfungen, konsistente Fortschrittswerte, bekannte Grenzen, nächsten technischen Schritt und risikoarme Alternative. Tokens oder GitHub-Geheimnisse dürfen niemals im Repository liegen.
+- Erledigt gilt erst nach Umsetzung, Abnahme, Dokumentation, grünem CI-Lauf und GitHub-Commit.
+- Jede abgeschlossene Iteration wird auf `provoware/MULTIMODULTOOL2026` übertragen.
+- Tokens, Passwörter und private Schlüssel dürfen niemals im Repository liegen.
