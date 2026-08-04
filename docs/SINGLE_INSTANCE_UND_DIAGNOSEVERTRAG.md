@@ -12,40 +12,38 @@ $XDG_RUNTIME_DIR/multimodultool2026/
 └── instance.json
 ```
 
-- Laufzeitwurzel und App-Unterordner: Eigentümer aktueller Nutzer, keine Symlinks, Modus `0700`
-- Socket und Metadaten: Eigentümer aktueller Nutzer, sichere Dateitypen, Modus `0600`
+- Laufzeitwurzel und App-Unterordner: aktueller Nutzer, keine Symlinks, `0700`
+- Socket und Metadaten: sicherer Dateityp, ein Link, aktueller Nutzer, `0600`
 - keine Ausweichsperre in `/tmp`
 
-## Lokale Authentisierung
+## Lokale Authentisierung und Nachrichten
 
-Der Server prüft über Linux `SO_PEERCRED`, dass die Verbindung vom gleichen Nutzer stammt. Nachrichten anderer Nutzer werden abgelehnt.
-
-## Erlaubte Nachrichten
+Der Server prüft über Linux `SO_PEERCRED`, dass die Verbindung vom gleichen Nutzer stammt. Erlaubt sind nur:
 
 - `activate`
 - `show-diagnostics`
-- optional eine Diagnosekennung im Format `MMT-...`
+- optional eine validierte Diagnosekennung im Format `MMT-...`
 
-Verboten:
-
-- Dateipfade
-- freie Argumentlisten
-- Shellbefehle
-- private Dateiinhalte
-- Lösch-, Upload- oder Exportaufträge
-- unbekannte Felder und Schemaversionen
-
-Maximale Nachrichtengröße: 4096 Bytes.
+Dateipfade, freie Argumentlisten, Shellbefehle, private Inhalte sowie Lösch-, Upload- und Exportaufträge sind verboten. Maximale Nachrichtengröße: 4096 Bytes.
 
 ## Stale-Recovery
 
-Eine nicht antwortende Sperre wird nur entfernt, wenn:
+Eine nicht antwortende Sperre wird nur entfernt, wenn Socket und Metadaten sicher sind und Prozessstatus oder Boot-ID eindeutig belegen, dass keine aktive Instanz mehr besteht. Beschädigte, fremde oder zweifelhafte Sperren bleiben unverändert.
 
-1. Socket und Metadaten sicher und dem aktuellen Nutzer zugeordnet sind,
-2. Metadaten vollständig und schema-gültig sind,
-3. Prozess nicht mehr lebt oder Boot-ID nicht mehr zur aktuellen Sitzung gehört.
+## Parallelstart-Stresstest
 
-Lebender, aber nicht antwortender Prozess, fehlende Metadaten, beschädigtes JSON, Symlink, falscher Eigentümer oder falscher Dateityp blockieren den Start. Der Zustand bleibt unverändert.
+`tests/test_single_instance_stress.py` erzeugt eine Primärinstanz und gibt danach **20 Zweitstarts nahezu gleichzeitig** über eine Thread-Barriere frei. Jede Sekundärinstanz sendet eine eindeutige erlaubte Diagnosekennung.
+
+Pflichtinvarianten:
+
+1. genau eine Primärinstanz bleibt bestehen,
+2. alle 20 weiteren Starts erhalten die Sekundärrolle,
+3. jede gültige Kennung erreicht die Primärinstanz genau einmal,
+4. keine Kennung geht verloren oder wird verdoppelt,
+5. nach kontrolliertem Schließen fehlen `instance.sock` und `instance.json`,
+6. der private App-Laufzeitordner enthält keine Reste.
+
+Der Test ist ein zusätzliches CI-Gate und ersetzt nicht die normalen Einzelstart-, Stale- und Beschädigungstests.
 
 ## Qt-Übergabe
 
@@ -61,12 +59,6 @@ Der Socketserver arbeitet in einem Hintergrundthread. Gültige Nachrichten gelan
 - maximal 2 MiB und 500 gültige Einträge pro Ansicht
 - beschädigte Zeilen werden gemeldet und übersprungen
 
-## Abnahme
+## Bekannte Grenze
 
-- zweiter Start aktiviert vorhandene Instanz
-- nur erlaubte Nachricht erreicht Primärinstanz
-- stale Socket mit totem Prozess wird sicher ersetzt
-- beschädigte Sperre bleibt erhalten und blockiert
-- Peer-UID wird geprüft
-- Diagnosezugriff verändert keine Journalbytes
-- Offscreen-GUI enthält Filter, read-only Detail und Kopierfunktion, aber keine verbotenen Aktionen
+Der automatisierte Stresslauf findet auf Ubuntu-CI statt. Physische Tests unter stark ausgelastetem KDE Plasma, X11 und Wayland bleiben zusätzlich erforderlich.

@@ -19,6 +19,7 @@ import socket
 import stat
 import struct
 import threading
+import time
 from typing import Mapping
 
 APP_RUNTIME_NAME = "multimodultool2026"
@@ -28,6 +29,8 @@ RUNTIME_DIRECTORY_MODE = 0o700
 METADATA_FILE_MODE = 0o600
 MAX_MESSAGE_BYTES = 4096
 MESSAGE_SCHEMA_VERSION = 1
+SERVER_BACKLOG = 64
+CONNECT_RETRY_DELAY_SECONDS = 0.02
 _ALLOWED_ACTIONS = frozenset({"activate", "show-diagnostics"})
 _ALLOWED_MESSAGE_KEYS = frozenset({"schemaVersion", "action", "diagnosticId"})
 _DIAGNOSTIC_ID_PATTERN = re.compile(r"^MMT-[A-Z0-9-]{3,80}$")
@@ -135,9 +138,7 @@ def resolve_runtime_root(
             continue
         return candidate
     detail = "; ".join(dict.fromkeys(problems)) or "kein Laufzeitpfad vorhanden"
-    raise InstanceSecurityError(
-        "Kein sicheres XDG-Laufzeitverzeichnis verfügbar. " + detail
-    )
+    raise InstanceSecurityError("Kein sicheres XDG-Laufzeitverzeichnis verfügbar. " + detail)
 
 
 def validate_runtime_root(path: Path, *, uid: int | None = None) -> None:
@@ -179,9 +180,7 @@ def validate_launch_request(value: object) -> LaunchRequest:
         raise InstanceSecurityError("Startnachricht muss ein JSON-Objekt sein.")
     unknown = sorted(set(value) - _ALLOWED_MESSAGE_KEYS)
     if unknown:
-        raise InstanceSecurityError(
-            "Startnachricht enthält unzulässige Felder: " + ", ".join(unknown)
-        )
+        raise InstanceSecurityError("Startnachricht enthält unzulässige Felder: " + ", ".join(unknown))
     if value.get("schemaVersion") != MESSAGE_SCHEMA_VERSION:
         raise InstanceSecurityError("Startnachricht verwendet eine unbekannte Version.")
     action = value.get("action")
@@ -194,9 +193,7 @@ def validate_launch_request(value: object) -> LaunchRequest:
     if diagnostic_id and not _DIAGNOSTIC_ID_PATTERN.fullmatch(diagnostic_id):
         raise InstanceSecurityError("Diagnosekennung besitzt ein ungültiges Format.")
     if action == "activate" and diagnostic_id:
-        raise InstanceSecurityError(
-            "Eine reine Aktivierungsnachricht darf keine Diagnosekennung enthalten."
-        )
+        raise InstanceSecurityError("Eine reine Aktivierungsnachricht darf keine Diagnosekennung enthalten.")
     return LaunchRequest(action=action, diagnostic_id=diagnostic_id)
 
 
@@ -237,9 +234,7 @@ def _prepare_app_directory(paths: InstancePaths, *, uid: int) -> None:
         os.chmod(paths.app_directory, RUNTIME_DIRECTORY_MODE)
         _validate_app_directory(paths.app_directory, uid=uid)
     except (OSError, InstanceSecurityError) as exc:
-        raise InstanceSecurityError(
-            f"App-Laufzeitverzeichnis konnte nicht sicher vorbereitet werden: {exc}"
-        ) from exc
+        raise InstanceSecurityError(f"App-Laufzeitverzeichnis konnte nicht sicher vorbereitet werden: {exc}") from exc
 
 
 def _write_metadata(paths: InstancePaths, *, uid: int) -> None:
@@ -250,9 +245,7 @@ def _write_metadata(paths: InstancePaths, *, uid: int) -> None:
         "bootId": _boot_id(),
         "startedUtc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     }
-    temporary = paths.metadata_path.with_name(
-        f".{paths.metadata_path.name}.{os.getpid()}.tmp"
-    )
+    temporary = paths.metadata_path.with_name(f".{paths.metadata_path.name}.{os.getpid()}.tmp")
     descriptor: int | None = None
     try:
         flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
@@ -272,10 +265,7 @@ def _write_metadata(paths: InstancePaths, *, uid: int) -> None:
         descriptor = None
         os.replace(temporary, paths.metadata_path)
         os.chmod(paths.metadata_path, METADATA_FILE_MODE)
-        directory_fd = os.open(
-            paths.app_directory,
-            os.O_RDONLY | getattr(os, "O_DIRECTORY", 0),
-        )
+        directory_fd = os.open(paths.app_directory, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
         try:
             os.fsync(directory_fd)
         finally:
@@ -287,12 +277,7 @@ def _write_metadata(paths: InstancePaths, *, uid: int) -> None:
 
 
 def _read_metadata(paths: InstancePaths, *, uid: int) -> dict[str, object]:
-    _safe_lstat_regular(
-        paths.metadata_path,
-        mode=METADATA_FILE_MODE,
-        label="Instanzmetadaten",
-        uid=uid,
-    )
+    _safe_lstat_regular(paths.metadata_path, mode=METADATA_FILE_MODE, label="Instanzmetadaten", uid=uid)
     try:
         value = json.loads(paths.metadata_path.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, json.JSONDecodeError) as exc:
@@ -399,11 +384,7 @@ class SingleInstanceCoordinator:
         if self.paths.socket_path.exists():
             delivered = self._deliver_to_primary(requested)
             if delivered:
-                return InstanceResult(
-                    "secondary",
-                    "Bestehende Instanz wurde sicher aktiviert.",
-                    self.paths,
-                )
+                return InstanceResult("secondary", "Bestehende Instanz wurde sicher aktiviert.", self.paths)
             stale_result = self._recover_stale_socket()
             if stale_result.is_blocked:
                 return stale_result
@@ -413,16 +394,8 @@ class SingleInstanceCoordinator:
         except OSError as exc:
             if exc.errno in {errno.EADDRINUSE, errno.EACCES}:
                 if self._deliver_to_primary(requested):
-                    return InstanceResult(
-                        "secondary",
-                        "Bestehende Instanz wurde nach einer Startkollision aktiviert.",
-                        self.paths,
-                    )
-            return InstanceResult(
-                "blocked",
-                f"Instanzsocket konnte nicht sicher gebunden werden: {exc}",
-                self.paths,
-            )
+                    return InstanceResult("secondary", "Bestehende Instanz wurde nach einer Startkollision aktiviert.", self.paths)
+            return InstanceResult("blocked", f"Instanzsocket konnte nicht sicher gebunden werden: {exc}", self.paths)
         except InstanceSecurityError as exc:
             return InstanceResult("blocked", str(exc), self.paths)
 
@@ -432,32 +405,39 @@ class SingleInstanceCoordinator:
             "Primäre Linux-Instanz ist aktiv.",
             self.paths,
             recovered_stale=self._recovered_stale,
-            warnings=("Eine veraltete Instanzsperre wurde sicher entfernt.",)
-            if self._recovered_stale
-            else (),
+            warnings=("Eine veraltete Instanzsperre wurde sicher entfernt.",) if self._recovered_stale else (),
         )
 
     def _deliver_to_primary(self, request: LaunchRequest) -> bool:
-        connection = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        connection.settimeout(self.connect_timeout)
-        try:
-            connection.connect(str(self.paths.socket_path))
-            connection.sendall(_encode_request(request))
-            response = connection.recv(256)
-            value = json.loads(response.decode("utf-8"))
-            return isinstance(value, dict) and value.get("ok") is True
-        except (OSError, UnicodeError, json.JSONDecodeError, InstanceSecurityError):
-            return False
-        finally:
-            connection.close()
+        deadline = time.monotonic() + self.connect_timeout
+        payload = _encode_request(request)
+        while True:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                return False
+            connection = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            connection.settimeout(max(0.05, remaining))
+            try:
+                connection.connect(str(self.paths.socket_path))
+            except OSError:
+                connection.close()
+                time.sleep(min(CONNECT_RETRY_DELAY_SECONDS, max(0.0, deadline - time.monotonic())))
+                continue
+            try:
+                connection.sendall(payload)
+                response = connection.recv(256)
+                value = json.loads(response.decode("utf-8"))
+                return isinstance(value, dict) and value.get("ok") is True
+            except (OSError, UnicodeError, json.JSONDecodeError):
+                return False
+            finally:
+                connection.close()
 
     def _recover_stale_socket(self) -> InstanceResult:
         try:
             _validate_socket_path(self.paths.socket_path, uid=self.uid)
             if not self.paths.metadata_path.exists():
-                raise InstanceSecurityError(
-                    "Instanzsocket antwortet nicht und besitzt keine prüfbaren Metadaten."
-                )
+                raise InstanceSecurityError("Instanzsocket antwortet nicht und besitzt keine prüfbaren Metadaten.")
             metadata = _read_metadata(self.paths, uid=self.uid)
             pid = int(metadata["pid"])
             same_boot = metadata.get("bootId") == _boot_id()
@@ -469,12 +449,7 @@ class SingleInstanceCoordinator:
             self.paths.socket_path.unlink()
             self.paths.metadata_path.unlink(missing_ok=True)
             self._recovered_stale = True
-            return InstanceResult(
-                "primary-pending",
-                "Veraltete Instanzsperre wurde sicher entfernt.",
-                self.paths,
-                recovered_stale=True,
-            )
+            return InstanceResult("primary-pending", "Veraltete Instanzsperre wurde sicher entfernt.", self.paths, recovered_stale=True)
         except (OSError, InstanceSecurityError) as exc:
             return InstanceResult(
                 "blocked",
@@ -489,7 +464,7 @@ class SingleInstanceCoordinator:
             self._server.bind(str(self.paths.socket_path))
             os.chmod(self.paths.socket_path, 0o600)
             _validate_socket_path(self.paths.socket_path, uid=self.uid)
-            self._server.listen(8)
+            self._server.listen(SERVER_BACKLOG)
             _write_metadata(self.paths, uid=self.uid)
             self._owns_files = True
         except BaseException:
@@ -506,11 +481,7 @@ class SingleInstanceCoordinator:
     def _start_server(self) -> None:
         if self._server is None:
             raise InstanceSecurityError("Primärer Instanzsocket ist nicht gebunden.")
-        self._thread = threading.Thread(
-            target=self._serve,
-            name="mmt-single-instance",
-            daemon=True,
-        )
+        self._thread = threading.Thread(target=self._serve, name="mmt-single-instance", daemon=True)
         self._thread.start()
 
     def _serve(self) -> None:
@@ -528,9 +499,7 @@ class SingleInstanceCoordinator:
                 connection.settimeout(self.connect_timeout)
                 try:
                     if _peer_uid(connection) != self.uid:
-                        raise InstanceSecurityError(
-                            "Startnachricht stammt nicht vom aktuellen Linux-Nutzer."
-                        )
+                        raise InstanceSecurityError("Startnachricht stammt nicht vom aktuellen Linux-Nutzer.")
                     request = _read_message(connection)
                     self._messages.put(request)
                     response = {"ok": True}

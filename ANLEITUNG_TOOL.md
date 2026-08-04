@@ -11,66 +11,68 @@ chmod +x start.sh setup.sh
 ./start.sh
 ```
 
-Beim ersten Start werden Linux, Python, PySide6, XDG-Pfade, Einstellungen, Ereignisjournal und privater Laufzeitpfad geprüft.
+Beim Start werden Linux, Python, PySide6, XDG-Pfade, Einstellungen, Ereignisjournal und privater Single-Instance-Laufzeitpfad geprüft.
 
-## Zweiter Start
+## Sicherer Projektpapierkorb
 
-Ein zweiter normaler Start öffnet kein zweites Hauptfenster. Er sucht den privaten Unix-Socket, prüft die Linux-Nutzerkennung, überträgt nur die erlaubte Aktivierung und macht das vorhandene Fenster sichtbar.
+Der Papierkorb-Kern ist entwickelt und automatisiert geprüft. Die spätere Nutzeroberfläche muss immer denselben Ablauf verwenden:
 
-Diagnose öffnen:
+1. Projektordner über einen Auswahldialog bestimmen.
+2. Datei oder Ordner auswählen.
+3. **Vorschau** erzeugen – dabei wird noch nichts angelegt oder verschoben.
+4. Pfadgrenze, Mountstatus, Symlinks, Hardlinks, Konflikte, freien Speicher und Wiederherstellbarkeit prüfen.
+5. Transaktions-ID, Originalpfad, Papierkorbziel und Manifest anzeigen.
+6. Erst nach Bestätigung atomar in den Projektpapierkorb verschieben.
+7. Ergebnis und Wiederherstellungsweg anzeigen.
+
+Interner Speicherort:
+
+```text
+<Projekt>/.multimodultool2026/trash/transactions/<MMTTRASH-ID>/
+├── manifest.json
+└── payload
+```
+
+Die Anwendung kopiert nicht und löscht anschließend. Sie verwendet nur eine atomare Umbenennung innerhalb desselben Dateisystems. Ein Mountwechsel wird blockiert.
+
+## Wiederherstellung
+
+Eine Transaktion kann nur wiederhergestellt werden, wenn:
+
+- das Manifest gültig und privat ist,
+- der Payload seit dem Verschieben unverändert blieb,
+- der ursprüngliche Elternordner sicher erreichbar ist,
+- am Originalpfad kein neues Objekt liegt.
+
+Bei einem Namenskonflikt wird nichts überschrieben. Beschädigte Manifeste und unklare Zustände bleiben unverändert und werden mit Diagnosekennung erklärt.
+
+## Noch bewusst gesperrt
+
+- grafische Projekt- und Dateiauswahl
+- Massenaktionen
+- Papierkorb leeren
+- dauerhafte Löschung
+- Undo/Redo über mehrere Aktionen
+
+Diese Sperren verhindern, dass die geprüfte Kern-API vor dem geführten Projektworkflow unkontrolliert benutzt wird.
+
+## Zweiter Start und Diagnose
+
+Ein zweiter normaler Start aktiviert die bestehende Instanz. Er darf nur `activate` oder `show-diagnostics` übertragen. Die Diagnosezentrale bleibt rein lesend.
 
 ```bash
 python3 -m src.main --show-diagnostics
 ```
 
-Diagnosekennung fokussieren:
+## Prüfungen für Entwickler
 
 ```bash
-python3 -m src.main --show-diagnostics --diagnostic-id MMT-XDG-20260804-ABCD1234
+python3 tools/validate_repository.py
+python3 -m unittest tests.test_project_trash -v
+python3 -m unittest tests.test_single_instance_stress -v
+QT_QPA_PLATFORM=offscreen python3 -m unittest tests.test_gui_trash_contract -v
 ```
 
-Dateipfade, freie Argumentlisten und beliebige Befehle können nicht übergeben werden.
+## Fehlerfall
 
-## Veraltete Sperre
-
-Eine Sperre wird nur entfernt, wenn Socket und Metadaten dem aktuellen Nutzer gehören, sichere Dateitypen sind und Prozess- oder Boot-Kennung eindeutig belegen, dass keine aktive Instanz mehr besteht. Danach wird ein Recovery-Ereignis protokolliert.
-
-## Beschädigte oder zweifelhafte Sperre
-
-Der Start wird blockiert. Die Sperre bleibt unverändert. Der Fehlerbericht nennt Ursache, Folge, Datenstand, Lösung, Diagnosekennung und sicheren nächsten Schritt. Das Tool nicht mit `sudo` starten und Sperren nicht blind löschen.
-
-## Diagnosezentrale
-
-1. Schweregrad auswählen.
-2. Optional Diagnosekennung eingeben.
-3. Ereignis auswählen.
-4. Vollständigen bereinigten Bericht lesen.
-5. Bei Bedarf **Bereinigten Bericht kopieren** drücken.
-
-Nicht vorhanden: Löschen, Upload, automatischer Export oder Journalreparatur.
-
-## Rein lesende Prüfungen
-
-```bash
-python3 -m src.main --validate-only
-python3 -m src.main --paths-only
-python3 -m src.main --settings-only
-```
-
-Diese Modi erzeugen keine zweite GUI-Instanz.
-
-## Typische Fehler
-
-### XDG_RUNTIME_DIR unsicher
-
-**Folge:** GUI-Start blockiert.  
-**Datenstand:** Keine Sperre und keine Nutzerdaten verändert.  
-**Lösung:** KDE-Sitzung als normaler Nutzer starten und `/run/user/<UID>` prüfen.
-
-### Instanz antwortet nicht
-
-Eine lebende, aber nicht antwortende Instanz wird nicht überschrieben. Vorhandenen Prozess und Diagnosekennung prüfen.
-
-### Ereignisjournal unsicher
-
-Symlink, falscher Eigentümer, Hardlink, falscher Dateityp oder Rechte offener als `0600` blockieren den Zugriff. Das Journal bleibt unverändert.
+Keine Sperrdatei, kein Manifest und kein Payload darf manuell gelöscht oder überschrieben werden. Diagnosekennung sichern, Ursache prüfen und erst nach grüner Vorprüfung fortfahren.
