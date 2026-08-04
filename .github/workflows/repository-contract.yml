@@ -11,10 +11,11 @@ jobs:
   validate:
     name: Validate Linux project contract
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     env:
       QT_QPA_PLATFORM: offscreen
       PYTHONFAULTHANDLER: "1"
+      SOURCE_DATE_EPOCH: "1700000000"
 
     steps:
       - name: Repository auschecken
@@ -33,6 +34,9 @@ jobs:
 
       - name: Unit-, Ereignis- und Kernregressionstests ausführen
         run: python3 -m unittest discover -s tests -p "test_*.py" -v
+
+      - name: Reproduzierbaren Releasebuilder ausdrücklich prüfen
+        run: python3 -m unittest tests.test_release_builder -v
 
       - name: Papierkorbvertrag ausdrücklich prüfen
         run: python3 -m unittest tests.test_project_trash -v
