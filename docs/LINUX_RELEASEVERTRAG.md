@@ -137,7 +137,7 @@ Symlinks, fremde Home-Pfade und unklare Nutzerzuordnung blockieren den Nutzerdat
 
 ## Kubuntu-Matrix
 
-Die CI erzeugt zwei frische Container auf Basis von Ubuntu 22.04 und 24.04 und installiert darin `kubuntu-desktop-minimal` sowie `plasma-desktop`. Anschließend werden geprüft:
+Die CI erzeugt zwei frische Container auf Basis von Ubuntu 22.04 und 24.04 und installiert darin `kubuntu-desktop` sowie `plasma-desktop`. Anschließend werden geprüft:
 
 1. Baseline installieren,
 2. erster Offline-Start,
