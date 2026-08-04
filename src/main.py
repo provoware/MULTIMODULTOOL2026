@@ -1,11 +1,10 @@
-"""Linux-Desktop-App mit XDG-Pfaden, Einstellungen und zentraler Fehlerarchitektur."""
+"""Linux-Desktop-App mit XDG-, Einstellungs- und zentraler Fehlerarchitektur."""
 
 from __future__ import annotations
 
 import argparse
 from pathlib import Path
 import sys
-import threading
 
 from .error_dialog import show_error_dialog
 from .error_events import (
@@ -40,15 +39,8 @@ DEVELOPMENT_PROGRESS = 36
 COMPLETED_POINTS = 23
 OPEN_POINTS = 41
 ZONE_OBJECT_NAMES = (
-    "header",
-    "navigation",
-    "summaryCards",
-    "primaryActionTiles",
-    "workflowPanel",
-    "workspaceScroll",
-    "contextRail",
-    "actionBar",
-    "footer",
+    "header", "navigation", "summaryCards", "primaryActionTiles", "workflowPanel",
+    "workspaceScroll", "contextRail", "actionBar", "footer",
 )
 
 
@@ -81,14 +73,7 @@ def _label(QtWidgets, text: str, name: str = "muted", *, safety: bool = False):
     return item
 
 
-def _button(
-    QtWidgets,
-    text: str,
-    *,
-    enabled: bool = True,
-    name: str = "",
-    tooltip: str = "",
-):
+def _button(QtWidgets, text: str, *, enabled: bool = True, name: str = "", tooltip: str = ""):
     button = QtWidgets.QPushButton(text)
     button.setEnabled(enabled)
     button.setMinimumHeight(44)
@@ -109,9 +94,9 @@ def _panel(QtWidgets, title: str, body: str, name: str = "panel"):
     return frame
 
 
-def _zone(widget, object_name: str, zone_id: str):
-    widget.setObjectName(object_name)
-    widget.setProperty("zoneId", zone_id)
+def _zone(widget, name: str, number: int):
+    widget.setObjectName(name)
+    widget.setProperty("zoneId", f"Z{number:02d}")
     return widget
 
 
@@ -120,19 +105,6 @@ def _display_path(path: Path) -> str:
         return f"~/{path.relative_to(Path.home())}"
     except ValueError:
         return str(path)
-
-
-def _event_center_text(event_center: ErrorEventCenter | None) -> str:
-    if event_center is None:
-        return "Zentrale Ereignisschicht vorbereitet; in diesem reinen Fenstertest ist kein Journal verbunden."
-    latest = event_center.latest
-    if latest is None:
-        return "Aktiv ¬∑ keine offenen Fehler ¬∑ Diagnosekennungen und JSONL-Journal mit 0600 bereit."
-    return (
-        f"Letztes Ereignis: {latest.severity.upper()}\n"
-        f"Diagnose: {latest.diagnostic_id}\n"
-        f"Datenstand: {latest.data_state}"
-    )
 
 
 def build_window(
@@ -146,104 +118,246 @@ def build_window(
     settings_result: SettingsLoadResult,
     event_center: ErrorEventCenter | None = None,
 ):
-    """Neun sichtbare und maschinenpr√ºfbare Layoutzonen erzeugen."""
+    """Neun sichtbare, maschinenpr√ºfbare Layoutzonen ohne Dateizugriff erzeugen."""
 
     window = QtWidgets.QMainWindow()
     window.setWindowTitle("MULTIMODULTOOL2026 ‚Äì Linux")
     window.resize(1500, 900)
     window.setMinimumSize(1024, 680)
     central = QtWidgets.QWidget()
-    shell = QtWidgets.QGridLayout(central)
-    shell.setContentsMargins(12, 12, 12, 12)
-    shell.setSpacing(9)
-    shell.setColumnStretch(1, 1)
-    shell.setRowStretch(4, 1)
+    grid = QtWidgets.QGridLayout(central)
+    grid.setContentsMargins(12, 12, 12, 12)
+    grid.setSpacing(9)
+    grid.setColumnStretch(1, 1)
+    grid.setRowStretch(4, 1)
     window.setCentralWidget(central)
 
-    header = _zone(QtWidgets.QFrame(), "header", "Z01")
-    header_layout = QtWidgets.QHBoxLayout(header)
+    header = _zone(QtWidgets.QFrame(), "header", 1)
+    row = QtWidgets.QHBoxLayout(header)
     identity = QtWidgets.QVBoxLayout()
     identity.addWidget(_label(QtWidgets, "‚óà  MULTIMODULTOOL2026", "appTitle"))
-    identity.addWidget(
-        _label(
-            QtWidgets,
-            "Fehler kontrolliert stoppen, Datenstand erkl√§ren, sicheren n√§chsten Schritt zeigen.",
-            "smallMuted",
-        )
-    )
-    header_layout.addLayout(identity)
-    header_layout.addStretch(1)
-    header_layout.addWidget(
-        _label(
-            QtWidgets,
-            "‚óè ZENTRALE FEHLER-, XDG- UND EINSTELLUNGSPR√úFUNG GR√úN",
-            "statusOk",
-            safety=True,
-        )
-    )
-    shell.addWidget(header, 0, 0, 1, 3)
+    identity.addWidget(_label(QtWidgets, "Fehler kontrolliert stoppen, Datenstand erkl√§ren, sicher fortsetzen.", "smallMuted"))
+    row.addLayout(identity)
+    row.addStretch(1)
+    row.addWidget(_label(QtWidgets, "‚óè FEHLER-, XDG- UND EINSTELLUNGSPR√úFUNG GR√úN", "statusOk", safety=True))
+    grid.addWidget(header, 0, 0, 1, 3)
 
-    navigation = _zone(QtWidgets.QFrame(), "navigation", "Z02")
+    navigation = _zone(QtWidgets.QFrame(), "navigation", 2)
     navigation.setFixedWidth(178)
     nav = QtWidgets.QVBoxLayout(navigation)
     nav.addWidget(_label(QtWidgets, "HAUPTBEREICHE", "navTitle"))
     nav.addWidget(_button(QtWidgets, "‚åÇ  Start"))
-    locked_tip = "Noch gesperrt, bis der sichere Kernworkflow vollst√§ndig ist."
-    for text in (
-        "‚åï  Analysieren",
-        "‚ñ£  Duplikate",
-        "‚Üï  Organisieren",
-        "‚úé  Umbenennen",
-        "‚ñ§  Berichte",
-        "‚ô≤  Papierkorb",
-    ):
-        nav.addWidget(
-            _button(
-                QtWidgets,
-                text,
-                enabled=False,
-                name="lockedNavigation",
-                tooltip=locked_tip,
-            )
-        )
+    lock_tip = "Noch gesperrt, bis der sichere Kernworkflow vollst√§ndig ist."
+    for text in ("‚åï  Analysieren", "‚ñ£  Duplikate", "‚Üï  Organisieren", "‚úé  Umbenennen", "‚ñ§  Berichte", "‚ô≤  Papierkorb"):
+        nav.addWidget(_button(QtWidgets, text, enabled=False, name="lockedNavigation", tooltip=lock_tip))
     nav.addStretch(1)
-    nav.addWidget(
-        _button(
-            QtWidgets,
-            "‚öô  Einstellungen",
-            enabled=False,
-            tooltip="Dateiformat aktiv; Bedienseite folgt.",
-        )
-    )
+    nav.addWidget(_button(QtWidgets, "‚öô  Einstellungen", enabled=False, tooltip="Datenformat aktiv; Bedienseite folgt."))
     nav.addWidget(_button(QtWidgets, "?  Hilfe"))
-    shell.addWidget(navigation, 1, 0, 5, 1)
+    grid.addWidget(navigation, 1, 0, 5, 1)
 
-    summary = _zone(QtWidgets.QWidget(), "summaryCards", "Z03")
+    summary = _zone(QtWidgets.QWidget(), "summaryCards", 3)
     cards = QtWidgets.QHBoxLayout(summary)
     settings_status = "WIEDERHERGESTELLT" if settings_result.recovered else "1 / 1 GR√úN"
-    error_status = "EREIGNIS VORHANDEN" if event_center and event_center.latest else "AKTIV"
+    latest = event_center.latest if event_center else None
+    error_status = "EREIGNIS VORHANDEN" if latest else "AKTIV"
     for title, value, detail in (
         ("System", "Linux / KDE", "X11 und Wayland"),
-        ("Einstellungen", settings_status, "Schema 1 ¬∑ Dateien 0600"),
-        ("Fehlerzentrum", error_status, "6 Pflichtfelder ¬∑ Diagnose-ID ¬∑ Journal 0600"),
+        ("Einstellungen", settings_status, "Schema 1 ¬∑ 0600"),
+        ("Fehlerzentrum", error_status, "6 Pflichtfelder ¬∑ Journal 0600"),
         ("Entwicklung", "36 %", "23 erledigt ¬∑ 41 offen"),
     ):
         cards.addWidget(_panel(QtWidgets, title, f"{value}\n{detail}", "card"))
-    shell.addWidget(summary, 1, 1, 1, 1)
+    grid.addWidget(summary, 1, 1)
 
-    actions = _zone(QtWidgets.QWidget(), "primaryActionTiles", "Z04")
+    actions = _zone(QtWidgets.QWidget(), "primaryActionTiles", 4)
     action_layout = QtWidgets.QHBoxLayout(actions)
-    for text in (
-        "1\nOrdner w√§hlen",
-        "2\nBestand pr√ºfen",
-        "3\nRegeln w√§hlen",
-        "4\nVorschau",
-        "5\nSicher anwenden",
-        "6\nBericht",
-    ):
-        action_layout.addWidget(
-            _button(
-                QtWidgets,
-                text,
-                enabled=False,
-                name="lockedP≤»="24ÄÄÄÄÅëÖ—Ö}Õ—Ö—îÙâÃÅ›’…ëï∏Å≠ï•πîÅYï…Èï•ç°π•ÕÕî∞Å•πÕ—ï±±’πùï∏ÅΩëï»Å9’—Èï…ëÖ—ï∏ÅŸïÀëπëï…–∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÕΩ±’—•Ω∏ÙâÖÃÅA…Ω©ï≠–Å’π—ï»Å-’â’π—‘Ä»»∏¿–º»–∏¿–ÅΩëï»Åï•πï¥Å≠Ωµ¡Ö—•â±ï∏Å1•π’‡µïÕ≠—Ω¿ÅÕ—Ö…—ï∏∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅπï·—}Õ—ï¿ÙâUπ—ï»Å1•π’‡Ä∏ΩÕ—Ö…–πÕ†ÅÖ’ÕõÒ°…ï∏∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄ§∞(ÄÄÄÄÄÄÄÄÄÄÄÄ–∞(ÄÄÄÄÄÄÄÄ§((ÄÄÄÅµÖπ•ôïÕ—}…ïÕ’±–ÄÙÅŸÖ±•ëÖ—ï}µÖπ•ôïÕ–°59%MQ}AQ ∞ÅAI=)Q}I==P§(ÄÄÄÅµÖπ•ôïÕ—}—ï·–ÄÙÅôΩ…µÖ—}ŸÖ±•ëÖ—•Ωπ}…ïÕ’±–°µÖπ•ôïÕ—}…ïÕ’±–§(ÄÄÄÅ¡…•π–°µÖπ•ôïÕ—}—ï·–§(ÄÄÄÅ•òÅπΩ–ÅµÖπ•ôïÕ—}…ïÕ’±–π•Õ}ŸÖ±•êË(ÄÄÄÄÄÄÄÅ…ï—’…∏Å}¡…•π—}â±Ωç≠•πù}ïŸïπ–†(ÄÄÄÄÄÄÄÄÄÄÄÅïŸïπ—}ô…Ωµ}µïÕÕÖùïÃ†(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅµÖπ•ôïÕ—}…ïÕ’±–πï……Ω…Ã∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅçÖ—ïùΩ…‰ÙâµÖπ•ôïÕ–à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅçÖ’Õï}¡…ïô•‡Ùâï»ÅA…Ω©ï≠–¥Å’πêÅ1ÖÂΩ’—Ÿï…—…ÖúÅ•Õ–Å’πüÒ±—•ú∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅçΩπÕï≈’ïπçîÙâ•îÅ=âï…ô≥ëç°îÅ’πêÅÖ±±îÅ¡…Ωë’≠—•Ÿï∏Å’π≠—•Ωπï∏Åâ±ï•âï∏ÅùïÕ¡ï……–∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅëÖ—Ö}Õ—Ö—îÙâÃÅ›’…ëï∏Å≠ï•πîÅaµYï…Èï•ç°π•ÕÕîÅΩëï»Å9’—Èï…ëÖ—ï∏ÅŸïÀëπëï…–∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÕΩ±’—•Ω∏Ùâ•îÅùïπÖππ—ï∏Å5Öπ•ôïÕ—ôï°±ï»Å•¥ÅIï¡ΩÕ•—Ω…‰Åâï°ïâï∏∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅπï·—}Õ—ï¿Ùâ¡Â—°Ω∏ÃÅ—ΩΩ±ÃΩŸÖ±•ëÖ—ï}…ï¡ΩÕ•—Ω…‰π¡‰ÅÖ’ÕõÒ°…ï∏Å’πêÅï…Õ–Åâï§ÅùÀÒπï¥Å…ùïâπ•ÃÅπï‘ÅÕ—Ö…—ï∏∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄ§∞(ÄÄÄÄÄÄÄÄÄÄÄÄ»∞(ÄÄÄÄÄÄÄÄ§((ÄÄÄÅ…ïÕΩ±ŸïêÄÙÅ…ïÕΩ±Ÿï}·ëù}¡Ö—°Ã†§(ÄÄÄÅ•òÅπΩ–Å…ïÕΩ±Ÿïêπ•Õ}ŸÖ±•êÅΩ»Å…ïÕΩ±Ÿïêπ¡Ö—°ÃÅ•ÃÅ9ΩπîË(ÄÄÄÄÄÄÄÅ…ï—’…∏Å}¡…•π—}â±Ωç≠•πù}ïŸïπ–†(ÄÄÄÄÄÄÄÄÄÄÄÅïŸïπ—}ô…Ωµ}µïÕÕÖùïÃ†(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅ…ïÕΩ±Ÿïêπï……Ω…Ã∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅçÖ—ïùΩ…‰Ùâ·ëúµ…ïÕΩ±’—•Ω∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅçÖ’Õï}¡…ïô•‡Ùâ•îÅaµAôÖëîÅ≠Ωππ—ï∏Åπ•ç°–ÅÕ•ç°ï»Åâï…ïç°πï–Å›ï…ëï∏∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅçΩπÕï≈’ïπçîÙâï»ÅM—Ö…–Å›•…êÅŸΩ»Å©ïëï¥ÅMç°…ï•âÈ’ù…•ôòÅâ±Ωç≠•ï…–∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅëÖ—Ö}Õ—Ö—îÙâA…Ωù…ÖµµŸï…Èï•ç°π•ÃÅ’πêÅ9’—Èï…ëÖ—ï∏Åâ±ï•âï∏Å’πŸïÀëπëï…–∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÕΩ±’—•Ω∏ÙâIï±Ö—•ŸîÅΩëï»Å’πÈ’≥ëÕÕ•ùîÅaµUµùïâ’πùÕŸÖ…•Öâ±ï∏Å≠Ω……•ù•ï…ï∏∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅπï·—}Õ—ï¿Ùâ¡Â—°Ω∏ÃÄµ¥ÅÕ…åπµÖ•∏Ä¥µ¡Ö—°ÃµΩπ±‰Åï…πï’–ÅÖ’ÕõÒ°…ï∏∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄ§∞(ÄÄÄÄÄÄÄÄÄÄÄÄ‘∞(ÄÄÄÄÄÄÄÄ§((ÄÄÄÅ•òÅÖ…ùÃπ¡Ö—°Õ}Ωπ±‰Ë(ÄÄÄÄÄÄÄÅ¡Ö—°}…ïÕ’±–ÄÙÅŸÖ±•ëÖ—ï}·ëù}¡Ö—°Ã°…ïÕΩ±Ÿïêπ¡Ö—°Ã∞Å¡…Ω©ïç—}…ΩΩ–ıAI=)Q}I==P§(ÄÄÄÄÄÄÄÅ¡…•π–°ôΩ…µÖ—}¡Ö—°}…ï¡Ω…–°¡Ö—°}…ïÕ’±–∞Å•πç±’ëï}¡Ö—°ÃıQ…’î∞Å¡…ï¡Ö…ïêıÖ±Õî§§(ÄÄÄÄÄÄÄÅ•òÅ¡Ö—°}…ïÕ’±–π•Õ}ŸÖ±•êË(ÄÄÄÄÄÄÄÄÄÄÄÅ…ï—’…∏Ä¿(ÄÄÄÄÄÄÄÅ…ï—’…∏Å}¡…•π—}â±Ωç≠•πù}ïŸïπ–†(ÄÄÄÄÄÄÄÄÄÄÄÅïŸïπ—}ô…Ωµ}µïÕÕÖùïÃ†(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅ¡Ö—°}…ïÕ’±–πï……Ω…Ã∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅçÖ—ïùΩ…‰Ùâ·ëúµŸÖ±•ëÖ—•Ω∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅçÖ’Õï}¡…ïô•‡Ùâï»ÅaµAôÖë¡±Ö∏ÅŸï…±ï—È–Åï•πîÅM•ç°ï…°ï•—Õù…ïπÈî∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅçΩπÕï≈’ïπçîÙâÃÅ›ï…ëï∏Å≠ï•πîÅYï…Èï•ç°π•ÕÕîÅÖπùï±ïù–∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅëÖ—Ö}Õ—Ö—îÙâï»ÅÖ—ïπÕ—ÖπêÅ•Õ–Å’πŸïÀëπëï…–∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÕΩ±’—•Ω∏ÙâMÂµ±•π≠Ã∞ÅAôÖëù…ïπÈï∏∞ÅÖ—ï•—Â¡ï∏ÅΩëï»ÅIïç°—îÅ≠Ω……•ù•ï…ï∏∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅπï·—}Õ—ï¿Ùâï∏ÅAôÖë¡±Ö∏Åï…πï’–Å…ï•∏Å±ïÕïπêÅ¡ÀÒôï∏∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄ§∞(ÄÄÄÄÄÄÄÄÄÄÄÄ‘∞(ÄÄÄÄÄÄÄÄ§((ÄÄÄÅ•òÅÖ…ùÃπŸÖ±•ëÖ—ï}Ωπ±‰ÅΩ»ÅÖ…ùÃπÕï——•πùÕ}Ωπ±‰Ë(ÄÄÄÄÄÄÄÅ¡Ö—°}…ïÕ’±–ÄÙÅŸÖ±•ëÖ—ï}·ëù}¡Ö—°Ã°…ïÕΩ±Ÿïêπ¡Ö—°Ã∞Å¡…Ω©ïç—}…ΩΩ–ıAI=)Q}I==P§(ÄÄÄÄÄÄÄÅ¡…•π–°ôΩ…µÖ—}¡Ö—°}…ï¡Ω…–°¡Ö—°}…ïÕ’±–∞Å•πç±’ëï}¡Ö—°ÃıÖ±Õî∞Å¡…ï¡Ö…ïêıÖ±Õî§§(ÄÄÄÄÄÄÄÅ•òÅπΩ–Å¡Ö—°}…ïÕ’±–π•Õ}ŸÖ±•êË(ÄÄÄÄÄÄÄÄÄÄÄÅ…ï—’…∏Å}¡…•π—}â±Ωç≠•πù}ïŸïπ–†(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅïŸïπ—}ô…Ωµ}µïÕÕÖùïÃ†(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅ¡Ö—°}…ïÕ’±–πï……Ω…Ã∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅçÖ—ïùΩ…‰Ùâ·ëúµŸÖ±•ëÖ—•Ω∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅçÖ’Õï}¡…ïô•‡Ùâï»ÅaµAôÖë¡±Ö∏Å•Õ–Å’πüÒ±—•ú∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅçΩπÕï≈’ïπçîÙâ•îÅ•πÕ—ï±±’πùÕ¡ÀÒô’πúÅ›•…êÅπ•ç°–ÅôΩ…—ùïÕï—È–∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅëÖ—Ö}Õ—Ö—îÙâï»Å1ïÕïµΩë’ÃÅ°Ö–Å≠ï•πîÅÖ—ï•ï∏ÅÖπùï±ïù–ÅΩëï»ÅŸïÀëπëï…–∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÕΩ±’—•Ω∏Ùâ•îÅùïπÖππ—ï∏ÅaµU…ÕÖç°ï∏Å≠Ω……•ù•ï…ï∏∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅπï·—}Õ—ï¿Ùà¥µ¡Ö—°ÃµΩπ±‰ÅÖ’ÕõÒ°…ï∏Å’πêÅï…Õ–Åâï§ÅùÀÒπï¥Å…ùïâπ•ÃÅôΩ…—Õï—Èï∏∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ§∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ‘∞(ÄÄÄÄÄÄÄÄÄÄÄÄ§(ÄÄÄÄÄÄÄÅÕï——•πùÕ}…ïÕ’±–ÄÙÅ•πÕ¡ïç—}Õï——•πùÃ°…ïÕΩ±Ÿïêπ¡Ö—°ÃπçΩπô•ú§(ÄÄÄÄÄÄÄÅ¡…•π–°ôΩ…µÖ—}Õï——•πùÕ}…ï¡Ω…–°Õï——•πùÕ}…ïÕ’±–§§(ÄÄÄÄÄÄÄÅ•òÅÕï——•πùÕ}…ïÕ’±–π•Õ}ŸÖ±•êË(ÄÄÄÄÄÄÄÄÄÄÄÅ•òÅÕï——•πùÕ}…ïÕ’±–π…ïçΩŸï…ïêË(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅ¡…•π–°ôΩ…µÖ—}ïŸïπ—}ôΩ…}’Õï»°ïŸïπ—}ô…Ωµ}Õï——•πùÕ}…ïÕ’±–°Õï——•πùÕ}…ïÕ’±–§§§(ÄÄÄÄÄÄÄÄÄÄÄÅ…ï—’…∏Ä¿(ÄÄÄÄÄÄÄÅ…ï—’…∏Å}¡…•π—}â±Ωç≠•πù}ïŸïπ–°ïŸïπ—}ô…Ωµ}Õï——•πùÕ}…ïÕ’±–°Õï——•πùÕ}…ïÕ’±–§∞Äÿ§((ÄÄÄÅ¡Ö—°}…ïÕ’±–ÄÙÅïπÕ’…ï}·ëù}¡Ö—°Ã°…ïÕΩ±Ÿïêπ¡Ö—°Ã∞Å¡…Ω©ïç—}…ΩΩ–ıAI=)Q}I==P§(ÄÄÄÅ¡Ö—°}—ï·–ÄÙÅôΩ…µÖ—}¡Ö—°}…ï¡Ω…–°¡Ö—°}…ïÕ’±–∞Å•πç±’ëï}¡Ö—°ÃıÖ±Õî∞Å¡…ï¡Ö…ïêıQ…’î§(ÄÄÄÅ¡…•π–°¡Ö—°}—ï·–§(ÄÄÄÅ•òÅπΩ–Å¡Ö—°}…ïÕ’±–π•Õ}ŸÖ±•êÅΩ»Å¡Ö—°}…ïÕ’±–π¡Ö—°ÃÅ•ÃÅ9ΩπîË(ÄÄÄÄÄÄÄÅ…ï—’…∏Å}¡…•π—}â±Ωç≠•πù}ïŸïπ–†(ÄÄÄÄÄÄÄÄÄÄÄÅïŸïπ—}ô…Ωµ}µïÕÕÖùïÃ†(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅ¡Ö—°}…ïÕ’±–πï……Ω…Ã∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅçÖ—ïùΩ…‰Ùâ·ëúµ¡…ï¡Ö…îà∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅçÖ’Õï}¡…ïô•‡Ùâ•îÅ¡…•ŸÖ—ï∏ÅaµYï…Èï•ç°π•ÕÕîÅ≠Ωππ—ï∏Åπ•ç°–ÅÕ•ç°ï»ÅŸΩ…âï…ï•—ï–Å›ï…ëï∏∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅçΩπÕï≈’ïπçîÙâ•πÕ—ï±±’πùï∏Å’πêÅ=âï…ô≥ëç°îÅâ±ï•âï∏ÅùïÕ¡ï……–∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅëÖ—Ö}Õ—Ö—îÙâQïµ¡ΩÀë…îÅMç°…ï•â¡…Ωâï∏Å›’…ëï∏Åïπ—ôï…π–ÏÅ¡…Ωë’≠—•ŸîÅ9’—Èï…ëÖ—ï∏Åâ±•ïâï∏Å’πŸïÀëπëï…–∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÕΩ±’—•Ω∏ÙâIïç°—î∞ÅMÂµ±•π≠Ã∞Å5Ω’π—È’Õ—ÖπêÅ’πêÅô…ï•ï∏ÅM¡ï•ç°ï»Å¡ÀÒôï∏∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅπï·—}Õ—ï¿Ùâ9Öç†Åëï»Å-Ω……ï≠—’»Ä¥µŸÖ±•ëÖ—îµΩπ±‰ÅÖ’ÕõÒ°…ï∏∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄ§∞(ÄÄÄÄÄÄÄÄÄÄÄÄ‘∞(ÄÄÄÄÄÄÄÄ§((ÄÄÄÅ©Ω’…πÖ∞ÄÙÅŸïπ—)Ω’…πÖ∞°¡Ö—°}…ïÕ’±–π¡Ö—°Ãπ±ΩùÃ§(ÄÄÄÅ©Ω’…πÖ±}ï……Ω…ÃÄÙÅ©Ω’…πÖ∞πŸÖ±•ëÖ—î†§(ÄÄÄÅ•òÅ©Ω’…πÖ±}ï……Ω…ÃË(ÄÄÄÄÄÄÄÅ…ï—’…∏Å}¡…•π—}â±Ωç≠•πù}ïŸïπ–†(ÄÄÄÄÄÄÄÄÄÄÄÅïŸïπ—}ô…Ωµ}µïÕÕÖùïÃ†(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅ©Ω’…πÖ±}ï……Ω…Ã∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅçÖ—ïùΩ…‰ÙâïŸïπ–µ©Ω’…πÖ∞à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅçÖ’Õï}¡…ïô•‡ÙâÖÃÅÈïπ—…Ö±îÅ…ï•ùπ•Õ©Ω’…πÖ∞Å•Õ–Åπ•ç°–ÅÕ•ç°ï»Åπ’—ÈâÖ»∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅçΩπÕï≈’ïπçîÙâ•îÅπ›ïπë’πúÅÕ—Ö…—ï–ÅΩ°πîÅŸï…≥ëÕÕ±•ç°îÅï°±ï…¡…Ω—Ω≠Ω±±•ï…’πúÅπ•ç°–∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅëÖ—Ö}Õ—Ö—îÙâ•πÕ—ï±±’πùï∏Å’πêÅ9’—Èï…ëÖ—ï∏Å›’…ëï∏Åπ•ç°–ÅŸïÀëπëï…–∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÕΩ±’—•Ω∏Ùâaµ1Ωù¡ôÖê∞ÅMÂµ±•π≠Ã∞ÅÖ—ï•—Â¿Å’πêÅIïç°—îÄ¿ÿ¿¿Å≠Ω……•ù•ï…ï∏∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅπï·—}Õ—ï¿Ùâ1Ωù¡ôÖêÅ¡ÀÒôï∏Å’πêÅëÖπÖç†Ä∏ΩÕ—Ö…–πÕ†Åï…πï’–ÅÖ’ÕõÒ°…ï∏∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÄ§∞(ÄÄÄÄÄÄÄÄÄÄÄÄ‹∞(ÄÄÄÄÄÄÄÄ§(ÄÄÄÅïŸïπ—}çïπ—ï»ÄÙÅ……Ω…Ÿïπ—ïπ—ï»°©Ω’…πÖ∞§((ÄÄÄÅÕï——•πùÕ}…ïÕ’±–ÄÙÅ±ΩÖë}Ω…}…ïçΩŸï…}Õï——•πùÃ°¡Ö—°}…ïÕ’±–π¡Ö—°ÃπçΩπô•ú§(ÄÄÄÅÕï——•πùÕ}—ï·–ÄÙÅôΩ…µÖ—}Õï——•πùÕ}…ï¡Ω…–°Õï——•πùÕ}…ïÕ’±–§(ÄÄÄÅ¡…•π–°Õï——•πùÕ}—ï·–§(ÄÄÄÅ•òÅÕï——•πùÕ}…ïÕ’±–π…ïçΩŸï…ïêË(ÄÄÄÄÄÄÄÅïŸïπ—}çïπ—ï»πçÖ¡—’…î°ïŸïπ—}ô…Ωµ}Õï——•πùÕ}…ïÕ’±–°Õï——•πùÕ}…ïÕ’±–§§(ÄÄÄÅ•òÅπΩ–ÅÕï——•πùÕ}…ïÕ’±–π•Õ}ŸÖ±•êË(ÄÄÄÄÄÄÄÅïŸïπ–ÄÙÅïŸïπ—}çïπ—ï»πçÖ¡—’…î°ïŸïπ—}ô…Ωµ}Õï——•πùÕ}…ïÕ’±–°Õï——•πùÕ}…ïÕ’±–§§(ÄÄÄÄÄÄÄÅ…ï—’…∏Å}¡…•π—}â±Ωç≠•πù}ïŸïπ–°ïŸïπ–∞Äÿ§((ÄÄÄÅ…ï—’…∏Å…’π}ù’§†(ÄÄÄÄÄÄÄÅµÖπ•ôïÕ—}—ï·–∞(ÄÄÄÄÄÄÄÅ¡Ö—°}—ï·–∞(ÄÄÄÄÄÄÄÅÕï——•πùÕ}—ï·–∞(ÄÄÄÄÄÄÄÅ¡Ö—°}…ïÕ’±–π¡Ö—°Ã∞(ÄÄÄÄÄÄÄÅÕï——•πùÕ}…ïÕ’±–∞(ÄÄÄÄÄÄÄÅïŸïπ—}çïπ—ï»∞(ÄÄÄÄ§(()ëïòÅç±•}ïπ—…Â¡Ω•π–°Ö…ùÿËÅ±•Õ—mÕ—…tÅÅ9ΩπîÄÙÅ9Ωπî§Ä¥¯Å•π–Ë(ÄÄÄÄààâ1ï—È—îÅMç°’—ÈÕç°•ç°–ÅõÒ»Å’πï…›Ö…—ï—îÅ	ΩΩ—Õ—…Ö¿µ’ÕπÖ°µï∏∏ààà((ÄÄÄÅ—…‰Ë(ÄÄÄÄÄÄÄÅ…ï—’…∏ÅµÖ•∏°Ö…ùÿ§(ÄÄÄÅï·çï¡–Å-ïÂâΩÖ…ë%π—ï……’¡–Ë(ÄÄÄÄÄÄÄÅïŸïπ–ÄÙÅç…ïÖ—ï}ïŸïπ–†(ÄÄÄÄÄÄÄÄÄÄÄÅçÖ—ïùΩ…‰Ùâ’Õï»µ•π—ï……’¡–à∞(ÄÄÄÄÄÄÄÄÄÄÄÅÕïŸï…•—‰Ùâ›Ö…π•πúà∞(ÄÄÄÄÄÄÄÄÄÄÄÅçÖ’ÕîÙâï»ÅM—Ö…–Å›’…ëîÅë’…ç†Åëï∏Å9’—Èï»Å’π—ï…â…Ωç°ï∏∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÅçΩπÕï≈’ïπçîÙâï»ÅÖ≠—’ï±±îÅM—Ö…—Õç°…•—–Å›’…ëîÅâïïπëï–∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÅëÖ—Ö}Õ—Ö—îÙâ	ï…ï•—ÃÅâïÕ”ë—•ù—îÅÖ—ï•ï∏Åâ±ï•âï∏ÅŸΩ±±Õ”ëπë•úÏÅ≠ï•πîÅ›ï•—ï…îÅ≠—•Ω∏Å›’…ëîÅùïÕ—Ö…—ï–∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÅÕΩ±’—•Ω∏ÙâYΩ»Åï•πï¥Å9ï’Õ—Ö…–Å¡ÀÒôï∏∞ÅΩàÅï•∏ÅMï—’¿¥ÅΩëï»ÅMç°…ï•âŸΩ…ùÖπúÅπΩç†Å≥ë’ô–∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÅπï·—}Õ—ï¿Ùâ9Öç†ÅâÕç°±’ÕÃÅÖ±±ï»ÅA…ΩÈïÕÕîÄ∏ΩÕ—Ö…–πÕ†Åï…πï’–ÅÖ’ÕõÒ°…ï∏∏à∞(ÄÄÄÄÄÄÄÄ§(ÄÄÄÄÄÄÄÅ…ï—’…∏Å}¡…•π—}â±Ωç≠•πù}ïŸïπ–°ïŸïπ–∞ÄƒÃ¿§(ÄÄÄÅï·çï¡–Å	ÖÕï·çï¡—•Ω∏ÅÖÃÅï·åË(ÄÄÄÄÄÄÄÅïŸïπ–ÄÙÅïŸïπ—}ô…Ωµ}ï·çï¡—•Ω∏†(ÄÄÄÄÄÄÄÄÄÄÄÅï·å∞(ÄÄÄÄÄÄÄÄÄÄÄÅçÖ—ïùΩ…‰ÙââΩΩ—Õ—…Ö¿µï·çï¡—•Ω∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÅçΩπ—ï·–Ùâ•πîÅ’πï…›Ö…—ï—îÅ’ÕπÖ°µîÅﬂë°…ïπêÅëïÃÅA…Ωù…ÖµµÕ—Ö…—ÃÅ›’…ëîÅÖâùïôÖπùï∏∏à∞(ÄÄÄÄÄÄÄÄÄÄÄÅëÖ—Ö}Õ—Ö—îÙâï»ÅM—Ö…–Å›’…ëîÅ≠Ωπ—…Ω±±•ï…–Åâïïπëï–ÏÅ¡…Ωë’≠—•ŸîÅÖ—ï•Ö≠—•Ωπï∏Å›Ö…ï∏ÅπΩç†ÅùïÕ¡ï……–∏à∞(ÄÄÄÄÄÄÄÄ§(ÄÄÄÄÄÄÄÅ…ï—’…∏Å}¡…•π—}â±Ωç≠•πù}ïŸïπ–°ïŸïπ–∞Ä‹¿§(()•òÅ}}πÖµï}|ÄÙÙÄâ}}µÖ•π}|àË(ÄÄÄÅ…Ö•ÕîÅMÂÕ—ïµ·•–°ç±•}ïπ—…Â¡Ω•π–†§§(
+    for text in ("1\nOrdner w√§hlen", "2\nBestand pr√ºfen", "3\nRegeln w√§hlen", "4\nVorschau", "5\nSicher anwenden", "6\nBericht"):
+        action_layout.addWidget(_button(QtWidgets, text, enabled=False, name="lockedPrimaryAction", tooltip=lock_tip))
+    grid.addWidget(actions, 2, 1)
+
+    workflow = _zone(QtWidgets.QFrame(), "workflowPanel", 5)
+    flow = QtWidgets.QVBoxLayout(workflow)
+    flow.addWidget(_label(QtWidgets, "GEF√úHRTER SICHERHEITS-WORKFLOW", "navTitle"))
+    flow.addWidget(_label(QtWidgets, "1 Quelle  ‚Üí  2 Analyse  ‚Üí  3 Vorschau  ‚Üí  4 Freigabe  ‚Üí  5 Bericht", "sectionTitle"))
+    progress = QtWidgets.QProgressBar()
+    progress.setValue(DEVELOPMENT_PROGRESS)
+    progress.setFormat("Entwicklungsstand: 36 %")
+    flow.addWidget(progress)
+    grid.addWidget(workflow, 3, 1)
+
+    workspace = QtWidgets.QWidget()
+    work = QtWidgets.QVBoxLayout(workspace)
+    work.addWidget(_panel(QtWidgets, "P0-004 abgeschlossen", "Zentrale Fehler- und Ereignisschicht ist aktiv. Als N√§chstes folgt der Linux-Single-Instance-Schutz.", "hero"))
+    work.addWidget(_panel(QtWidgets, "Aktuelle Schutzgrenze", "Produktive Dateiaktionen bleiben gesperrt. Jeder Fehler nennt Ursache, Folge, Datenstand, L√∂sung, Diagnosekennung und sicheren n√§chsten Schritt.", "warningPanel"))
+    work.addWidget(_panel(QtWidgets, "Ereignisstatus", "Kein offener Fehler." if latest is None else f"{latest.severity.upper()} ¬∑ {latest.diagnostic_id}\n{latest.data_state}"))
+    work.addStretch(1)
+    workspace_scroll = _zone(QtWidgets.QScrollArea(), "workspaceScroll", 6)
+    workspace_scroll.setWidgetResizable(True)
+    workspace_scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+    workspace_scroll.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+    workspace_scroll.setWidget(workspace)
+    grid.addWidget(workspace_scroll, 4, 1)
+
+    context_body = QtWidgets.QWidget()
+    context_layout = QtWidgets.QVBoxLayout(context_body)
+    context_layout.addWidget(_panel(QtWidgets, "Sichere Speicherorte", "\n".join(f"‚úì {name}: {_display_path(path)}" for name, path in paths.items())))
+    context_layout.addWidget(_panel(QtWidgets, "Pr√ºfergebnisse", f"{validation_text}\n\n{path_text}\n\n{settings_text}"))
+    context_layout.addStretch(1)
+    context_scroll = QtWidgets.QScrollArea()
+    context_scroll.setObjectName("contextScroll")
+    context_scroll.setWidgetResizable(True)
+    context_scroll.setWidget(context_body)
+    context = _zone(QtWidgets.QFrame(), "contextRail", 7)
+    context.setFixedWidth(300)
+    context_frame_layout = QtWidgets.QVBoxLayout(context)
+    context_frame_layout.addWidget(context_scroll)
+    grid.addWidget(context, 1, 2, 4, 1)
+
+    action_bar = _zone(QtWidgets.QFrame(), "actionBar", 8)
+    bottom = QtWidgets.QHBoxLayout(action_bar)
+    bottom.addWidget(_label(QtWidgets, "‚úì Journal, Einstellungen und Datenstand kontrolliert", "statusOk", safety=True))
+    bottom.addStretch(1)
+    bottom.addWidget(_button(QtWidgets, "Diagnose erneut pr√ºfen"))
+    bottom.addWidget(_button(QtWidgets, "Weiter zu Single-Instance", enabled=False, tooltip="Wird mit P0-005 freigeschaltet."))
+    grid.addWidget(action_bar, 5, 1, 1, 2)
+
+    footer = _zone(QtWidgets.QFrame(), "footer", 9)
+    footer_layout = QtWidgets.QHBoxLayout(footer)
+    footer_layout.addWidget(_label(QtWidgets, "üõ° XDG 0700 ¬∑ Einstellungen/Journal 0600 ¬∑ Geheimnisfilter aktiv", safety=True))
+    footer_layout.addStretch(1)
+    footer_layout.addWidget(_label(QtWidgets, "üîí Produktive Dateiaktionen gesperrt", safety=True))
+    grid.addWidget(footer, 6, 0, 1, 3)
+    return window
+
+
+def load_stylesheet() -> str:
+    try:
+        return (PROJECT_ROOT / "src" / "theme.qss").read_text(encoding="utf-8")
+    except OSError:
+        return ""
+
+
+def run_gui(
+    validation_text: str,
+    path_text: str,
+    settings_text: str,
+    paths: XDGPaths,
+    settings_result: SettingsLoadResult,
+    event_center: ErrorEventCenter,
+) -> int:
+    try:
+        from PySide6 import QtCore, QtWidgets
+    except ImportError as exc:
+        event = event_center.capture(event_from_exception(exc, category="pyside6-import", context="PySide6 konnte nicht geladen werden."))
+        print(format_event_for_user(event), file=sys.stderr)
+        return 3
+
+    class SafeApplication(QtWidgets.QApplication):
+        eventRaised = QtCore.Signal(object)
+
+        def notify(self, receiver, event):  # noqa: ANN001
+            try:
+                return super().notify(receiver, event)
+            except BaseException as exc:  # Qt event boundary
+                captured = event_center.capture(event_from_exception(exc, category="qt-event-exception", context="Eine Ausnahme w√§hrend eines Qt-Ereignisses wurde abgefangen."))
+                self.eventRaised.emit(captured)
+                return False
+
+    app = SafeApplication(sys.argv)
+    app.setApplicationName("MULTIMODULTOOL2026")
+    app.setOrganizationName("provoware")
+    if stylesheet := load_stylesheet():
+        app.setStyleSheet(stylesheet)
+    window = build_window(
+        QtWidgets,
+        QtCore,
+        validation_text=validation_text,
+        path_text=path_text,
+        settings_text=settings_text,
+        paths=paths,
+        settings_result=settings_result,
+        event_center=event_center,
+    )
+
+    def display_event(event: ErrorEvent) -> None:
+        show_error_dialog(QtWidgets, event, window)
+
+    app.eventRaised.connect(display_event)
+    install_exception_hooks(event_center, on_event=lambda event: app.eventRaised.emit(event))
+    window.show()
+    if settings_result.recovered and event_center.latest is not None:
+        QtCore.QTimer.singleShot(0, lambda: display_event(event_center.latest))
+    return app.exec()
+
+
+def _blocking(event: ErrorEvent, code: int) -> int:
+    print(format_event_for_user(event), file=sys.stderr)
+    return code
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    if not is_supported_platform():
+        return _blocking(create_event(category="platform", severity="error", cause=platform_error_text(), consequence="Der Start wurde blockiert.", data_state="Es wurden keine Daten ver√§ndert.", solution="Unter Kubuntu 22.04/24.04 starten.", next_step="Unter Linux ./start.sh ausf√ºhren."), 4)
+
+    manifest = validate_manifest(MANIFEST_PATH, PROJECT_ROOT)
+    manifest_text = format_validation_result(manifest)
+    print(manifest_text)
+    if not manifest.is_valid:
+        return _blocking(event_from_messages(manifest.errors, category="manifest", cause_prefix="Der Projekt- und Layoutvertrag ist ung√ºltig.", consequence="Oberfl√§che und produktive Funktionen bleiben gesperrt.", data_state="Keine XDG- oder Nutzerdaten wurden ver√§ndert.", solution="Manifestfehler im Repository beheben.", next_step="python3 tools/validate_repository.py ausf√ºhren."), 2)
+
+    resolved = resolve_xdg_paths()
+    if not resolved.is_valid or resolved.paths is None:
+        return _blocking(event_from_messages(resolved.errors, category="xdg-resolution", cause_prefix="XDG-Pfade konnten nicht sicher berechnet werden.", consequence="Der Start wurde vor Schreibzugriff blockiert.", data_state="Programm- und Nutzerdaten bleiben unver√§ndert.", solution="XDG-Umgebungsvariablen korrigieren.", next_step="--paths-only erneut ausf√ºhren."), 5)
+
+    if args.paths_only:
+        result = validate_xdg_paths(resolved.paths, project_root=PROJECT_ROOT)
+        print(format_path_report(result, include_paths=True, prepared=False))
+        return 0 if result.is_valid else 5
+
+    if args.validate_only or args.settings_only:
+        paths_result = validate_xdg_paths(resolved.paths, project_root=PROJECT_ROOT)
+        print(format_path_report(paths_result, include_paths=False, prepared=False))
+        if not paths_result.is_valid:
+            return 5
+        settings_result = inspect_settings(resolved.paths.config)
+        print(format_settings_report(settings_result))
+        if settings_result.recovered:
+            print(format_event_for_user(event_from_settings_result(settings_result)))
+        return 0 if settings_result.is_valid else 6
+
+    path_result = ensure_xdg_paths(resolved.paths, project_root=PROJECT_ROOT)
+    path_text = format_path_report(path_result, include_paths=False, prepared=True)
+    print(path_text)
+    if not path_result.is_valid or path_result.paths is None:
+        return _blocking(event_from_messages(path_result.errors, category="xdg-prepare", cause_prefix="XDG-Verzeichnisse konnten nicht sicher vorbereitet werden.", consequence="Einstellungen und Oberfl√§che bleiben gesperrt.", data_state="Produktive Nutzerdaten blieben unver√§ndert.", solution="Rechte, Symlinks und Mountzustand pr√ºfen.", next_step="--validate-only erneut ausf√ºhren."), 5)
+
+    journal = EventJournal(path_result.paths.logs)
+    journal_errors = journal.validate()
+    if journal_errors:
+        return _blocking(event_from_messages(journal_errors, category="event-journal", cause_prefix="Das Ereignisjournal ist nicht sicher nutzbar.", consequence="Die Anwendung startet ohne verl√§ssliches Fehlerjournal nicht.", data_state="Einstellungen und Nutzerdaten wurden nicht ver√§ndert.", solution="Logpfad, Symlinks, Dateityp und Rechte 0600 korrigieren.", next_step="Logpfad pr√ºfen und ./start.sh erneut ausf√ºhren."), 7)
+    event_center = ErrorEventCenter(journal)
+
+    settings_result = load_or_recover_settings(path_result.paths.config)
+    settings_text = format_settings_report(settings_result)
+    print(settings_text)
+    if settings_result.recovered:
+        event_center.capture(event_from_settings_result(settings_result))
+    if not settings_result.is_valid:
+        return _blocking(event_center.capture(event_from_settings_result(settings_result)), 6)
+
+    return run_gui(manifest_text, path_text, settings_text, path_result.paths, settings_result, event_center)
+
+
+def cli_entrypoint(argv: list[str] | None = None) -> int:
+    """Letzte Schutzschicht f√ºr unerwartete Bootstrap-Ausnahmen."""
+    try:
+        return main(argv)
+    except KeyboardInterrupt:
+        return _blocking(create_event(category="user-interrupt", severity="warning", cause="Der Start wurde durch den Nutzer unterbrochen.", consequence="Der aktuelle Startschritt wurde beendet.", data_state="Bereits best√§tigte Dateien bleiben vollst√§ndig; keine weitere Aktion startete.", solution="Vor dem Neustart laufende Setup- oder Schreibvorg√§nge pr√ºfen.", next_step="Danach ./start.sh erneut ausf√ºhren."), 130)
+    except BaseException as exc:
+        return _blocking(event_from_exception(exc, category="bootstrap-exception", context="Eine unerwartete Ausnahme w√§hrend des Programmstarts wurde abgefangen.", data_state="Der Start wurde kontrolliert beendet; produktive Dateiaktionen waren gesperrt."), 70)
+
+
+if __name__ == "__main__":
+    raise SystemExit(cli_entrypoint())
