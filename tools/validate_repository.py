@@ -99,11 +99,14 @@ def check_manifest(errors: list[str]) -> None:
     release = manifest.get("releasePolicy", {})
     expected_release = {
         "packageFormat": "deb",
+        "packageName": "multimodultool2026",
         "architecture": "amd64",
-        "buildIdRequired": True,
-        "reproducibleFileManifestRequired": True,
-        "offlineWheelhouseRequired": True,
-        "safeInstallUpgradeRollbackUninstallRequired": True,
+        "buildIdPrefix": "MMTBUILD-",
+        "reproducibleBuildRequired": True,
+        "offlineFirstStartRequired": True,
+        "upgradeRequired": True,
+        "rollbackRequired": True,
+        "completeUninstallRequired": True,
         "kubuntuMatrix": ["22.04", "24.04"],
         "signatureDeferredTo": "P3-009",
     }
