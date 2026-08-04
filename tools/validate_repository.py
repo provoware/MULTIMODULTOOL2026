@@ -16,20 +16,56 @@ from src.manifest_validator import validate_manifest  # noqa: E402
 
 REQUIRED_FILES = (
     ".github/workflows/repository-contract.yml",
-    "AGENTS.md", "ANLEITUNG_TOOL.md", "CHANGELOG.md", "ENTWICKLERDOKU.md",
-    "README.md", "SCHWACHSTELLEN.md", "TODO.md", "UPGRADE_POOL.md",
+    "AGENTS.md",
+    "ANLEITUNG_TOOL.md",
+    "CHANGELOG.md",
+    "ENTWICKLERDOKU.md",
+    "README.md",
+    "SCHWACHSTELLEN.md",
+    "TODO.md",
+    "UPGRADE_POOL.md",
     "assets/ui-reference/multimodultool2026-ui-layout-reference-2026.webp",
-    "docs/GITHUB_ZUGRIFF.md", "docs/UI_BASISVORLAGE.md",
-    "layout-manifest.json", "requirements.txt", "setup.sh", "start.sh",
-    "src/__init__.py", "src/main.py", "src/manifest_validator.py", "src/theme.qss",
-    "standards/UI_LAYOUT_STANDARD_2026.md", "tests/__init__.py",
-    "tests/test_repository_contract.py", "tests/test_setup_assistant.py",
-    "tools/setup_assistant.py", "tools/validate_repository.py",
+    "docs/GITHUB_ZUGRIFF.md",
+    "docs/UI_BASISVORLAGE.md",
+    "docs/XDG_PFADVERTRAG.md",
+    "layout-manifest.json",
+    "requirements.txt",
+    "setup.sh",
+    "start.sh",
+    "src/__init__.py",
+    "src/main.py",
+    "src/manifest_validator.py",
+    "src/theme.qss",
+    "src/xdg_paths.py",
+    "standards/UI_LAYOUT_STANDARD_2026.md",
+    "tests/__init__.py",
+    "tests/test_repository_contract.py",
+    "tests/test_setup_assistant.py",
+    "tests/test_xdg_paths.py",
+    "tools/setup_assistant.py",
+    "tools/validate_repository.py",
 )
 
 MAINTAINED_DOCS = (
-    "CHANGELOG.md", "ANLEITUNG_TOOL.md", "TODO.md", "SCHWACHSTELLEN.md",
-    "UPGRADE_POOL.md", "ENTWICKLERDOKU.md", "docs/GITHUB_ZUGRIFF.md",
+    "CHANGELOG.md",
+    "ANLEITUNG_TOOL.md",
+    "TODO.md",
+    "SCHWACHSTELLEN.md",
+    "UPGRADE_POOL.md",
+    "ENTWICKLERDOKU.md",
+    "docs/GITHUB_ZUGRIFF.md",
+    "docs/XDG_PFADVERTRAG.md",
+)
+
+PYTHON_FILES = (
+    "src/main.py",
+    "src/manifest_validator.py",
+    "src/xdg_paths.py",
+    "tests/test_repository_contract.py",
+    "tests/test_setup_assistant.py",
+    "tests/test_xdg_paths.py",
+    "tools/setup_assistant.py",
+    "tools/validate_repository.py",
 )
 
 
@@ -63,7 +99,9 @@ def check_progress_consistency(errors: list[str]) -> None:
     total = completed + open_items
     expected = {
         "percent": round((completed / total) * 100) if total else 0,
-        "completed": completed, "open": open_items, "total": total,
+        "completed": completed,
+        "open": open_items,
+        "total": total,
     }
     patterns = {
         "percent": r"Entwicklungsfortschritt:\s*(\d+)\s*%",
@@ -76,7 +114,9 @@ def check_progress_consistency(errors: list[str]) -> None:
         if not match:
             errors.append(f"README-Fortschrittswert fehlt: {key}")
         elif int(match.group(1)) != expected[key]:
-            errors.append(f"README-{key} ist {match.group(1)}, aus TODO.md ergeben sich {expected[key]}.")
+            errors.append(
+                f"README-{key} ist {match.group(1)}, aus TODO.md ergeben sich {expected[key]}."
+            )
 
 
 def check_agents_policy(errors: list[str]) -> None:
@@ -84,11 +124,15 @@ def check_agents_policy(errors: list[str]) -> None:
     for document in MAINTAINED_DOCS:
         if document not in agents:
             errors.append(f"AGENTS.md nennt die Pflegepflicht für {document} nicht.")
-    for phrase in ("Entwicklungsfortschritt", "Erledigte Punkte", "Offene Punkte"):
+    for phrase in (
+        "Entwicklungsfortschritt",
+        "Erledigte Punkte",
+        "Offene Punkte",
+        "GitHub-Zugriffsvertrag",
+        "Verbindlicher XDG-Pfadvertrag",
+    ):
         if phrase not in agents:
-            errors.append(f"AGENTS.md enthält die Fortschrittspflicht {phrase!r} nicht.")
-    if "GitHub-Zugriffsvertrag" not in agents:
-        errors.append("AGENTS.md enthält keinen GitHub-Zugriffsvertrag.")
+            errors.append(f"AGENTS.md enthält Pflichtaussage nicht: {phrase!r}")
 
 
 def check_linux_scope(errors: list[str]) -> None:
@@ -97,8 +141,10 @@ def check_linux_scope(errors: list[str]) -> None:
     main_source = read_text("src/main.py", errors)
     start_source = read_text("start.sh", errors)
     for phrase in (
-        "ausschließlich für Linux-Desktop-Systeme", "Kubuntu 22.04 LTS",
-        "Kubuntu 24.04 LTS", "Windows, macOS, Android und iOS",
+        "ausschließlich für Linux-Desktop-Systeme",
+        "Kubuntu 22.04 LTS",
+        "Kubuntu 24.04 LTS",
+        "Windows, macOS, Android und iOS",
     ):
         if phrase not in readme:
             errors.append(f"README-Linuxvertrag fehlt: {phrase!r}")
@@ -129,7 +175,7 @@ def check_setup_contract(errors: list[str]) -> None:
     setup_source = read_text("tools/setup_assistant.py", errors)
     setup_shell = read_text("setup.sh", errors)
     start_source = read_text("start.sh", errors)
-    for phrase in ("--check-only", ".venv.setup-", "PySide6", "kde"):
+    for phrase in ("--check-only", ".venv.setup-", "PySide6", "KDE"):
         if phrase not in setup_source:
             errors.append(f"Einrichtungsassistent enthält Pflichtmerkmal nicht: {phrase}")
     if "shell=True" in setup_source:
@@ -138,6 +184,39 @@ def check_setup_contract(errors: list[str]) -> None:
         errors.append("start.sh ruft den Einrichtungsassistenten nicht auf.")
     if "set -Eeuo pipefail" not in setup_shell:
         errors.append("setup.sh verwendet keinen strikten Shell-Modus.")
+
+
+def check_xdg_contract(errors: list[str]) -> None:
+    source = read_text("src/xdg_paths.py", errors)
+    main_source = read_text("src/main.py", errors)
+    contract = read_text("docs/XDG_PFADVERTRAG.md", errors)
+    for phrase in (
+        "XDG_CONFIG_HOME",
+        "XDG_DATA_HOME",
+        "XDG_CACHE_HOME",
+        "XDG_STATE_HOME",
+        "DIRECTORY_MODE = 0o700",
+        "ensure_xdg_paths",
+        "_write_probe",
+    ):
+        if phrase not in source:
+            errors.append(f"XDG-Pfadschicht enthält Pflichtmerkmal nicht: {phrase}")
+    for phrase in ("ensure_xdg_paths", "validate_xdg_paths", "--paths-only"):
+        if phrase not in main_source:
+            errors.append(f"src/main.py bindet XDG-Pflichtmerkmal nicht ein: {phrase}")
+    for phrase in (
+        "Programmverzeichnis",
+        "Symlink",
+        "0700",
+        "--validate-only",
+        "Nachvalidierung",
+    ):
+        if phrase not in contract:
+            errors.append(f"XDG-Pfadvertrag fehlt Pflichtaussage: {phrase!r}")
+    if "PROJECT_ROOT / \"logs\"" in main_source:
+        errors.append("src/main.py enthält einen verbotenen Logpfad im Quellbaum.")
+    if "PROJECT_ROOT / \"data\"" in main_source:
+        errors.append("src/main.py enthält einen verbotenen Datenpfad im Quellbaum.")
 
 
 def check_github_access_contract(errors: list[str]) -> None:
@@ -150,17 +229,15 @@ def check_github_access_contract(errors: list[str]) -> None:
 
 
 def check_python_syntax(errors: list[str]) -> None:
-    for relative_path in (
-        "src/main.py", "src/manifest_validator.py", "tests/test_repository_contract.py",
-        "tests/test_setup_assistant.py", "tools/setup_assistant.py",
-        "tools/validate_repository.py",
-    ):
+    for relative_path in PYTHON_FILES:
         source = read_text(relative_path, errors)
         if source:
             try:
                 compile(source, relative_path, "exec")
             except SyntaxError as exc:
-                errors.append(f"Syntaxfehler in {relative_path}:{exc.lineno}: {exc.msg}")
+                errors.append(
+                    f"Syntaxfehler in {relative_path}:{exc.lineno}: {exc.msg}"
+                )
 
 
 def check_json(errors: list[str]) -> None:
@@ -181,12 +258,17 @@ def check_start_script(errors: list[str]) -> None:
 def main() -> int:
     errors: list[str] = []
     checks: Iterable[tuple[str, Callable[[list[str]], None]]] = (
-        ("Pflichtdateien", check_required_files), ("Linux-Plattformvertrag", check_linux_scope),
-        ("Manifest", check_manifest), ("Fortschritt", check_progress_consistency),
-        ("Dokumentationspflicht", check_agents_policy), ("TODO-Qualität", check_todo_quality),
+        ("Pflichtdateien", check_required_files),
+        ("Linux-Plattformvertrag", check_linux_scope),
+        ("Manifest", check_manifest),
+        ("Fortschritt", check_progress_consistency),
+        ("Dokumentationspflicht", check_agents_policy),
+        ("TODO-Qualität", check_todo_quality),
         ("Einrichtungsassistent", check_setup_contract),
+        ("XDG-Pfadvertrag", check_xdg_contract),
         ("GitHub-Zugriffsvertrag", check_github_access_contract),
-        ("Python-Syntax", check_python_syntax), ("JSON", check_json),
+        ("Python-Syntax", check_python_syntax),
+        ("JSON", check_json),
         ("Startroutine", check_start_script),
     )
     for name, check in checks:
