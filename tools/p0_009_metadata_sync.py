@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""One-shot deterministic metadata synchronization for P0-009."""
+"""Deterministic, idempotent metadata synchronization for P0-009."""
 
 from __future__ import annotations
 
@@ -8,46 +8,42 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def replace_once(path: Path, old: str, new: str) -> None:
+def replace_expected(path: Path, old: str, new: str, *, all_occurrences: bool = False) -> None:
     text = path.read_text(encoding="utf-8")
-    count = text.count(old)
-    if count != 1:
-        raise RuntimeError(f"{path}: expected one occurrence of {old!r}, found {count}")
-    path.write_text(text.replace(old, new, 1), encoding="utf-8")
-
-
-def replace_all_required(path: Path, old: str, new: str) -> None:
-    text = path.read_text(encoding="utf-8")
-    if old not in text:
-        raise RuntimeError(f"{path}: marker missing: {old!r}")
-    path.write_text(text.replace(old, new), encoding="utf-8")
+    if old in text:
+        updated = text.replace(old, new) if all_occurrences else text.replace(old, new, 1)
+        path.write_text(updated, encoding="utf-8")
+        return
+    if new in text:
+        return
+    raise RuntimeError(f"{path}: neither old nor synchronized marker exists: {old!r}")
 
 
 def update_main() -> None:
     path = ROOT / "src/main.py"
-    replace_once(path, "DEVELOPMENT_PROGRESS = 46", "DEVELOPMENT_PROGRESS = 47")
-    replace_once(path, "COMPLETED_POINTS = 31", "COMPLETED_POINTS = 32")
-    replace_once(path, "OPEN_POINTS = 37", "OPEN_POINTS = 36")
-    replace_all_required(path, "Entwicklungsstand: 46 %", "Entwicklungsstand: 47 %")
-    replace_all_required(path, "31 erledigt · 37 offen", "32 erledigt · 36 offen")
+    replace_expected(path, "DEVELOPMENT_PROGRESS = 46", "DEVELOPMENT_PROGRESS = 47")
+    replace_expected(path, "COMPLETED_POINTS = 31", "COMPLETED_POINTS = 32")
+    replace_expected(path, "OPEN_POINTS = 37", "OPEN_POINTS = 36")
+    replace_expected(path, "Entwicklungsstand: 46 %", "Entwicklungsstand: 47 %", all_occurrences=True)
+    replace_expected(path, "31 erledigt · 37 offen", "32 erledigt · 36 offen", all_occurrences=True)
 
 
 def update_todo() -> None:
     path = ROOT / "TODO.md"
-    replace_once(path, "- Erledigt: **31**", "- Erledigt: **32**")
-    replace_once(path, "- Offen: **37**", "- Offen: **36**")
-    replace_once(path, "- Rechnerischer Entwicklungsfortschritt: **46 %**", "- Rechnerischer Entwicklungsfortschritt: **47 %**")
+    replace_expected(path, "- Erledigt: **31**", "- Erledigt: **32**")
+    replace_expected(path, "- Offen: **37**", "- Offen: **36**")
+    replace_expected(path, "- Rechnerischer Entwicklungsfortschritt: **46 %**", "- Rechnerischer Entwicklungsfortschritt: **47 %**")
     old = "- [ ] **P0-009** – Installierbaren Linux-Releasekandidaten paketieren. Abhängigkeit: `P0-001,P0-004,P0-008` | Abnahme: Installation, Start und Deinstallation auf frischer Kubuntu-VM. | Risiko: **hoch**"
     new = "- [x] **P0-009** – Installierbaren Linux-Releasekandidaten paketieren. Abhängigkeit: `P0-001,P0-004,P0-008` | Abnahme: reproduzierbares amd64-DEB mit Build-ID und Dateimanifest; Offline-Erststart; Installation, Upgrade, Rollback, normale Entfernung und bestätigter vollständiger Purge in frischen containerisierten Kubuntu-22.04-/24.04-Userlands automatisiert geprüft. | Risiko: **hoch**"
-    replace_once(path, old, new)
+    replace_expected(path, old, new)
 
 
 def update_readme() -> None:
     path = ROOT / "README.md"
-    replace_once(path, "**Entwicklungsfortschritt: 46 %**", "**Entwicklungsfortschritt: 47 %**")
-    replace_once(path, "**Erledigte Punkte: 31**", "**Erledigte Punkte: 32**")
-    replace_once(path, "**Offene Punkte: 37**", "**Offene Punkte: 36**")
-    replace_once(
+    replace_expected(path, "**Entwicklungsfortschritt: 46 %**", "**Entwicklungsfortschritt: 47 %**")
+    replace_expected(path, "**Erledigte Punkte: 31**", "**Erledigte Punkte: 32**")
+    replace_expected(path, "**Offene Punkte: 37**", "**Offene Punkte: 36**")
+    replace_expected(
         path,
         "**Aktuelle Phase:** transaktionaler Abbruch, Checkpoints und idempotenter Wiederanlauf",
         "**Aktuelle Phase:** installierbarer Linux-Releasekandidat mit Upgrade und Rollback",
@@ -55,7 +51,7 @@ def update_readme() -> None:
     text = path.read_text(encoding="utf-8")
     marker = "## Installierbarer Linux-Releasekandidat"
     if marker not in text:
-        section = """
+        text += """
 
 ## Installierbarer Linux-Releasekandidat
 
@@ -77,7 +73,6 @@ python3 tools/build_deb_release.py \
   --output dist/release
 ```
 """
-        text += section
     doc_link = "- [`docs/LINUX_RELEASEVERTRAG.md`](docs/LINUX_RELEASEVERTRAG.md)"
     if doc_link not in text:
         text += "\n\n" + doc_link + "\n"
