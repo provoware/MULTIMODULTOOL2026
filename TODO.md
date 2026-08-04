@@ -12,10 +12,10 @@
 
 ## Fortschritt
 
-- Erledigt: **29**
-- Offen: **38**
-- Gesamt: **67**
-- Rechnerischer Entwicklungsfortschritt: **43 %**
+- Erledigt: **31**
+- Offen: **37**
+- Gesamt: **68**
+- Rechnerischer Entwicklungsfortschritt: **46 %**
 
 ## Erledigte Grundlagen
 
@@ -41,6 +41,7 @@
 - [x] **D-020** – Rein lesende Diagnosezentrale mit Schweregrad-/Kennungsfilter und Kopierfunktion integriert. Abhängigkeit: `P0-004` | Abnahme: kein Löschen, Upload oder Auto-Export; Journalbytes bleiben unverändert. | Risiko: **niedrig**
 - [x] **D-021** – Parallelstart-Stresstest mit 20 nahezu gleichzeitigen Zweitstarts ergänzt. Abhängigkeit: `P0-005` | Abnahme: genau eine Primärinstanz, jede Kennung höchstens einmal, keine Socket- oder Metadatenreste. | Risiko: **niedrig**
 - [x] **D-022** – Rein lesende Transaktionsübersicht für `prepared`, `trashed`, `restored` und `damaged` integriert. Abhängigkeit: `P0-006` | Abnahme: Filter und Anzeige verändern keine Manifeste; kein Restore, Reparieren, Löschen, Upload oder Auto-Export. | Risiko: **niedrig**
+- [x] **D-023** – Echte Linux-`SIGKILL`-Prozessabbruchmatrix für zehn Transaktionsphasen ergänzt. Abhängigkeit: `P0-007,P0-008` | Abnahme: jeder Neustart führt zu genau einer vollständigen Aktion; keine Doppeloperation, kein verlorener Journalabschluss und keine temporären Reste. | Risiko: **niedrig**
 
 ## P0 – Startfähigkeit, Datensicherheit und Releaseblocker
 
@@ -51,7 +52,7 @@
 - [x] **P0-005** – Sicherer Linux-Single-Instance-Schutz. Abhängigkeit: `P0-002,P0-004` | Abnahme: zweiter Start aktiviert die bestehende Instanz; nur erlaubte Nachrichten; Peer-UID-Prüfung; veraltete Sperren sicher wiederhergestellt; beschädigte Sperren unverändert blockiert. | Risiko: **hoch**
 - [x] **P0-006** – Atomaren, projektbezogenen Papierkorbvertrag implementieren. Abhängigkeit: `P0-002,P0-004` | Abnahme: Vorschau bleibt read-only; reguläre Dateien/Ordner werden nur per `os.replace` innerhalb desselben Dateisystems verschoben; Transaktionsmanifest und Restore sind geprüft; Symlink-, Hardlink-, Mount-, Speicher- und Konfliktzustände blockieren. | Risiko: **hoch**
 - [x] **P0-007** – Append-only Undo-/Redo-Journal mit eindeutigen Aktions- und Transaktions-IDs. Abhängigkeit: `P0-006` | Abnahme: private hashverkettete JSONL-Historie; Intent-/Abschlussereignisse; idempotentes konfliktgeprüftes Undo/Redo; zehn Aktionen vollständig rückwärts zurückgenommen und vorwärts erneut angewendet; Recovery nach unterbrochenem Apply und Undo. | Risiko: **hoch**
-- [ ] **P0-008** – Abbruch- und Wiederanlaufvertrag für lange Operationen. Abhängigkeit: `P0-003,P0-004` | Abnahme: Abbruch bleibt konsistent; Wiederaufnahme erzeugt keine Doppeloperation. | Risiko: **hoch**
+- [x] **P0-008** – Transaktionalen Abbruch- und Wiederanlaufvertrag für lange Operationen implementieren. Abhängigkeit: `P0-003,P0-004,P0-006,P0-007` | Abnahme: eindeutige Lauf-ID; unveränderlicher Plan; atomarer Checkpoint; private Laufdateien; kontrollierte Abbruchpunkte; Ressourcenfreigabe; idempotente Wiederaufnahme; zehnstufige echte `SIGKILL`-Matrix ohne Doppeloperation oder verlorenen Abschluss. | Risiko: **hoch**
 - [ ] **P0-009** – Installierbaren Linux-Releasekandidaten paketieren. Abhängigkeit: `P0-001,P0-004,P0-008` | Abnahme: Installation, Start und Deinstallation auf frischer Kubuntu-VM. | Risiko: **hoch**
 
 ## P1 – Laienoptimierter Kernworkflow
