@@ -1,67 +1,30 @@
 # XDG-Pfadvertrag – MULTIMODULTOOL2026
 
-## Zweck
+## Dauerhafte Bereiche
 
-Dieser Vertrag trennt ausführbaren Projektstand strikt von privaten Linux-Benutzerdaten. Konfiguration, Arbeitsdaten, Cache, Status, Logs oder Sicherungen dürfen nicht ungefragt in den Quellbaum geschrieben werden.
+- Konfiguration: `$XDG_CONFIG_HOME/multimodultool2026`
+- Daten: `$XDG_DATA_HOME/multimodultool2026`
+- Cache: `$XDG_CACHE_HOME/multimodultool2026`
+- Status: `$XDG_STATE_HOME/multimodultool2026`
+- Logs: `$XDG_STATE_HOME/multimodultool2026/logs`
+- Sicherungen: `$XDG_DATA_HOME/multimodultool2026/backups`
 
-## Verbindliche Speicherorte
+App-Verzeichnisse verwenden `0700`. Relative Pfade, Quellbaumziele, Symlinks, falsche Eigentümer, Doppelziele und unbeschreibbare Ziele blockieren den Start.
 
-| Bereich | XDG-Grundlage | Standardpfad |
-|---|---|---|
-| Konfiguration | `XDG_CONFIG_HOME` | `~/.config/multimodultool2026` |
-| Nutzerdaten | `XDG_DATA_HOME` | `~/.local/share/multimodultool2026` |
-| Cache | `XDG_CACHE_HOME` | `~/.cache/multimodultool2026` |
-| Status | `XDG_STATE_HOME` | `~/.local/state/multimodultool2026` |
-| Protokolle | Statuspfad | `~/.local/state/multimodultool2026/logs` |
-| Sicherungen | Datenpfad | `~/.local/share/multimodultool2026/backups` |
-
-## Vorvalidierung
-
-Vor jeder Anlage werden geprüft:
-
-1. gesetzte `XDG_*_HOME`-Werte sind absolute Pfade,
-2. jedes Ziel bleibt innerhalb seiner XDG-Grenze,
-3. kein Ziel liegt im Programmverzeichnis,
-4. Top-Level-Ziele sind nicht doppelt belegt,
-5. App-Pfade enthalten keine Symlinks,
-6. bestehende Ziele sind Verzeichnisse.
-
-Bei Fehlern wird der Start blockiert. Produktive Dateien bleiben unverändert.
-
-## Sichere Anlage
-
-- Verzeichnisse werden nach Pfadtiefe angelegt.
-- App-Verzeichnisse erhalten `0700`.
-- XDG-Basisverzeichnisse anderer Programme werden nicht umberechtigt.
-- keine Shell-Kommandos und kein `sudo`.
-
-## Nachvalidierung
-
-Nach Anlage werden Existenz, Symlinkfreiheit, Schreib-/Betretbarkeit, Grenzen und eine temporäre Schreibprobe mit `fsync` geprüft. Die Prüfdatei wird vollständig entfernt.
-
-## Ereignisjournal
-
-Das zentrale Journal liegt unter:
+## Flüchtiger Instanzbereich
 
 ```text
-~/.local/state/multimodultool2026/logs/events.jsonl
+$XDG_RUNTIME_DIR/multimodultool2026
 ```
 
-- reguläre Datei, kein Symlink
-- Rechte `0600`
-- JSONL-Format
-- `fsync` nach jedem Ereignis
-- unsicheres Journal blockiert den normalen Start
+Fehlt die Variable, darf nur `/run/user/<uid>` verwendet werden. Eine Ausweichlösung in `/tmp` ist verboten.
 
-## Betriebsarten
+Prüfungen:
 
-```bash
-python3 -m src.main --validate-only
-python3 -m src.main --paths-only
-```
+- absoluter vorhandener Verzeichnispfad
+- aktueller Linux-Nutzer als Eigentümer
+- keine Symlinks
+- Modus `0700`
+- beschreibbar und durchsuchbar
 
-Beide sind rein lesend. `--validate-only` darf keine XDG-Verzeichnisse anlegen.
-
-## Datenschutz
-
-Private vollständige Pfade werden in Nutzerberichten auf `~` reduziert. Keine privaten Dateiinhalte oder Geheimnisse in Logs oder portable Projektdateien übernehmen.
+Der App-Unterordner erhält `0700`; Socket und Metadaten `0600`. Laufzeitdaten werden beim kontrollierten Ende entfernt. Rein lesende Modi `--validate-only`, `--paths-only` und `--settings-only` erzeugen keine Laufzeit-, Socket- oder Metadatendateien.

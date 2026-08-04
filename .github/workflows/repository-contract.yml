@@ -11,7 +11,7 @@ jobs:
   validate:
     name: Validate Linux project contract
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     env:
       QT_QPA_PLATFORM: offscreen
       PYTHONFAULTHANDLER: "1"
@@ -31,14 +31,20 @@ jobs:
       - name: Linux-, Manifest-, XDG- und Einstellungsprüfung ausführen
         run: python3 -m src.main --validate-only
 
-      - name: Unit- und Ereignistests ohne GUI-Abhängigkeit ausführen
+      - name: Unit-, Ereignis- und Kernregressionstests ausführen
         run: python3 -m unittest discover -s tests -p "test_*.py" -v
 
-      - name: Failpoint-Matrix ausdrücklich ausführen
+      - name: Single-Instance-Vertrag ausdrücklich prüfen
+        run: python3 -m unittest tests.test_single_instance -v
+
+      - name: Read-only Diagnosevertrag ausdrücklich prüfen
+        run: python3 -m unittest tests.test_diagnostics_center -v
+
+      - name: Failpoint-Matrix ausdrücklich prüfen
         run: python3 -m unittest tests.test_settings_failpoints -v
 
       - name: PySide6 für Offscreen-Test installieren
         run: python3 -m pip install -r requirements.txt
 
-      - name: Offscreen-GUI- und Fehlerdialog-Test ausführen
+      - name: Offscreen-GUI-, Diagnose- und Fehlerdialog-Test ausführen
         run: python3 -m unittest tests.test_gui_offscreen -v

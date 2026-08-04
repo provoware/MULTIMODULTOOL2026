@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "schemaVersion": "1.1.0",
+  "schemaVersion": "1.2.0",
   "project": {
     "id": "multimodultool2026",
     "name": "MULTIMODULTOOL2026",
@@ -25,37 +25,11 @@
   "preservationPolicy": {
     "default": "preserve-base-layout",
     "explicitUserApprovalRequiredForStructuralDeviation": true,
-    "adaptable": [
-      "labels",
-      "icons",
-      "colors",
-      "module-content",
-      "tile-content",
-      "status-values",
-      "responsive-sizing",
-      "internal-component-grouping"
-    ],
-    "protected": [
-      "zone-order",
-      "left-primary-navigation",
-      "top-summary-area",
-      "primary-action-tiles",
-      "visible-workflow-progress",
-      "central-main-workspace",
-      "right-context-rail",
-      "bottom-action-status-area",
-      "final-security-status"
-    ]
+    "adaptable": ["labels", "icons", "colors", "module-content", "tile-content", "status-values", "responsive-sizing", "internal-component-grouping"],
+    "protected": ["zone-order", "left-primary-navigation", "top-summary-area", "primary-action-tiles", "visible-workflow-progress", "central-main-workspace", "right-context-rail", "bottom-action-status-area", "final-security-status"]
   },
   "errorEventPolicy": {
-    "requiredDialogFields": [
-      "cause",
-      "consequence",
-      "dataState",
-      "solution",
-      "diagnosticId",
-      "safeNextStep"
-    ],
+    "requiredDialogFields": ["cause", "consequence", "dataState", "solution", "diagnosticId", "safeNextStep"],
     "eventJournalPath": "XDG_STATE_HOME/multimodultool2026/logs/events.jsonl",
     "eventJournalMode": "0600",
     "privateDataMustBeRedacted": true,
@@ -63,30 +37,48 @@
     "fileOperationErrorsMustUseCentralContract": true,
     "journalRotationDeferredTo": "P3-003"
   },
+  "singleInstancePolicy": {
+    "linuxOnly": true,
+    "transport": "unix-domain-socket",
+    "runtimePath": "XDG_RUNTIME_DIR/multimodultool2026",
+    "runtimeDirectoryMode": "0700",
+    "socketMode": "0600",
+    "metadataMode": "0600",
+    "peerUidRequired": true,
+    "messageSchemaVersion": 1,
+    "maximumMessageBytes": 4096,
+    "allowedActions": ["activate", "show-diagnostics"],
+    "arbitraryArgumentsForbidden": true,
+    "filePathsForbidden": true,
+    "staleRemovalRequiresDeadProcessOrDifferentBoot": true,
+    "damagedLocksMustRemainUnchanged": true,
+    "readOnlyCliModesMayRunInParallel": true
+  },
+  "diagnosticsPolicy": {
+    "readOnly": true,
+    "filters": ["severity", "diagnostic-id"],
+    "copySanitizedSingleReport": true,
+    "deleteAllowed": false,
+    "uploadAllowed": false,
+    "automaticExportAllowed": false,
+    "maximumReadBytes": 2097152,
+    "maximumRecords": 500,
+    "invalidLinesMustRemainUnchanged": true
+  },
   "zones": [
     {"id": "Z01", "key": "app-header", "order": 1, "position": "top", "required": true, "role": "Project identity, global safety state and window-level actions"},
-    {"id": "Z02", "key": "primary-navigation", "order": 2, "position": "left", "required": true, "role": "Stable access to main modules and system functions"},
-    {"id": "Z03", "key": "summary-cards", "order": 3, "position": "top-center", "required": true, "role": "Sources, inventory, validation state and key metrics"},
+    {"id": "Z02", "key": "primary-navigation", "order": 2, "position": "left", "required": true, "role": "Stable access to main modules, diagnostics and system functions"},
+    {"id": "Z03", "key": "summary-cards", "order": 3, "position": "top-center", "required": true, "role": "Instance, settings, diagnostics and progress metrics"},
     {"id": "Z04", "key": "primary-action-tiles", "order": 4, "position": "upper-center", "required": true, "role": "Large guided entry points for the main workflows"},
     {"id": "Z05", "key": "workflow-progress", "order": 5, "position": "center-top", "required": true, "role": "Current step, completed steps, blockers and progress"},
-    {"id": "Z06", "key": "main-workspace", "order": 6, "position": "center", "required": true, "largestZone": true, "role": "Selection, configuration, preview, validation and results"},
-    {"id": "Z07", "key": "context-rail", "order": 7, "position": "right", "required": true, "role": "Contextual help, detail status, diagnostics and preview information"},
-    {"id": "Z08", "key": "action-status-bar", "order": 8, "position": "bottom-center", "required": true, "role": "Validation state, undo or rollback, primary and secondary actions"},
-    {"id": "Z09", "key": "final-security-status", "order": 9, "position": "bottom", "required": true, "role": "Privacy, storage, lock, change and final result state"}
+    {"id": "Z06", "key": "main-workspace", "order": 6, "position": "center", "required": true, "largestZone": true, "role": "Selection, diagnostics, configuration, preview, validation and results"},
+    {"id": "Z07", "key": "context-rail", "order": 7, "position": "right", "required": true, "role": "Contextual help, instance status, diagnostics and storage information"},
+    {"id": "Z08", "key": "action-status-bar", "order": 8, "position": "bottom-center", "required": true, "role": "Instance activation state, validation and safe actions"},
+    {"id": "Z09", "key": "final-security-status", "order": 9, "position": "bottom", "required": true, "role": "Privacy, runtime, storage, lock and final result state"}
   ],
   "responsiveRules": {
-    "linuxDesktop": {
-      "minimumViewport": {"width": 1024, "height": 680},
-      "maximumTestedScalePercent": 200,
-      "preserveThreeColumnShellWhenSpaceAllows": true,
-      "contextRailMayCollapseAtMinimumWidth": true,
-      "contextContentMustRemainReachable": true
-    },
-    "global": {
-      "noHiddenPrimaryActions": true,
-      "noClippedCriticalContent": true,
-      "avoidHorizontalScrollingForCoreTasks": true
-    }
+    "linuxDesktop": {"minimumViewport": {"width": 1024, "height": 680}, "maximumTestedScalePercent": 200, "preserveThreeColumnShellWhenSpaceAllows": true, "contextRailMayCollapseAtMinimumWidth": true, "contextContentMustRemainReachable": true},
+    "global": {"noHiddenPrimaryActions": true, "noClippedCriticalContent": true, "avoidHorizontalScrollingForCoreTasks": true}
   },
   "interactionRules": {
     "preferGuidedSelectionOverFreeText": true,
@@ -106,20 +98,6 @@
   "validation": {
     "requiredZoneCount": 9,
     "requiredZoneOrder": ["Z01", "Z02", "Z03", "Z04", "Z05", "Z06", "Z07", "Z08", "Z09"],
-    "documentation": [
-      "README.md",
-      "docs/UI_BASISVORLAGE.md",
-      "standards/UI_LAYOUT_STANDARD_2026.md",
-      "AGENTS.md",
-      "ANLEITUNG_TOOL.md",
-      "CHANGELOG.md",
-      "TODO.md",
-      "SCHWACHSTELLEN.md",
-      "UPGRADE_POOL.md",
-      "ENTWICKLERDOKU.md",
-      "docs/XDG_PFADVERTRAG.md",
-      "docs/EINSTELLUNGSVERTRAG.md",
-      "docs/FEHLER_UND_EREIGNISVERTRAG.md"
-    ]
+    "documentation": ["README.md", "docs/UI_BASISVORLAGE.md", "standards/UI_LAYOUT_STANDARD_2026.md", "AGENTS.md", "ANLEITUNG_TOOL.md", "CHANGELOG.md", "TODO.md", "SCHWACHSTELLEN.md", "UPGRADE_POOL.md", "ENTWICKLERDOKU.md", "docs/XDG_PFADVERTRAG.md", "docs/EINSTELLUNGSVERTRAG.md", "docs/FEHLER_UND_EREIGNISVERTRAG.md", "docs/SINGLE_INSTANCE_UND_DIAGNOSEVERTRAG.md"]
   }
 }
