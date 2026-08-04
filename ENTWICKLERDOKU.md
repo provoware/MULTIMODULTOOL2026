@@ -10,54 +10,76 @@ src/main.py
 ├── error_events.py
 ├── error_dialog.py
 ├── single_instance.py
-└── diagnostics_center.py
+├── diagnostics_center.py
+├── project_trash.py
+└── trash_contract_panel.py
 ```
 
-## Single-Instance-Lebenszyklus
+## Projektpapierkorb-API
 
-1. Plattform, Manifest und XDG-Pfade prüfen.
-2. Ereignisjournal sicher öffnen.
-3. XDG-Laufzeitwurzel aus `XDG_RUNTIME_DIR` oder `/run/user/<uid>` bestimmen.
-4. App-Laufzeitverzeichnis mit `0700` prüfen oder anlegen.
-5. Vorhandenen Socket kontaktieren.
-6. Bei erfolgreicher Übergabe als sekundäre Instanz mit Exitcode 0 enden.
-7. Bei nicht erreichbarem Socket Metadaten, Boot-ID und Prozesszustand prüfen.
-8. Nur eindeutig veraltete Sperre entfernen; beschädigte Sperre blockieren.
-9. Primären Socket binden, auf `0600` setzen und Metadaten atomar schreiben.
-10. Serverthread starten; Qt-Hauptthread liest Nachrichten über Queue und QTimer.
-11. Beim Beenden nur eigene Socket- und Metadatendateien entfernen.
+### Vorschau
 
-## Nachrichtenvertrag
-
-```json
-{"schemaVersion":1,"action":"activate"}
+```python
+preview = preview_trash_move(project_root, source_path)
 ```
 
-oder:
+Die Funktion ist rein lesend. Sie prüft Projektgrenze, Quelltyp, Symlinks, Hardlinks, Mountstatus, Schreibrechte, freien Speicher und Transaktionskonflikte. Der Quellfingerabdruck besteht aus Dateisystemgerät, Inode, Modus, Größe, Nanosekunden-Mtime und Typ.
 
-```json
-{"schemaVersion":1,"action":"show-diagnostics","diagnosticId":"MMT-XDG-20260804-ABCD1234"}
+### Ausführung
+
+```python
+result = execute_trash_move(preview)
 ```
 
-Unbekannte Felder, Aktionen, Diagnoseformate, Pfade und freie Argumente werden verworfen. Nachrichten sind auf 4096 Bytes begrenzt. Der Server akzeptiert nur die Peer-UID des aktuellen Nutzers.
+Ablauf:
 
-## Wayland
+1. Vorschau gegen den aktuellen Quellfingerabdruck nachvalidieren.
+2. private Projektpfade mit `0700` anlegen.
+3. Manifest `prepared` atomar mit `0600` schreiben und `fsync` ausführen.
+4. Quelle mit `os.replace` nach `payload` verschieben.
+5. Quell- und Transaktionsverzeichnis mit `fsync` bestätigen.
+6. Manifest atomar auf `trashed` setzen.
 
-`showNormal()`, `raise_()`, `activateWindow()` und `QWindow.requestActivate()` werden kombiniert. Wayland-Compositoren können Fokusdiebstahl begrenzen; das Fenster wird dennoch sichtbar gemacht und die interne Diagnose fokussiert. Physische KDE-Wayland-Abnahme bleibt erforderlich.
+Es existiert kein Copy-delete-Zweig.
 
-## Diagnosezentrale
+### Wiederherstellung
 
-`read_diagnostics()` öffnet mit `O_RDONLY`, `O_CLOEXEC` und `O_NOFOLLOW`, prüft Dateityp, Eigentümer, Hardlinkzahl und `0600`, liest höchstens 2 MiB und 500 gültige Datensätze und verändert das Journal nicht.
+```python
+result = restore_transaction(project_root, transaction_id)
+```
 
-`DiagnosticsController` besitzt nur Filter, Liste, read-only Detailfeld und Kopierknopf. Methoden für Löschen, Upload oder Export existieren nicht.
+Vor dem atomaren Restore werden Manifest, ID, Pfadgrenzen, Payloadtyp, Fingerabdruck, Dateisystem, Elternordner und Zielkonflikt geprüft. `prepared` mit vorhandenem vollständigem Payload ist ein kontrollierter Recovery-Zustand.
 
-## Fehlerintegration
+### Fehler
 
-Instanzprobleme werden als `single-instance` oder `single-instance-runtime` über `ErrorEventCenter` erfasst. Sichere Stale-Recovery erzeugt `single-instance-recovery`. Alle Ereignisse besitzen die sechs Pflichtfelder.
+Alle Blockaden erzeugen `SafeOperationError(category="project-trash")`. Dadurch werden Ursache, Folge, Datenstand, Lösung, Diagnosekennung und sicherer nächster Schritt zentral dargestellt und protokolliert.
 
-## Tests
+## Single-Instance-Stresstest
 
-- `tests/test_single_instance.py`: Nachrichtengrenzen, Zweitstart, Cleanup, stale und beschädigte Sperren
-- `tests/test_diagnostics_center.py`: read-only Zugriff, Rechte, Symlink, ungültige Zeilen, Filter und Grenzen
-- `tests/test_gui_offscreen.py`: neun Zonen, Diagnosewidgets, verbotene Aktionen und Fehlerdialog
-- bestehende Einstellungs-, XDG-, Fehler- und Failpoint-Tests bleiben verpflichtend
+`tests/test_single_instance_stress.py` startet eine Primärinstanz und 20 per Barrier nahezu gleichzeitig freigegebene Zweitinstanzen. Jede sendet eine eindeutige Diagnosekennung. Abnahme:
+
+- alle Zweitstarts erhalten die Sekundärrolle,
+- exakt 20 eindeutige Nachrichten kommen an,
+- jede Kennung erscheint genau einmal,
+- nach `close()` fehlen Socket und Metadaten,
+- das private App-Laufzeitverzeichnis ist leer.
+
+## GUI-Vertrag
+
+`src/trash_contract_panel.py` ist ein eigenständiges read-only Qt-Panel ohne PySide6-Import zur Modulzeit. Es besitzt keine Aktion zum Leeren oder dauerhaften Löschen. Die produktive Integration in den geführten Projektworkflow folgt erst nach sicherer Projekt- und Ordnerauswahl.
+
+## Prüfkommandos
+
+```bash
+python3 tools/validate_repository.py
+python3 -m unittest tests.test_project_trash -v
+python3 -m unittest tests.test_single_instance_stress -v
+QT_QPA_PLATFORM=offscreen python3 -m unittest tests.test_gui_trash_contract -v
+```
+
+## Bekannte Architekturgrenzen
+
+- eingebettete fremde Mounts innerhalb eines als Ganzes verschobenen Verzeichnisses werden noch nicht rekursiv analysiert,
+- gemeinschaftliche Projekte mit fremdem Eigentümer oder komplexen ACLs werden blockiert,
+- produktive GUI-Ausführung bleibt bis P1-001/P1-003 gesperrt,
+- transaktionsübergreifendes Undo/Redo folgt mit P0-007.
