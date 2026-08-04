@@ -2,7 +2,7 @@
 
 ## Ziel
 
-Der Releasekandidat wird als installierbares Debian-Paket für Kubuntu 22.04 und 24.04 auf x86-64 bereitgestellt. Installation, erster Start, Upgrade, Rollback, normale Entfernung und ausdrücklich bestätigte vollständige Entfernung müssen automatisiert und ohne versteckte Cloud-Abhängigkeit geprüft werden.
+Der Releasekandidat wird als installierbares Debian-Paket für Kubuntu 22.04 und Kubuntu 24.04 auf x86-64 bereitgestellt. Installation, erster Start, Upgrade, Rollback, normale Entfernung und ausdrücklich bestätigte vollständige Entfernung müssen automatisiert und ohne versteckte Cloud-Abhängigkeit geprüft werden.
 
 ## Paketformat und Systempfade
 
@@ -21,7 +21,7 @@ Der Releasekandidat wird als installierbares Debian-Paket für Kubuntu 22.04 und
 
 - Paketname: `multimodultool2026`
 - Architektur: `amd64`
-- Zielsysteme: Kubuntu 22.04 und 24.04
+- Zielsysteme: Kubuntu 22.04 und Kubuntu 24.04
 - Python: mindestens 3.10
 - GUI-Runtime: lokal gebündelte, SHA-256-geprüfte PySide6-Wheels
 - Netzwerkzugriff beim ersten Start: nicht erforderlich
