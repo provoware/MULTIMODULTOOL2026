@@ -1,0 +1,117 @@
+name: Linux Release Candidate
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-release:
+    name: Reproducible amd64 Debian package
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      SOURCE_DATE_EPOCH: "1700000000"
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Buildwerkzeuge prüfen
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends dpkg-dev xz-utils
+          python3 -m pip install --upgrade pip
+
+      - name: Reproduzierbare Offline-Wheels laden
+        run: |
+          mkdir -p dist/wheelhouse
+          python3 -m pip download \
+            --only-binary=:all: \
+            --dest dist/wheelhouse \
+            --requirement release/requirements-release.txt
+          ls -lh dist/wheelhouse
+
+      - name: Builder- und Vertragsregressionen ausführen
+        run: |
+          python3 -m unittest tests.test_release_builder -v
+          python3 tools/validate_repository.py
+
+      - name: Baseline und Releasekandidat bauen
+        run: |
+          python3 tools/build_deb_release.py \
+            --version '0.8.0~rc1' \
+            --wheelhouse dist/wheelhouse \
+            --output dist/baseline-a
+          python3 tools/build_deb_release.py \
+            --version '0.9.0~rc1' \
+            --wheelhouse dist/wheelhouse \
+            --output dist/candidate-a
+          python3 tools/build_deb_release.py \
+            --version '0.9.0~rc1' \
+            --wheelhouse dist/wheelhouse \
+            --output dist/candidate-b
+
+      - name: Byteidentische Reproduzierbarkeit beweisen
+        run: |
+          cmp dist/candidate-a/multimodultool2026_0.9.0~rc1_amd64.deb \
+              dist/candidate-b/multimodultool2026_0.9.0~rc1_amd64.deb
+          cmp dist/candidate-a/multimodultool2026-0.9.0~rc1-amd64.tar.gz \
+              dist/candidate-b/multimodultool2026-0.9.0~rc1-amd64.tar.gz
+          sha256sum dist/candidate-a/*.deb dist/candidate-a/*.tar.gz
+
+      - name: Lebenszyklusartefakte zusammenstellen
+        run: |
+          mkdir -p dist/release-artifacts
+          cp dist/baseline-a/multimodultool2026_0.8.0~rc1_amd64.deb* dist/release-artifacts/
+          cp dist/candidate-a/multimodultool2026_0.9.0~rc1_amd64.deb* dist/release-artifacts/
+          cp dist/candidate-a/multimodultool2026-0.9.0~rc1-amd64.tar.gz dist/release-artifacts/
+          cp dist/candidate-a/BUILD_RESULT.json dist/release-artifacts/CANDIDATE_BUILD_RESULT.json
+          cp release/release-manager.sh dist/release-artifacts/release-manager.sh
+          chmod 0755 dist/release-artifacts/release-manager.sh
+
+      - name: Releaseartefakte hochladen
+        uses: actions/upload-artifact@v4
+        with:
+          name: multimodultool2026-linux-rc-amd64
+          path: dist/release-artifacts
+          if-no-files-found: error
+          retention-days: 14
+
+  kubuntu-lifecycle:
+    name: Kubuntu ${{ matrix.series }} install upgrade rollback uninstall
+    needs: build-release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 80
+    strategy:
+      fail-fast: false
+      matrix:
+        series: ["22.04", "24.04"]
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+
+      - name: Releaseartefakte laden
+        uses: actions/download-artifact@v4
+        with:
+          name: multimodultool2026-linux-rc-amd64
+          path: dist/release-artifacts
+
+      - name: Frische Kubuntu-Lebenszyklusmatrix ausführen
+        run: |
+          chmod 0755 tests/helpers/kubuntu_release_lifecycle.sh
+          tests/helpers/kubuntu_release_lifecycle.sh '${{ matrix.series }}' dist/release-artifacts
+
+      - name: Kubuntu-Abnahmebericht hochladen
+        uses: actions/upload-artifact@v4
+        with:
+          name: kubuntu-${{ matrix.series }}-release-report
+          path: dist/release-artifacts/lifecycle-reports/kubuntu-${{ matrix.series }}.json
+          if-no-files-found: error
+          retention-days: 14

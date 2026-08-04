@@ -167,3 +167,11 @@ QT_QPA_PLATFORM=offscreen python3 -m unittest tests.test_gui_trash_contract -v
 - keine Schema-Migration für alte Laufcheckpoints,
 - `SIGKILL` bildet keinen echten Stromverlust mit Hardwarecache ab,
 - produktive GUI-Ausführung bleibt bis P1-001/P1-003 gesperrt.
+
+## Releasearchitektur P0-009
+
+`tools/build_deb_release.py` expandiert die Allowlist, prüft das Wheelhouse, bildet das kanonische Source-Manifest und erzeugt `MMTBUILD-<Version>-<Hash>`. Der Stagingbaum wird auf feste Rechte, Eigentümer und `SOURCE_DATE_EPOCH` normalisiert und über `dpkg-deb --root-owner-group` gebaut.
+
+Der Starter prüft `FILE_MANIFEST.sha256`, erzeugt unter `$XDG_DATA_HOME/multimodultool2026/runtime/` einen privaten venv-Slot je Build-ID und installiert nur aus dem lokalen Wheelhouse. `release-manager.sh` archiviert verifizierte Pakete unter `/var/lib/multimodultool2026`, dokumentiert aktuellen und vorherigen Stand atomar und verwendet für Rollback ausschließlich das erneut geprüfte lokale Archiv.
+
+Die Workflowdatei `.github/workflows/release-candidate.yml` beweist byteidentische Builds und den vollständigen Paketlebenszyklus in zwei Kubuntu-Userland-Matrizen.

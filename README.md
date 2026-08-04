@@ -1,10 +1,10 @@
 # MULTIMODULTOOL2026
 
-> **Entwicklungsfortschritt: 46 %**  
-> **Erledigte Punkte: 31**  
-> **Offene Punkte: 37**  
+> **Entwicklungsfortschritt: 47 %**  
+> **Erledigte Punkte: 32**  
+> **Offene Punkte: 36**  
 > **Gesamtpunkte: 68**  
-> **Aktuelle Phase:** transaktionaler Abbruch, Checkpoints und idempotenter Wiederanlauf  
+> **Aktuelle Phase:** installierbarer Linux-Releasekandidat mit Upgrade und Rollback  
 > **Letzte Fortschrittsprüfung:** 2026-08-04
 
 > **Plattformvertrag:** Ausschließlich Linux-Desktop. Primäre Zielsysteme sind Kubuntu 22.04 LTS und Kubuntu 24.04 LTS unter KDE Plasma, X11 oder Wayland auf x86-64.
@@ -133,3 +133,23 @@ QT_QPA_PLATFORM=offscreen python3 -m unittest tests.test_gui_trash_contract -v
 - [`docs/PAPIERKORBVERTRAG.md`](docs/PAPIERKORBVERTRAG.md)
 - [`docs/UNDO_REDO_UND_TRANSAKTIONSVERTRAG.md`](docs/UNDO_REDO_UND_TRANSAKTIONSVERTRAG.md)
 - [`docs/ABBRUCH_UND_WIEDERANLAUFVERTRAG.md`](docs/ABBRUCH_UND_WIEDERANLAUFVERTRAG.md)
+
+## Installierbarer Linux-Releasekandidat
+
+P0-009 erzeugt ein reproduzierbares Debian-Paket für Kubuntu 22.04 und 24.04 auf x86-64. Der Releasekandidat enthält:
+
+- eindeutige `MMTBUILD-`-Build-ID,
+- sortiertes Source- und installiertes SHA-256-Dateimanifest,
+- lokal gebündelte PySide6-Wheels für den netzlosen Erststart,
+- geprüfte Installation und Aktualisierung,
+- lokales Rollback auf den vorherigen verifizierten Paketstand,
+- normale Entfernung mit Erhalt der Nutzerdaten,
+- ausdrücklich bestätigten Purge von Systemzustand und den XDG-Daten des ausgewählten Nutzers.
+
+Die Release-CI baut denselben Kandidaten zweimal byteidentisch und führt den vollständigen Lebenszyklus in frischen containerisierten Kubuntu-22.04- und Kubuntu-24.04-Userlands aus. Eine kryptografische Release-Signatur folgt separat mit `P3-009`.
+
+```bash
+python3 tools/build_deb_release.py   --wheelhouse dist/wheelhouse   --output dist/release
+```
+
+- [`docs/LINUX_RELEASEVERTRAG.md`](docs/LINUX_RELEASEVERTRAG.md)

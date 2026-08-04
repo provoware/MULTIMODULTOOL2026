@@ -34,3 +34,13 @@ Abbruch und Prozessende können keine bereits ausgeführte Dateioperation erneut
 - zehnfacher Undo-/Redo-Rundlauf
 - rein lesende Transaktionsübersicht
 - Fortschritt: 29 erledigt, 38 offen, 67 gesamt, 43 Prozent
+
+## 2026-08-04 – P0-009
+
+- reproduzierbarer amd64-DEB-Builder mit Build-ID und expliziter Runtime-Dateiliste
+- Offline-Wheelhouse für PySide6 und privater Runtime-Slot je Build-ID
+- geprüfter Release-Manager für Installation, Upgrade, lokales Rollback und Deinstallation
+- normale Entfernung mit Erhalt der Nutzerdaten sowie ausdrücklich bestätigter vollständiger Purge
+- byteidentischer Doppelbuild des Releasekandidaten
+- automatisierte Lebenszyklusmatrix in Kubuntu-22.04-/24.04-Userlands
+- Manifest auf Schema 1.5.0 und Fortschritt auf 32 erledigt, 36 offen, 68 gesamt, 47 Prozent aktualisiert

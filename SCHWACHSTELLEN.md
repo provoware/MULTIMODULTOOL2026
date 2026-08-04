@@ -30,3 +30,11 @@
 - kein Checkpointschreiben durch den externen Abbruchanforderer
 - kein Abbruch mitten zwischen Dateioperation und Konsistenzabschlüssen
 - kein Diagnoseupload oder automatischer Export
+
+## P0-009 – bekannte Releasegrenzen
+
+- Die Kubuntu-Abnahme läuft containerisiert; gebootete KDE-/SDDM-, X11- und Wayland-VMs bleiben offen.
+- SHA-256-Sidecars erkennen Veränderung, ersetzen aber keine kryptografische Herausgebersignatur; `P3-009` bleibt Releaseblocker für Stable.
+- `SIGKILL`- und Dateisystemtests beweisen keinen Schutz vor defektem Hardware-Schreibcache oder physischem Stromverlust.
+- Der Releasekandidat ist ausschließlich für x86-64 gebaut; ARM64 ist nicht freigegeben.
+- Der vollständige Nutzerdaten-Purge ist absichtlich auf einen ausdrücklich bestimmten Nicht-root-Nutzer und bekannte XDG-Pfade begrenzt.

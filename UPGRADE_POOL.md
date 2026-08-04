@@ -15,3 +15,11 @@ Optionale Linux-Erweiterungen nach stabilem Kern:
 | Diagnose-Paginierung bei rotierten Journalen | bessere Langzeitsuche | niedrig | zusammen mit `P3-003` |
 
 Pflichtaufgaben zu Release, Projektworkflow, Loggingrotation, Migration und Qualitätsgrenzen bleiben ausschließlich in `TODO.md`.
+
+## Release-Erweiterungen nach P0-009
+
+- signierte Release-Manifeste und Schlüsselrotation zusammen mit `P3-009`
+- echte Kubuntu-VM-Matrix mit SDDM, KDE Plasma, X11 und Wayland
+- delta-basierte Updates erst nach signierter Build-ID- und Dateimanifestprüfung
+- optionaler read-only Release-Statusdialog mit Build-ID, Paketversion und Runtime-Slot
+- langfristige Bereinigung nicht mehr benötigter Nutzer-Runtime-Slots nur nach Vorschau
