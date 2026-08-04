@@ -1,144 +1,63 @@
 # ENTWICKLERDOKU
 
-## 1. Technischer Stand
-
-- ausschließlich Linux-Desktop
-- Kubuntu 22.04/24.04, KDE Plasma, X11/Wayland, x86-64
-- Python 3.10+
-- PySide6 / Qt Widgets
-- Start: `./start.sh`
-- Einrichtung: `./setup.sh`
-- Fortschritt: 36 Prozent, 23 erledigt, 41 offen
-
-## 2. Startfluss
+## Architekturstand
 
 ```text
-start.sh
-  ├─ Linux/Python/.venv/PySide6 prüfen
-  ├─ bei Bedarf setup.sh
-  └─ python -m src.main
-       ├─ Plattform und Manifest rein lesend prüfen
-       ├─ XDG-Pfade berechnen und sicher anlegen
-       ├─ EventJournal im XDG-Logpfad validieren
-       ├─ Einstellungen laden oder wiederherstellen
-       ├─ Recovery-Ereignis zentral protokollieren
-       ├─ SafeApplication + Exception-Hooks installieren
-       └─ Qt-Oberfläche mit Z01–Z09 starten
+src/main.py
+├── manifest_validator.py
+├── xdg_paths.py
+├── settings_manager.py
+├── error_events.py
+├── error_dialog.py
+├── single_instance.py
+└── diagnostics_center.py
 ```
 
-## 3. Fehler- und Ereignisarchitektur
+## Single-Instance-Lebenszyklus
 
-### `src/error_events.py`
+1. Plattform, Manifest und XDG-Pfade prüfen.
+2. Ereignisjournal sicher öffnen.
+3. XDG-Laufzeitwurzel aus `XDG_RUNTIME_DIR` oder `/run/user/<uid>` bestimmen.
+4. App-Laufzeitverzeichnis mit `0700` prüfen oder anlegen.
+5. Vorhandenen Socket kontaktieren.
+6. Bei erfolgreicher Übergabe als sekundäre Instanz mit Exitcode 0 enden.
+7. Bei nicht erreichbarem Socket Metadaten, Boot-ID und Prozesszustand prüfen.
+8. Nur eindeutig veraltete Sperre entfernen; beschädigte Sperre blockieren.
+9. Primären Socket binden, auf `0600` setzen und Metadaten atomar schreiben.
+10. Serverthread starten; Qt-Hauptthread liest Nachrichten über Queue und QTimer.
+11. Beim Beenden nur eigene Socket- und Metadatendateien entfernen.
 
-- `ErrorEvent`: unveränderlicher Nutzer- und Logvertrag
-- `create_event()`: erzwingt alle Pflichtfelder
-- `event_from_exception()`: übersetzt beliebige Ausnahmen
-- `event_from_messages()`: übersetzt Listen aus Validatoren
-- `event_from_settings_result()`: übersetzt Recovery/Blockade
-- `SafeOperationError`: verbindliche spätere Dateioperationsfehler
-- `EventJournal`: private JSONL-Datei mit `0600` und `fsync`
-- `ErrorEventCenter`: zentraler In-Memory-/Journal-Verteiler
-- `install_exception_hooks()`: Hauptthread und Worker-Threads
+## Nachrichtenvertrag
 
-### `src/error_dialog.py`
-
-Der Qt-Dialog bleibt vom Kernmodul getrennt. `error_events.py` importiert PySide6 nicht und bleibt in CI/Diagnose ohne GUI-Abhängigkeit testbar.
-
-Objektkennungen:
-
-- `errorCause`
-- `errorConsequence`
-- `errorDataState`
-- `errorSolution`
-- `errorDiagnosticId`
-- `errorNextStep`
-
-### `src/main.py`
-
-- `cli_entrypoint()` fängt unerwartete Bootstrap-Ausnahmen ab.
-- `SafeApplication.notify()` fängt Qt-Ereignisausnahmen ab.
-- ein Qt-Signal transportiert Worker-/Hook-Ereignisse sicher in den GUI-Thread.
-- Manifest-, XDG- und Settings-Fehler verwenden denselben Vertrag.
-
-## 4. Datenschutz
-
-`sanitize_text()`:
-
-- ersetzt Benutzerverzeichnis durch `~`,
-- entfernt typische GitHub-Token, Bearer-, Passwort-, Secret- und API-Key-Muster,
-- entfernt Steuerzeichen,
-- begrenzt Länge technischer Details.
-
-Das Journal enthält keine privaten Dateiinhalte. Eine vollständige Logrotation folgt erst mit `P3-003`.
-
-## 5. Einstellungs-Failpoints
-
-`write_settings(..., failpoint=...)` akzeptiert optional einen Test-Hook. Ohne Hook bleibt das Produktionsverhalten unverändert.
-
-Deklarierte Punkte:
-
-```text
-before_temp_write
-after_temp_write
-before_fsync
-after_fsync
-before_backup
-after_backup
-before_replace
-after_replace
-before_postvalidate
-after_postvalidate
+```json
+{"schemaVersion":1,"action":"activate"}
 ```
 
-`FailpointController` löst genau am gewählten Punkt `InjectedFailpoint` aus. Der Transaktionscode entfernt temporäre Dateien und liefert ein blockiertes, diagnostizierbares Ergebnis.
+oder:
 
-## 6. Zustandsinvariante
-
-Nach jedem simulierten Ausfall gilt:
-
-```text
-aktive Einstellungen ∈ {vollständige alte Version, vollständige neue Version}
+```json
+{"schemaVersion":1,"action":"show-diagnostics","diagnosticId":"MMT-XDG-20260804-ABCD1234"}
 ```
 
-Zusätzlich:
+Unbekannte Felder, Aktionen, Diagnoseformate, Pfade und freie Argumente werden verworfen. Nachrichten sind auf 4096 Bytes begrenzt. Der Server akzeptiert nur die Peer-UID des aktuellen Nutzers.
 
-- jede vorhandene Sicherung ist JSON- und schema-gültig,
-- keine temporäre Datei bleibt zurück,
-- keine Teilkonfiguration wird akzeptiert.
+## Wayland
 
-## 7. Wichtige Dateien
+`showNormal()`, `raise_()`, `activateWindow()` und `QWindow.requestActivate()` werden kombiniert. Wayland-Compositoren können Fokusdiebstahl begrenzen; das Fenster wird dennoch sichtbar gemacht und die interne Diagnose fokussiert. Physische KDE-Wayland-Abnahme bleibt erforderlich.
 
-| Datei | Verantwortung |
-|---|---|
-| `src/error_events.py` | zentrales Ereignismodell, Filter, Hooks, Journal |
-| `src/error_dialog.py` | globaler Qt-Fehlerdialog |
-| `src/main.py` | Bootstrap-, XDG-, Settings- und Qt-Integration |
-| `src/settings_manager.py` | atomare Einstellungen und Failpoints |
-| `tests/test_error_events.py` | Ereignis-, Journal-, Filter- und Hooktests |
-| `tests/test_settings_failpoints.py` | zehnstufige Ausfallmatrix |
-| `tests/test_gui_offscreen.py` | Zonen-, Scroll-, Sperr- und Dialogprüfung |
-| `docs/FEHLER_UND_EREIGNISVERTRAG.md` | verbindlicher Nutzer-/Sicherheitsvertrag |
+## Diagnosezentrale
 
-## 8. Lokale Prüfungen
+`read_diagnostics()` öffnet mit `O_RDONLY`, `O_CLOEXEC` und `O_NOFOLLOW`, prüft Dateityp, Eigentümer, Hardlinkzahl und `0600`, liest höchstens 2 MiB und 500 gültige Datensätze und verändert das Journal nicht.
 
-```bash
-python3 -m py_compile src/*.py tests/*.py tools/*.py
-python3 -m src.main --validate-only
-python3 tools/validate_repository.py
-python3 -m unittest discover -s tests -v
-python3 -m unittest tests.test_settings_failpoints -v
-QT_QPA_PLATFORM=offscreen python3 -m unittest tests.test_gui_offscreen -v
-```
+`DiagnosticsController` besitzt nur Filter, Liste, read-only Detailfeld und Kopierknopf. Methoden für Löschen, Upload oder Export existieren nicht.
 
-## 9. Entwicklungsregeln
+## Fehlerintegration
 
-- Fehlerlogik bleibt von Widgets getrennt.
-- neue Dateioperationen verwenden zentrale Ereignistypen.
-- technische Details dürfen Pflichtfelder nicht ersetzen.
-- keine Geheimnisse oder private Dateiinhalte in Journal/Dialogs.
-- kein Start ohne sicheres Ereignisjournal nach XDG-Anlage.
-- Failpoints bleiben explizite Testinjektion; keine Umgebungsvariable aktiviert sie unbemerkt.
+Instanzprobleme werden als `single-instance` oder `single-instance-runtime` über `ErrorEventCenter` erfasst. Sichere Stale-Recovery erzeugt `single-instance-recovery`. Alle Ereignisse besitzen die sechs Pflichtfelder.
 
-## 10. Nächste Architekturgrenze
+## Tests
 
-`P0-005` führt einen Linux-Single-Instance-Schutz ein. Ein zweiter Start muss sicher an die bestehende Instanz übergeben werden und alle Fehler über die neue Ereignisschicht melden.
+- `tests/test_single_instance.py`: Nachrichtengrenzen, Zweitstart, Cleanup, stale und beschädigte Sperren
+- `tests/test_diagnostics_center.py`: read-only Zugriff, Rechte, Symlink, ungültige Zeilen, Filter und Grenzen
+- `tests/test_gui_offscreen.py`: neun Zonen, Diagnosewidgets, verbotene Aktionen und Fehlerdialog
+- bestehende Einstellungs-, XDG-, Fehler- und Failpoint-Tests bleiben verpflichtend
