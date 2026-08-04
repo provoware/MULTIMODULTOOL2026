@@ -32,8 +32,8 @@ apt-get install -y --no-install-recommends kubuntu-desktop plasma-desktop
 
 printf "[mmt-release-diagnostic] requested-series='"$SERIES"' actual-version-id=%s bash=%s phase=validate-package-state\n" \
   "$(. /etc/os-release && printf "%s" "$VERSION_ID")" "$BASH_VERSION"
-dpkg-query -W -f="${Status}\n" kubuntu-desktop | grep -q "install ok installed"
-dpkg-query -W -f="${Status}\n" plasma-desktop | grep -q "install ok installed"
+dpkg-query -W -f="\${Status}\n" kubuntu-desktop | grep -q "install ok installed"
+dpkg-query -W -f="\${Status}\n" plasma-desktop | grep -q "install ok installed"
 
 useradd -m -u 1000 -s /bin/bash mmt
 mkdir -p /run/user/1000
