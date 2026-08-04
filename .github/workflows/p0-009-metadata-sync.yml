@@ -1,0 +1,34 @@
+name: P0-009 Metadata Sync
+
+on:
+  push:
+    branches: [p0-009-installable-linux-rc]
+    paths: [tools/p0_009_metadata_sync.py]
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: github.actor == 'provoware'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: p0-009-installable-linux-rc
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Metadaten deterministisch synchronisieren
+        run: python3 tools/p0_009_metadata_sync.py
+      - name: Synchronisierten Stand committen
+        run: |
+          git config user.name 'provoware-release-bot'
+          git config user.email 'provoware-release-bot@users.noreply.github.com'
+          git add src/main.py README.md TODO.md
+          git diff --cached --check
+          if ! git diff --cached --quiet; then
+            git commit -m 'P0-009: Synchronize release progress metadata'
+            git push origin HEAD:p0-009-installable-linux-rc
+          fi
