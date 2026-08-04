@@ -1,45 +1,36 @@
 # SCHWACHSTELLEN
 
-## Bewertungsmaßstab
+## Bewertungslogik
 
-- **kritisch:** möglicher Datenverlust, falsche Freigabe oder unkontrollierbarer Zustand
-- **hoch:** blockiert sicheren produktiven Einsatz
-- **mittel:** deutlicher Bedien-, Wartungs- oder Zuverlässigkeitsnachteil
-- **niedrig:** begrenzte Auswirkung oder vorbereitender Mangel
+- **Blocker:** Datenverlust, unsicherer Start oder falsche Erfolgsbehauptung
+- **Hoch:** sicherheitskritische Funktion unvollständig
+- **Mittel:** reale Linux-Abnahme oder Wartbarkeit offen
+- **Niedrig:** Komfort- oder Dokumentationsrest
 
-## Aktive Schwachstellen
+## Aktuelle Schwachstellen
 
-| ID | Stufe | Schwachstelle | Aktuelle Begrenzung | Gegenmaßnahme | Aufgabe |
-|---|---|---|---|---|---|
-| S-004 | hoch | kein globaler Fehler- und Wiederanlaufmanager | unerwartete GUI-Fehler sind noch nicht zentral erklärt | Fehlerdialog, Ereignismodell und Recoverybericht | P0-004 |
-| S-005 | hoch | Papierkorb- und Undo-Vertrag fehlen | Löschen oder Verschieben bleibt gesperrt | reversible Aktionsarchitektur | P0-006, P0-007 |
-| S-006 | hoch | lange Aufgaben besitzen keinen Abbruchschutz | spätere Batchläufe könnten inkonsistent enden | Checkpoints und idempotenter Wiederanlauf | P0-008 |
-| S-007 | mittel | Layout ist nicht physisch auf allen Linux-Zielgrößen abgenommen | Offscreen-Test ersetzt keine reale DPI-/Fensterprüfung | Zoom-, Fokus- und Responsive-Abnahme | P2-002, P2-007 |
-| S-009 | mittel | CI prüft noch keine Abdeckung oder Komplexität | schleichende Qualitätsverluste möglich | Coverage- und statische Gates | P3-005, P3-006 |
-| S-010 | hoch | kein installierbares signiertes Linux-Artefakt | Start weiterhin aus Quellbaum | reproduzierbares Paket und Release-Gate | P0-009, P3-009 |
-| S-011 | mittel | Wayland- und X11-Verhalten nicht physisch abgenommen | Dialog-, Fokus- oder Skalierungsunterschiede möglich | getrennte Kubuntu-Abnahme | P4-009 |
-| S-012 | mittel | Ersteinrichtung lädt PySide6 aus dem Internet | Offline-Erstinstallation nicht möglich | geprüftes Wheelhouse oder Releasepaket | U-013 |
-| S-013 | mittel | Setup noch nicht auf frischen Kubuntu-VMs vollständig abgenommen | Distributionseigenheiten können unentdeckt bleiben | reale 22.04/24.04-Abnahme | P4-009 |
-| S-014 | mittel | Einstellungsformat besitzt noch keine Migrationsengine für Version 2+ | zukünftige Schemaänderungen müssen bis P3-007 blockiert bleiben | idempotente Migrationen mit Rollback | P3-007 |
-| S-015 | niedrig | beschädigte Einstellungen werden lokal quarantänisiert, aber noch nicht in einer GUI erklärt | Recovery ist in Konsole und Statusbereich sichtbar | Integration in globale Fehlerzentrale | P0-004 |
+| ID | Risiko | Stufe | Gegenmaßnahme | Status |
+|---|---|---:|---|---|
+| S-001 | produktive Dateiaktionen besitzen noch keinen Papierkorb/Undo | Blocker | Aktionen gesperrt lassen; P0-006/P0-007 umsetzen | offen |
+| S-002 | parallele Starts könnten später konkurrierende Zustände erzeugen | hoch | P0-005 Single-Instance-Schutz | offen |
+| S-003 | Ereignisjournal besitzt noch keine Rotation/Größenbegrenzung | mittel | P3-003 mit atomarer Rotation und Datenschutzfilter | offen |
+| S-004 | physische KDE-Abnahme unter X11/Wayland fehlt | mittel | P4-009 auf Kubuntu 22.04/24.04 | offen |
+| S-005 | Qt-Offscreen-Test ersetzt keine DPI-/Fenstermanager-Abnahme | mittel | reale Tests 1024×680 bis 4K und 80–200 % | offen |
+| S-006 | Crash zwischen Kernel-/Datenträgergrenzen kann hardwareabhängig sein | mittel | Failpoint-Matrix plus spätere VM-/Dateisystemtests | teilweise reduziert |
+| S-007 | Journalfehler können vor GUI-Start nur in Konsole erscheinen | niedrig | vollständiger Konsolenvertrag; später Startdiagnose-Dialog im Launcher | akzeptiert |
+| S-008 | technische Details können unbekannte Geheimnisformate enthalten | mittel | Filter erweitern, private Inhalte nie bewusst übergeben, Tests ausbauen | offen |
+| S-009 | keine externe Crashdump-Auswertung | niedrig | erst nach Datenschutz- und Einwilligungsdesign bewerten | zurückgestellt |
+| S-010 | Einstellungen besitzen noch keine Schema-Migration >1 | hoch | P3-007 idempotente Migration und Rückfall | offen |
 
-## Behobene Schwachstellen
+## Bereits reduzierte Risiken
 
-| ID | Ergebnis | Prüfung |
-|---|---|---|
-| S-001 | manuelle PySide6-Einrichtung durch geführten Assistenten ersetzt | Setup-Unit-Tests und atomarer `.venv`-Vertrag |
-| S-002 | private Laufzeitpfade strikt vom Quellbaum getrennt | XDG-Vor-/Nachvalidierung, 0700, Schreibproben und Tests |
-| S-003 | versioniertes transaktionales Einstellungsformat eingeführt | 15 Unit-Tests, 0600, Backup, Quarantäne und automatischer Rollback |
-| S-008 | grundlegende UI-Struktur automatisch prüfbar gemacht | Offscreen-Smoke-Test für Z01–Z09, Scrollbarkeit, Status und Sperren |
+- XDG-Pfade, Symlinks und Rechte werden vor/nach Anlage geprüft.
+- Einstellungen werden atomar geschrieben und automatisch wiederhergestellt.
+- zehn Failpoints beweisen alte-oder-neue Vollständigkeit.
+- unbehandelte Hauptthread-, Worker- und Qt-Ausnahmen werden zentral erfasst.
+- jeder Fehler nennt Datenstand und sicheren nächsten Schritt.
+- Geheimnismuster und Benutzerpfade werden vor Logging reduziert.
 
-## Bewusste Grenzen
+## Freigabegrenze
 
-- Funktionskacheln führen noch keine Dateiaktionen aus.
-- Nicht-Linux-Systeme werden nicht unterstützt.
-- GitHub-Schreibrechte werden extern durch Konto und App verwaltet.
-- Einstellungsdateien enthalten keine Geheimnisse.
-- Offscreen-Tests sind keine vollständige physische KDE-Abnahme.
-
-## Pflegepflicht
-
-Neue Schwachstellen erhalten ID, Stufe, Auswirkung, Begrenzung, Gegenmaßnahme und verknüpfte Aufgabe.
+Kein produktiver Einsatz auf unersetzlichen Daten, bevor P0-005 bis P0-008 abgeschlossen und physisch abgenommen sind.

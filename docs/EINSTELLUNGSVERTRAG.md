@@ -2,7 +2,7 @@
 
 ## Zweck
 
-Dieser Vertrag definiert das versionierte, transaktionale Einstellungsformat. Einstellungen liegen ausschließlich im bereits geprüften XDG-Konfigurationsverzeichnis und niemals im Programmverzeichnis.
+Dieser Vertrag definiert das versionierte, transaktionale Einstellungsformat. Einstellungen liegen ausschließlich im geprüften XDG-Konfigurationsverzeichnis und niemals im Programmverzeichnis.
 
 ## Dateien
 
@@ -21,24 +21,24 @@ Standardpfad:
 ## Versionierung
 
 - Aktuelle `schemaVersion`: **1**
-- Unbekannte oder zukünftige Versionen werden nicht stillschweigend interpretiert.
-- Unbekannte Felder, falsche Datentypen und Werte außerhalb definierter Grenzen werden blockiert.
-- Sichere Standardwerte sind im Code und im JSON-Schema konsistent festgelegt.
-- Migrationen zwischen künftigen Versionen benötigen eine separate, idempotente und getestete Migrationsschicht.
+- unbekannte oder zukünftige Versionen werden blockiert
+- unbekannte Felder, falsche Typen und Werte außerhalb definierter Grenzen werden blockiert
+- Sicherheitswerte `defaultDryRun` und `confirmDestructiveActions` bleiben `true`
+- künftige Migrationen benötigen eine separate idempotente Migrationsschicht
 
 ## Vorvalidierung
 
 Vor jedem Speichern werden geprüft:
 
-1. gültiges JSON-Datenmodell,
-2. bekannte `schemaVersion`,
-3. ausschließlich erlaubte Felder,
+1. JSON-Datenmodell,
+2. `schemaVersion`,
+3. erlaubte Felder,
 4. Datentypen und Wertebereiche,
 5. unveränderliche Sicherheitsvorgaben,
 6. absoluter XDG-Konfigurationspfad,
-7. keine Symlinks,
-8. reguläre Dateien statt Verzeichnissen oder Spezialdateien,
-9. private Dateirechte `0600`.
+7. Symlinkfreiheit,
+8. reguläre Dateien,
+9. Dateirechte `0600`.
 
 Ungültige Daten werden nicht geschrieben. Die aktive Datei bleibt unverändert.
 
@@ -50,23 +50,47 @@ Ungültige Daten werden nicht geschrieben. Die aktive Datei bleibt unverändert.
 4. JSON vollständig schreiben.
 5. Datei mit `fsync` bestätigen.
 6. Temporäre Datei erneut einlesen und validieren.
-7. Aktuelle gültige Datei als `settings.last-valid.json` sichern.
-8. Temporäre Datei mit `os.replace` atomar aktivieren.
+7. aktuelle gültige Datei als `settings.last-valid.json` sichern.
+8. temporäre Datei mit `os.replace` atomar aktivieren.
 9. Zielverzeichnis mit `fsync` bestätigen.
-10. Aktive Datei nachvalidieren.
-11. Temporäre Reste in jedem Fehlerfall entfernen.
+10. aktive Datei nachvalidieren.
+11. temporäre Reste in jedem Fehlerfall entfernen.
 
 ## Automatisches Rollback
 
-Ist `settings.json` beschädigt, unvollständig oder nicht kompatibel:
+Ist `settings.json` beschädigt oder inkompatibel:
 
-1. die defekte Datei wird als `settings.corrupt-<UTC-Zeit>.json` isoliert,
-2. die letzte gültige Sicherung wird geprüft,
-3. bei gültiger Sicherung erfolgt ein atomarer Rollback,
-4. ohne gültige Sicherung werden sichere Standardwerte atomar angelegt,
-5. Ursache und verwendete Quelle werden verständlich gemeldet.
+1. defekte Datei als `settings.corrupt-<UTC-Zeit>.json` isolieren,
+2. letzte gültige Sicherung prüfen,
+3. gültige Sicherung atomar aktivieren,
+4. ohne Sicherung sichere Standardwerte aktivieren,
+5. Recovery über die zentrale Fehler- und Ereignisschicht melden.
 
-Eine defekte Konfiguration darf keine produktiven Dateifunktionen freischalten.
+Produktive Dateiaktionen bleiben gesperrt, bis die Einstellungsschicht gültig ist.
+
+## Failpoint-Schnittstelle
+
+`write_settings()` akzeptiert optional einen expliziten Test-Hook. Im normalen Produktionsstart wird kein Hook übergeben.
+
+Deklarierte Punkte:
+
+- `before_temp_write`
+- `after_temp_write`
+- `before_fsync`
+- `after_fsync`
+- `before_backup`
+- `after_backup`
+- `before_replace`
+- `after_replace`
+- `before_postvalidate`
+- `after_postvalidate`
+
+Die Testmatrix beweist für jeden Punkt:
+
+- aktive Datei ist vollständige alte oder vollständige neue Konfiguration,
+- vorhandene Sicherung ist vollständig und schema-gültig,
+- keine temporäre Datei bleibt zurück,
+- der ausgelöste Failpoint wird im Ergebnis benannt.
 
 ## Rein lesende Prüfung
 
@@ -75,44 +99,17 @@ python3 -m src.main --validate-only
 python3 -m src.main --settings-only
 ```
 
-Diese Modi dürfen keine Verzeichnisse oder Dateien anlegen, verändern, umbenennen oder löschen. Sie zeigen nur, ob beim normalen Start eine Wiederherstellung möglich wäre.
+Diese Modi legen keine Verzeichnisse oder Dateien an, verändern nichts und zeigen nur den möglichen Recovery-Weg.
+
+## Fehler- und Ereignisintegration
+
+- blockierte Einstellungen erzeugen ein Fehlerereignis,
+- Recovery erzeugt ein Warnereignis,
+- jeder Bericht nennt Ursache, Folge, Datenstand, Lösung, Diagnosekennung und sicheren nächsten Schritt,
+- isolierte Dateien bleiben lokal im XDG-Konfigurationsbereich.
 
 ## Datenschutz
 
-- Einstellungen enthalten keine Passwörter, Tokens oder privaten Schlüssel.
-- Private vollständige Benutzerpfade werden nicht in portable Projektdateien übernommen.
-- Beschädigte Dateien bleiben lokal im XDG-Konfigurationsbereich.
-- Keine Einstellungsdatei wird automatisch auf GitHub übertragen.
-
-## Tests
-
-Pflichtfälle:
-
-- gültige Standardwerte,
-- unbekanntes Feld,
-- unbekannte Version,
-- falscher Datentyp,
-- Werte außerhalb der Grenzen,
-- erster Start,
-- atomarer Austausch,
-- letzte gültige Sicherung,
-- beschädigte aktive Datei,
-- fehlende Sicherung,
-- Symlinkblockade,
-- zu offene Dateirechte,
-- simulierter Austauschfehler,
-- rein lesende Prüfung ohne Schreibzugriff.
-
-## Pflegepflicht
-
-Änderungen an Struktur, Version, Sicherheitswerten, Speicherweg, Backup oder Rollback aktualisieren im selben Commit:
-
-- `src/settings_manager.py`
-- `standards/settings-schema-v1.json`
-- `tests/test_settings_manager.py`
-- `docs/EINSTELLUNGSVERTRAG.md`
-- `ANLEITUNG_TOOL.md`
-- `ENTWICKLERDOKU.md`
-- `CHANGELOG.md`
-- `TODO.md`
-- `README.md`
+- keine Passwörter, Tokens oder privaten Schlüssel in Einstellungen,
+- keine automatische GitHub- oder Cloud-Übertragung,
+- private vollständige Benutzerpfade nicht in portable Projektdateien übernehmen.

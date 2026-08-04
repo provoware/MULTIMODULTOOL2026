@@ -14,6 +14,7 @@ jobs:
     timeout-minutes: 10
     env:
       QT_QPA_PLATFORM: offscreen
+      PYTHONFAULTHANDLER: "1"
 
     steps:
       - name: Repository auschecken
@@ -30,11 +31,14 @@ jobs:
       - name: Linux-, Manifest-, XDG- und Einstellungsprüfung ausführen
         run: python3 -m src.main --validate-only
 
-      - name: Unit-Tests ohne GUI-Abhängigkeit ausführen
+      - name: Unit- und Ereignistests ohne GUI-Abhängigkeit ausführen
         run: python3 -m unittest discover -s tests -p "test_*.py" -v
+
+      - name: Failpoint-Matrix ausdrücklich ausführen
+        run: python3 -m unittest tests.test_settings_failpoints -v
 
       - name: PySide6 für Offscreen-Test installieren
         run: python3 -m pip install -r requirements.txt
 
-      - name: Offscreen-GUI-Smoke-Test ausführen
+      - name: Offscreen-GUI- und Fehlerdialog-Test ausführen
         run: python3 -m unittest tests.test_gui_offscreen -v

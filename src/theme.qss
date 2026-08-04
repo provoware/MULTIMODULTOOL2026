@@ -159,11 +159,13 @@ QToolTip {
     border: 1px solid #5e8092;
     padding: 6px;
 }
-QScrollArea#workspaceScroll {
+QScrollArea#workspaceScroll,
+QScrollArea#contextScroll {
     background: transparent;
     border: none;
 }
-QScrollArea#workspaceScroll > QWidget > QWidget { background: transparent; }
+QScrollArea#workspaceScroll > QWidget > QWidget,
+QScrollArea#contextScroll > QWidget > QWidget { background: transparent; }
 QScrollBar:vertical {
     background: #071019;
     width: 10px;
@@ -176,3 +178,42 @@ QScrollBar::handle:vertical {
 }
 QScrollBar::add-line:vertical,
 QScrollBar::sub-line:vertical { height: 0; }
+
+QDialog#globalErrorDialog {
+    background: #08131b;
+    border: 2px solid #ff626c;
+}
+QFrame#errorField {
+    background: #0b1822;
+    border: 1px solid #3a5362;
+    border-radius: 8px;
+}
+QLabel#errorDialogTitle {
+    color: #ff8c93;
+    font-size: 20px;
+    font-weight: 850;
+}
+QLabel#errorDialogSummary {
+    color: #c3d2da;
+    font-size: 13px;
+}
+QLabel#errorFieldCaption {
+    color: #8fa7b5;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+QLabel#errorCause,
+QLabel#errorConsequence,
+QLabel#errorDataState,
+QLabel#errorSolution,
+QLabel#errorNextStep {
+    color: #f0f5f8;
+}
+QLabel#errorDiagnosticId {
+    color: #f6d04f;
+    font-family: "DejaVu Sans Mono", monospace;
+    font-weight: 800;
+}
+QPushButton#copyErrorReport { border-color: #00dff5; }
+QPushButton#closeErrorDialog { border-color: #54ef9b; }

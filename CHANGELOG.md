@@ -1,48 +1,54 @@
 # CHANGELOG
 
-Alle wesentlichen Änderungen an Code, Struktur, Verhalten, Prüfungen und Dokumentation werden chronologisch festgehalten.
+Alle wesentlichen Änderungen an Code, Verhalten, Sicherheit, Tests und Dokumentation werden hier chronologisch erfasst.
 
-## [Unreleased]
+## Unveröffentlicht – Entwicklungsstand 2026-08-04
 
-### Hinzugefügt – 2026-08-04
+### Hinzugefügt – P0-004
 
-- `src/settings_manager.py` als Standardbibliotheksmodul für versionierte Einstellungen
-- `standards/settings-schema-v1.json` mit strikt verbotenen unbekannten Feldern
-- aktive Datei `settings.json` und letzte gültige Sicherung `settings.last-valid.json`
-- Vorvalidierung von Version, Feldern, Typen, Wertebereichen, Sicherheitswerten, Pfaden, Symlinks und Dateirechten
-- atomarer Schreibweg über temporäre Datei, `fsync`, Nachvalidierung und `os.replace`
-- Quarantäne beschädigter Dateien als `settings.corrupt-<UTC-Zeit>.json`
-- automatischer Rollback aus Sicherung oder sichere Standardwerte
-- rein lesender Diagnosemodus `python3 -m src.main --settings-only`
-- 15 Unit-Tests für Schema, Transaktion, Sicherung, Recovery, Symlinks, Rechte und Fehlerfälle
-- `docs/EINSTELLUNGSVERTRAG.md`
-- automatisierter Qt-Offscreen-GUI-Smoke-Test mit fünf Pflichtprüfungen
+- `src/error_events.py` mit zentralem `ErrorEvent`, Diagnosekennungen und vollständigem Nutzervertrag
+- `src/error_dialog.py` mit globalem Qt-Dialog und sechs Pflichtfeldern
+- XDG-Ereignisjournal `events.jsonl` mit `0600`, `fsync`, Symlink- und Dateitypprüfung
+- Geheimnis- und Benutzerpfadfilter für Dialog und Journal
+- zentrale Erfassung über `sys.excepthook`, `threading.excepthook` und sichere Qt-`notify`-Schicht
+- `SafeOperationError` als Fehlervertrag für spätere Dateioperationen
+- `docs/FEHLER_UND_EREIGNISVERTRAG.md`
+- `tests/test_error_events.py`
+- `tests/test_settings_failpoints.py`
 
-### Geändert – 2026-08-04
+### Verbessert – P0-004
 
-- `src/main.py` bindet XDG- und Einstellungsprüfung in den Startablauf ein
-- Oberfläche zeigt Einstellungsstatus, Rollback-Bereitschaft und den nächsten P0-Schritt
-- alle neun Layoutzonen besitzen maschinenprüfbare Objekt- und Zonenkennungen
-- Arbeits- und Kontextbereich sind unabhängig scrollbar
-- noch nicht freigegebene Aktionen bleiben sichtbar, erklärt und deaktiviert
-- GitHub Actions installiert PySide6 und führt den Offscreen-Smoke-Test aus
-- Repository-Vertrag prüft Einstellungs-, Schema-, GUI- und Fortschrittsvertrag
-- Fortschritt auf 33 Prozent, 21 erledigte und 42 offene Punkte aktualisiert
-- Pflichtdokumentation an P0-003 und D-018 angepasst
+- Bootstrap-, Manifest-, XDG- und Einstellungsfehler werden in denselben verständlichen Vertrag übersetzt
+- Einstellungs-Recovery erzeugt ein sichtbares Warnereignis mit unverändertem Datenstand
+- Oberfläche zeigt Status und letzte Diagnose des Fehlerzentrums
+- Offscreen-GUI-Test prüft nun zusätzlich den vollständigen globalen Fehlerdialog
+- Layout-Manifest um maschinenlesbare `errorEventPolicy` erweitert
+- Repository-Vertrag um Fehlerarchitektur, Failpoint-Matrix und neue Pflichtdateien erweitert
+- Fortschritt auf 36 Prozent, 23 erledigte und 41 offene Punkte aktualisiert
 
-### Sicherheit – 2026-08-04
+### Failpoint-Sicherheit
 
-- Einstellungsdateien verwenden Modus `0600`
-- Konfigurationsverzeichnis bleibt XDG-konform und mit `0700` geschützt
-- unbekannte Versionen, Felder und unsichere Werte werden vor Schreibzugriff blockiert
-- temporäre Dateien werden in jedem Fehlerfall entfernt
-- defekte Einstellungen schalten keine produktiven Funktionen frei
-- rein lesende Diagnose verändert keine XDG- oder Einstellungsdatei
-- GUI-Smoke-Test verwendet keine privaten Nutzerdaten
+- zehn benannte Unterbrechungspunkte vor/nach temporärem Schreiben, `fsync`, Backup, `os.replace` und Nachvalidierung
+- jeder Test beweist vollständigen alten oder neuen Aktivzustand
+- vorhandene Sicherungen bleiben schema-gültig
+- temporäre Dateien werden bei jedem simulierten Fehler entfernt
 
-### Bereits umgesetzt – 2026-08-04
+### Bekannte Grenzen
+
+- Ereignisrotation und Größenbegrenzung folgen mit `P3-003`
+- reale KDE-/X11-/Wayland-Abnahme bleibt offen
+- produktive Dateioperationen bleiben gesperrt
+
+## 2026-08-04 – P0-003
+
+- versionierte Einstellungen mit Schema 1, `0600`, atomarem Schreiben, Sicherung, Quarantäne und Recovery
+- Qt-Offscreen-Smoke-Test für neun Layoutzonen und gesperrte Aktionen
+
+## 2026-08-04 – P0-002
+
+- sichere XDG-Pfadschicht mit `0700`, Vor-/Nachvalidierung und Schreibproben
+- workflow-fokussiertes Linux-Layout
+
+## 2026-08-04 – P0-001
 
 - geführter Linux-Einrichtungsassistent mit atomarer `.venv`
-- sichere XDG-Pfadverwaltung für Konfiguration, Daten, Cache, Status, Logs und Sicherungen
-- Linux-, Manifest-, Dokumentations- und GitHub-Zugriffsvertrag
-- startbares PySide6-Grundgerüst mit neun verbindlichen Layoutzonen
