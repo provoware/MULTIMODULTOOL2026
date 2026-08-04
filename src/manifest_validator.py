@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any
 
 EXPECTED_PROJECT_NAME = "MULTIMODULTOOL2026"
-EXPECTED_SCHEMA_VERSION = "1.4.0"
+EXPECTED_SCHEMA_VERSION = "1.5.0"
 EXPECTED_ZONE_IDS = tuple(f"Z{index:02d}" for index in range(1, 10))
 EXPECTED_OPERATING_SYSTEMS = ("linux",)
 EXPECTED_DISTRIBUTIONS = ("Kubuntu 22.04 LTS", "Kubuntu 24.04 LTS")
@@ -224,6 +224,61 @@ def validate_manifest(
             "minimumSequentialRoundTripActions": 10,
         },
         "undoRedoPolicy",
+        errors,
+    )
+
+    run = _require_mapping(data.get("runControlPolicy"), "runControlPolicy", errors)
+    _require_equal(
+        run,
+        {
+            "projectRelative": True,
+            "runsPath": ".multimodultool2026/runs",
+            "runIdPrefix": "MMTRUN-",
+            "schemaVersion": 1,
+            "runDirectoryMode": "0700",
+            "privateFileMode": "0600",
+            "immutablePlanRequired": True,
+            "atomicCheckpointRequired": True,
+            "advisoryLock": "flock",
+            "controlledCancellationPoints": ["before-intent", "after-completed-step"],
+            "idempotentResumeRequired": True,
+            "journalAndManifestReconciliationRequired": True,
+            "duplicateOperationsForbidden": True,
+            "maximumItems": 1000,
+            "sigkillStages": [
+                "before-intent",
+                "after-intent",
+                "before-file-operation",
+                "after-file-operation",
+                "before-fsync",
+                "after-fsync",
+                "before-manifest-completion",
+                "after-manifest-completion",
+                "before-journal-completion",
+                "after-journal-completion",
+            ],
+        },
+        "runControlPolicy",
+        errors,
+    )
+
+    release = _require_mapping(data.get("releasePolicy"), "releasePolicy", errors)
+    _require_equal(
+        release,
+        {
+            "packageFormat": "deb",
+            "packageName": "multimodultool2026",
+            "architecture": "amd64",
+            "buildIdPrefix": "MMTBUILD-",
+            "reproducibleBuildRequired": True,
+            "offlineFirstStartRequired": True,
+            "upgradeRequired": True,
+            "rollbackRequired": True,
+            "completeUninstallRequired": True,
+            "kubuntuMatrix": ["22.04", "24.04"],
+            "signatureDeferredTo": "P3-009",
+        },
+        "releasePolicy",
         errors,
     )
 
