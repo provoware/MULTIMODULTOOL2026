@@ -8,12 +8,14 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from src.main import is_supported_platform
 from src.manifest_validator import EXPECTED_ZONE_IDS, validate_manifest
+from tools import validate_repository
 
 
 class PlatformContractTests(unittest.TestCase):
@@ -69,6 +71,29 @@ class ManifestValidatorTests(unittest.TestCase):
 
 
 class RepositoryContractTests(unittest.TestCase):
+    def test_progress_uses_todo_checkbox_counts_without_fixed_baseline(self) -> None:
+        contents = {
+            "TODO.md": "- [x] erledigt\n- [ ] offen\n",
+            "README.md": (
+                "Entwicklungsfortschritt: 50 %\n"
+                "Erledigte Punkte: 1\nOffene Punkte: 1\nGesamtpunkte: 2\n"
+            ),
+            "src/main.py": (
+                "DEVELOPMENT_PROGRESS = 50\n"
+                "COMPLETED_POINTS = 1\nOPEN_POINTS = 1\n"
+            ),
+        }
+        errors: list[str] = []
+
+        with mock.patch.object(
+            validate_repository,
+            "text",
+            side_effect=lambda path, _errors: contents[path],
+        ):
+            validate_repository.check_progress(errors)
+
+        self.assertEqual([], errors)
+
     def test_repository_validator_passes(self) -> None:
         process = subprocess.run(
             [sys.executable, "tools/validate_repository.py"],
