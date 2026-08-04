@@ -25,9 +25,9 @@ INSTALL_ROOT = Path("usr/lib/multimodultool2026")
 SOURCE_ALLOWLIST = ROOT / "release/package-files.txt"
 DEFAULT_VERSION_FILE = ROOT / "release/VERSION"
 REQUIRED_WHEEL_PREFIXES = (
-    "PySide6-",
-    "PySide6_Addons-",
-    "PySide6_Essentials-",
+    "pyside6-",
+    "pyside6_addons-",
+    "pyside6_essentials-",
     "shiboken6-",
 )
 BUILD_ID_PATTERN = re.compile(r"^MMTBUILD-[A-Za-z0-9._~+-]+-[a-f0-9]{16}$")
@@ -128,7 +128,7 @@ def validate_wheelhouse(path: Path) -> tuple[Path, ...]:
     if not path.is_dir() or path.is_symlink():
         raise fail(f"Wheelhouse is missing or unsafe: {path}")
     wheels = tuple(sorted(path.glob("*.whl"), key=lambda item: item.name))
-    names = {wheel.name for wheel in wheels}
+    names = {wheel.name.lower() for wheel in wheels}
     for prefix in REQUIRED_WHEEL_PREFIXES:
         if not any(name.startswith(prefix) for name in names):
             raise fail(f"Wheelhouse misses required package prefix: {prefix}")
@@ -139,10 +139,10 @@ def validate_wheelhouse(path: Path) -> tuple[Path, ...]:
 
 
 def pyside_version(wheels: tuple[Path, ...]) -> str:
-    candidates = [wheel.name for wheel in wheels if wheel.name.startswith("PySide6-")]
+    candidates = [wheel.name for wheel in wheels if wheel.name.lower().startswith("pyside6-")]
     if len(candidates) != 1:
         raise fail("Wheelhouse must contain exactly one PySide6 metapackage wheel.")
-    match = re.match(r"PySide6-([0-9][0-9A-Za-z.]*)-", candidates[0])
+    match = re.match(r"pyside6-([0-9][0-9A-Za-z.]*)-", candidates[0], flags=re.IGNORECASE)
     if not match:
         raise fail("Could not parse PySide6 wheel version.")
     return match.group(1)
