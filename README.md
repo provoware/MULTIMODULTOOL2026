@@ -1,55 +1,42 @@
 # MULTIMODULTOOL2026
 
-> **Entwicklungsfortschritt: 27 %**  
-> **Erledigte Punkte: 17**  
-> **Offene Punkte: 45**  
+> **Entwicklungsfortschritt: 29 %**  
+> **Erledigte Punkte: 18**  
+> **Offene Punkte: 44**  
 > **Gesamtpunkte: 62**  
-> **Aktuelle Phase:** startbares Linux-Desktop-Grundgerüst und verbindlicher Projektvertrag  
+> **Aktuelle Phase:** geführte, sichere Linux-Ersteinrichtung abgeschlossen  
 > **Letzte Fortschrittsprüfung:** 2026-08-04
 
 > **Plattformvertrag:** Dieses Projekt wird ausschließlich für Linux-Desktop-Systeme entwickelt. Primäre Zielsysteme sind Kubuntu 22.04 LTS und Kubuntu 24.04 LTS. Windows, macOS, Android und iOS gehören nicht zum Entwicklungs-, Test- oder Releaseumfang.
 
-MULTIMODULTOOL2026 ist ein lokal arbeitendes Linux-Desktop-Werkzeug zur sicheren Analyse, Organisation, Benennung und Wiederauffindbarkeit großer Dateisammlungen. Die Bedienung soll auch ohne Fachkenntnisse durch Kacheln, Auswahlfenster, Vorschauen, Ampelstatus und klare Rückfallwege funktionieren.
-
-## Aktuell startbarer Stand
-
-Das Repository enthält ein minimales PySide6-Grundgerüst, das alle neun verbindlichen Layoutzonen sichtbar abbildet:
-
-1. Kopfbereich
-2. linke Hauptnavigation
-3. obere Übersichtskarten
-4. primäre Funktionskacheln
-5. Prozess- und Fortschrittsanzeige
-6. zentraler Arbeitsbereich
-7. rechte Kontext- und Diagnoseleiste
-8. Aktions- und Statusleiste
-9. abschließender Sicherheitsstatus
-
-Vor jedem grafischen Start werden Linux-Plattform und `layout-manifest.json` automatisch geprüft. Auf Nicht-Linux-Systemen oder bei einem ungültigen Manifest startet die Oberfläche nicht und es werden keine Projektdaten verändert.
+MULTIMODULTOOL2026 ist ein lokal arbeitendes Linux-Desktop-Werkzeug zur sicheren Analyse, Organisation, Benennung und Wiederauffindbarkeit großer Dateisammlungen.
 
 ## Schnellstart unter Kubuntu
 
 ```bash
-chmod +x start.sh
+chmod +x start.sh setup.sh
 ./start.sh
 ```
 
-Fehlt PySide6, zeigt die Startroutine die einmalig erforderlichen Befehle. Eine manuelle Installation ist ebenfalls möglich:
+Fehlen Python-Komponenten, `.venv` oder PySide6, startet automatisch der geführte Einrichtungsassistent. Er prüft Linux, Python 3.10+, `python3-venv`, KDE Plasma, X11/Wayland, Schreibrechte, `.venv` und PySide6.
+
+Unter KDE verwendet er nach Möglichkeit KDialog mit Schaltflächen; andernfalls einen klaren Terminaldialog. Systempakete und Projektumgebung benötigen jeweils eine ausdrückliche Bestätigung. Die neue `.venv` wird vollständig in einem temporären Ordner aufgebaut, geprüft und erst danach atomar aktiviert.
+
+Nur prüfen:
 
 ```bash
-python3 -m venv .venv
-.venv/bin/python -m pip install --upgrade pip
-.venv/bin/python -m pip install -r requirements.txt
-./start.sh
+./setup.sh --check-only
 ```
 
-Nur den Projektvertrag prüfen:
+Ausdrücklich bestätigte Terminaleinrichtung:
 
 ```bash
-python3 -m src.main --validate-only
-python3 tools/validate_repository.py
-python3 -m unittest discover -s tests -v
+./setup.sh --yes --no-gui-dialogs
 ```
+
+## Aktuell startbarer Stand
+
+Das PySide6-Grundgerüst bildet alle neun verbindlichen Layoutzonen sichtbar ab. Vor dem GUI-Start werden Linux-Plattform, lokale Umgebung und `layout-manifest.json` geprüft. Produktive Dateioperationen sind bis zur sicheren XDG-, Backup-, Papierkorb-, Undo- und Recovery-Architektur deaktiviert.
 
 ## Linux-Zielumfang
 
@@ -58,7 +45,7 @@ Unterstützt und verpflichtend zu testen:
 - Kubuntu 22.04 LTS, x86-64
 - Kubuntu 24.04 LTS, x86-64
 - KDE Plasma unter X11 und Wayland
-- übliche Linux-Fenstergrößen von 1024 × 680 bis 4K
+- Fenstergrößen von 1024 × 680 bis 4K
 - lokale Dateisysteme und eingehängte Linux-Datenträger
 
 Nicht Teil des Projekts:
@@ -67,13 +54,16 @@ Nicht Teil des Projekts:
 - macOS-App-Bundles
 - Android- oder iOS-Versionen
 - Browser-, PWA- oder Web-App-Ausgabe
-- plattformübergreifende Kompatibilitätsschichten ohne ausdrückliche spätere Freigabe
+
+## GitHub-Zugriff
+
+Der aktuell verbundene GitHub-Nutzer `provoware` besitzt Admin-Rechte. Diese Rechte werden durch GitHub und die installierte GitHub-App bereitgestellt, nicht durch Repository-Dateien. Tokens oder andere Geheimnisse werden niemals committed. Details: [`docs/GITHUB_ZUGRIFF.md`](docs/GITHUB_ZUGRIFF.md).
 
 ## Visuelle Leitvorlage
 
 ![Visuelle Layout- und Orientierungsvorlage](assets/ui-reference/multimodultool2026-ui-layout-reference-2026.webp)
 
-Die Abbildung bleibt die primäre grafische Orientierung. Projektname, Texte, Icons, Farben, Funktionen und Kachelinhalte dürfen angepasst werden. Grundaufbau, Zonenfolge und räumliche Logik bleiben bestehen, solange keine ausdrückliche Änderung verlangt wird.
+Die Abbildung bleibt die primäre grafische Orientierung. Grundaufbau, Zonenfolge und räumliche Logik bleiben bestehen, solange keine ausdrückliche Änderung verlangt wird.
 
 Verbindliche Quellen:
 
@@ -82,34 +72,32 @@ Verbindliche Quellen:
 - [`layout-manifest.json`](layout-manifest.json)
 - [`AGENTS.md`](AGENTS.md)
 
-## Automatische Prüfung bei jedem Commit
+## Prüfungen
 
-Der Workflow `.github/workflows/repository-contract.yml` läuft auf Ubuntu bei jedem Push und Pull Request. Er prüft:
+```bash
+python3 -m src.main --validate-only
+python3 tools/validate_repository.py
+python3 -m unittest discover -s tests -v
+```
 
-- Linux-Plattformvertrag
-- Pflichtdateien und Dokumentationsvertrag
-- neun Layoutzonen und deren Reihenfolge
-- Referenzbild und Manifest
-- Übereinstimmung der Fortschrittswerte mit `TODO.md`
-- Python-Syntax und Unit-Tests
-- Manifestprüfung im startfreien Modus
+Der GitHub-Workflow `.github/workflows/repository-contract.yml` prüft Plattformvertrag, Pflichtdateien, Manifest, Fortschritt, Einrichtungsassistent, Python-Syntax und Unit-Tests.
 
 ## Pflichtdokumente
 
 | Datei | Zweck |
 |---|---|
-| [`CHANGELOG.md`](CHANGELOG.md) | nachvollziehbare Änderungen je Iteration |
-| [`ANLEITUNG_TOOL.md`](ANLEITUNG_TOOL.md) | Installation und Bedienung für Linux-Nutzer |
-| [`TODO.md`](TODO.md) | priorisierte, prüfbare Entwicklungsaufgaben |
-| [`SCHWACHSTELLEN.md`](SCHWACHSTELLEN.md) | bekannte Risiken, Grenzen und Gegenmaßnahmen |
-| [`UPGRADE_POOL.md`](UPGRADE_POOL.md) | bewertete Linux-Erweiterungsideen außerhalb des Pflichtumfangs |
-| [`ENTWICKLERDOKU.md`](ENTWICKLERDOKU.md) | Architektur, Startfluss, Prüfungen und Entwicklungsregeln |
+| [`CHANGELOG.md`](CHANGELOG.md) | Änderungen je Iteration |
+| [`ANLEITUNG_TOOL.md`](ANLEITUNG_TOOL.md) | Installation und Bedienung |
+| [`TODO.md`](TODO.md) | priorisierte Entwicklungsaufgaben |
+| [`SCHWACHSTELLEN.md`](SCHWACHSTELLEN.md) | bekannte Risiken und Gegenmaßnahmen |
+| [`UPGRADE_POOL.md`](UPGRADE_POOL.md) | bewertete spätere Linux-Ideen |
+| [`ENTWICKLERDOKU.md`](ENTWICKLERDOKU.md) | Architektur und Prüfungen |
+| [`docs/GITHUB_ZUGRIFF.md`](docs/GITHUB_ZUGRIFF.md) | Berechtigungs- und Geheimnisvertrag |
 
 ## Projektstruktur
 
 ```text
 /
-├── .github/workflows/repository-contract.yml
 ├── AGENTS.md
 ├── ANLEITUNG_TOOL.md
 ├── CHANGELOG.md
@@ -120,19 +108,14 @@ Der Workflow `.github/workflows/repository-contract.yml` läuft auf Ubuntu bei j
 ├── UPGRADE_POOL.md
 ├── layout-manifest.json
 ├── requirements.txt
+├── setup.sh
 ├── start.sh
-├── assets/ui-reference/
-├── docs/
+├── docs/GITHUB_ZUGRIFF.md
 ├── src/
-│   ├── __init__.py
-│   ├── main.py
-│   ├── manifest_validator.py
-│   └── theme.qss
-├── standards/
-├── tests/
-└── tools/
+├── tests/test_setup_assistant.py
+└── tools/setup_assistant.py
 ```
 
 ## Aktuelle Grenze
 
-Das Grundgerüst zeigt Navigation, Status, Kacheln und Arbeitsbereiche, führt aber noch keine echten Dateioperationen aus. Produktive Funktionen folgen erst nach sicherer Linux-Datenpfad-, Backup-, Papierkorb-, Undo- und Fehlerarchitektur. Der verbindliche Arbeitsplan steht in [`TODO.md`](TODO.md).
+Die Einrichtung ist automatisiert, aber der Download von PySide6 benötigt derzeit Internetzugang. Eine physische Erstinstallationsabnahme auf frischen Kubuntu-22.04- und 24.04-Systemen bleibt offen. Der direkt folgende Schritt ist `P0-002`: XDG-konforme Trennung von Programm-, Konfigurations-, Daten-, Cache- und Statuspfaden.
