@@ -14,116 +14,156 @@ src/main.py
 ├── project_trash.py
 ├── undo_redo.py
 ├── transaction_overview.py
+├── run_control.py
 └── trash_contract_panel.py
 ```
 
-## Projektpapierkorb-API
+## Laufsteuerungs-API
+
+### Lauf anlegen
 
 ```python
-preview = preview_trash_move(project_root, source_path)
-result = execute_trash_move(preview)
-restored = restore_transaction(project_root, transaction_id)
+snapshot = create_run(project_root, source_paths)
 ```
 
-Vorschau und Ausführung prüfen Projektgrenze, Quelltyp, Symlinks, Hardlinks, Mountstatus, Schreibrechte, freien Speicher, Quellfingerabdruck und Konflikte. Move und Restore verwenden ausschließlich `os.replace` auf demselben Dateisystem.
+Die Funktion validiert alle Quellen rein lesend über den Papierkorbvertrag, verhindert doppelte Pfade, erzeugt eine eindeutige Lauf-ID und schreibt `plan.json` sowie den initialen `checkpoint.json` atomar in einen privaten Laufordner.
 
-## Undo-/Redo-Journal
+### Lauf fortsetzen
 
 ```python
-journal = UndoRedoJournal(project_root)
-result = journal.record_trash(preview)
-undo_result = journal.undo_last()
-redo_result = journal.redo_next()
-snapshot = journal.inspect()
+result = resume_run(project_root, run_id)
 ```
 
-Speicherort:
-
-```text
-<Projekt>/.multimodultool2026/history/actions.jsonl
-```
-
-### Ereignismodell
-
-- `prepare` → `apply` oder `cancel`
-- `apply` → `undo-intent` → `undo`
-- `undo` → `redo-intent` → `redo`
-- `redo` → `undo-intent`
-
-Jedes Ereignis enthält:
-
-- Schemaversion und lückenlose Sequenznummer
-- eindeutige Ereignis-, Aktions- und Transaktions-ID
-- Operation `project-trash`
-- relativen Originalpfad
-- Zeitstempel und Folgezustand
-- Recovery-Kennzeichen
-- `previousHash` und `eventHash`
-
-Der Hash wird über das kanonische JSON ohne `eventHash` berechnet. Jede neue Zeile referenziert den Hash der vorherigen Zeile.
-
-### Schreibvertrag
-
-1. Journalpfad und Eigentümer prüfen.
-2. Datei mit `O_APPEND`, `O_NOFOLLOW` und `O_CLOEXEC` öffnen.
-3. Exklusives `flock` setzen.
-4. bestehendes Journal vollständig lesen und validieren.
-5. Folgezustand und Stapelinvariante prüfen.
-6. genau eine vollständige JSONL-Zeile anhängen.
-7. `fsync` ausführen.
-8. Lock freigeben.
-
-Vorhandene Zeilen werden nicht ersetzt, gekürzt oder repariert.
-
-### Stapelmodell
-
-Die Aktionsliste muss jederzeit als angewendetes Präfix und zurückgenommener Suffix darstellbar sein. Daher:
-
-- Undo: letzte angewendete Aktion
-- Redo: erste zurückgenommene Aktion
-- neue Aktion bei vorhandenem Redo-Suffix: blockiert
-
-Ein Redo behält die Aktions-ID, erhält jedoch eine neue Papierkorb-Transaktions-ID. Das alte Restore-Manifest bleibt unverändert abgeschlossen.
-
-### Recovery
-
-`reconcile()` gleicht ausschließlich unvollständige Intent-Zustände ab:
-
-- `prepare` ohne Transaktion und Quelle vorhanden → `cancel`
-- `prepare` mit Payload und freiem Original → fehlendes `apply`
-- `undo-intent` mit Manifest `restored` → fehlendes `undo`
-- `redo-intent` mit vollständiger neuer Transaktion → fehlendes `redo`
-
-Mehrdeutige Zustände lösen `SafeOperationError(category="undo-redo-journal")` aus.
-
-## Rein lesende Transaktionsübersicht
+Optional:
 
 ```python
-snapshot = read_transaction_overview(project_root)
-entries = snapshot.filtered("damaged")
+result = resume_run(
+    project_root,
+    run_id,
+    allow_cancelled=True,
+    max_steps=10,
+    failpoint=callback,
+)
 ```
 
-`transaction_overview.py` scannt höchstens 1.000 Transaktionsverzeichnisse. Gültige Manifeste werden als `prepared`, `trashed` oder `restored` dargestellt. Symlinks, falsche Rechte, ungültige IDs und beschädigte Manifeste erscheinen als `damaged`. Keine Datei wird angelegt oder verändert.
+`max_steps` begrenzt kontrolliert die in einem Aufruf ausgeführten Schritte. `failpoint` ist ausschließlich eine injizierte Testschnittstelle und aktiviert ohne übergebenen Callback keine Umgebungsschalter.
 
-## GUI-Vertrag
+### Abbruch anfordern
 
-`trash_contract_panel.py` zeigt Sicherheitsregeln und die read-only Transaktionsübersicht. Vorhanden sind Zustandsfilter, Liste und read-only Detailfeld. Nicht vorhanden sind Restore-, Reparatur-, Lösch-, Upload- oder Exportaktionen.
+```python
+snapshot = request_cancel(project_root, run_id)
+```
+
+Die Anforderung schreibt nur `cancel.request`. Sie erwirbt nicht die Ausführungssperre und schreibt niemals den Checkpoint. Der aktive Lauf ist alleiniger Checkpointschreiber und bestätigt den Abbruch an der nächsten sicheren Grenze.
+
+### Lauf prüfen
+
+```python
+snapshot = inspect_run(project_root, run_id)
+```
+
+Diese Funktion liest Plan und Checkpoint ausschließlich mit `O_RDONLY` und `O_NOFOLLOW`, validiert Eigentümer, Dateityp, Hardlinks, Rechte, Größe, Planhash und Checkpointinvarianten und verändert keine Datei.
+
+## Datenmodelle
+
+### `RunPlan`
+
+- Schemaversion
+- Lauf-ID
+- Operation `project-trash-batch`
+- Erstellungszeit
+- lückenlose `RunItem`-Liste
+- Planhash
+
+### `RunCheckpoint`
+
+- Zustand und nächste Schrittposition
+- lückenlose abgeschlossene Indizes
+- Versuchszähler
+- optionaler `CurrentStep`
+- monotone Generation
+- Zeitstempel
+- Abbruchkennzeichen und Nutzertext
+
+### `CurrentStep`
+
+- Schrittindex
+- Versuch
+- Aktions-ID
+- Transaktions-ID
+- relativer Projektpfad
+
+Die IDs werden vor dem Intent im Checkpoint persistiert. Dadurch kann ein Prozess vor dem ersten Journalereignis sterben, ohne beim Neustart neue Identitäten oder Doppelaktionen zu erzeugen.
+
+## Checkpoint-Schreibweg
+
+1. vollständige Struktur validieren,
+2. JSON in private Datei im selben Laufordner schreiben,
+3. Datei `0600`, vollständige Schreibschleife,
+4. Datei-`fsync`,
+5. `os.replace`,
+6. Verzeichnis-`fsync`,
+7. Datei mit `O_NOFOLLOW` erneut lesen,
+8. JSON-Wert byteunabhängig nachvalidieren,
+9. temporäre Datei entfernen.
+
+## Schritt-Recovery
+
+### Checkpoint ohne Journal
+
+Quelle vorhanden, Transaktionsordner fehlt: derselbe aktuelle Schritt wird mit gespeicherter Aktions- und Transaktions-ID gestartet.
+
+### `prepare` ohne Transaktion
+
+Intent bleibt bestehen. Die Transaktion wird mit derselben ID aufgebaut; `prepare` wird nicht doppelt angehängt.
+
+### `prepared` ohne Payload
+
+Manifest und Quelle werden erneut geprüft. Der Schritt setzt direkt vor `os.replace` fort.
+
+### Payload ohne Manifestabschluss
+
+Quell- und Transaktionsverzeichnis werden erneut mit `fsync` bestätigt, Manifest wird auf `trashed` gesetzt und danach nur das fehlende `apply` angehängt.
+
+### Journalabschluss ohne Checkpoint
+
+Die Dateioperation wird nicht wiederholt. Nur `completedIndices`, `nextIndex` und Checkpointgeneration werden fortgeschrieben.
+
+## SIGKILL-Testarchitektur
+
+`tests/helpers/run_control_worker.py` startet einen realen Unterprozess. Ein injizierter Failpoint schreibt zunächst eine private Markierungsdatei mit `fsync` und beendet den Prozess dann mit `SIGKILL`.
+
+`tests/test_run_control_sigkill.py` wiederholt den vollständigen Neuaufbau für zehn Stufen. Danach wird der Lauf in einem neuen Prozesskontext fortgesetzt und auf folgende Invarianten geprüft:
+
+- Zustand `completed`,
+- exakt eine Journalaktion,
+- keine pending Aktion,
+- exakt ein Payload,
+- gültiges Manifest,
+- kein Originalobjekt,
+- keine `.tmp`-Datei,
+- zweiter Resume-Aufruf ohne Änderung.
+
+## Kritische Kopplung
+
+`run_control.py` verwendet paketinterne, bereits getestete Primitive aus `project_trash.py` und `undo_redo.py`. Die Kopplung ist bewusst eng, damit Manifest- und Journalformate nicht dupliziert werden. Änderungen an privaten Hilfsfunktionen müssen die Lauf- und SIGKILL-Tests zwingend mit ausführen.
 
 ## Prüfkommandos
 
 ```bash
 python3 tools/validate_repository.py
-python3 -m unittest tests.test_project_trash -v
+python3 -m src.main --validate-only
+python3 -m unittest tests.test_run_control -v
+python3 -m unittest tests.test_run_control_sigkill -v
 python3 -m unittest tests.test_undo_redo -v
-python3 -m unittest tests.test_transaction_overview -v
-python3 -m unittest tests.test_single_instance_stress -v
+python3 -m unittest tests.test_project_trash -v
 QT_QPA_PLATFORM=offscreen python3 -m unittest tests.test_gui_trash_contract -v
 ```
 
 ## Bekannte Architekturgrenzen
 
-- Prozessabbruch wird über Intent-Recovery modelliert; eine echte Kill-/Stromausfallmatrix folgt separat.
-- Journal ist auf 8 MiB und 20.000 Ereignisse begrenzt; Archivierung oder Kompaktierung ist nicht implementiert.
-- Eine Redo-Kette kann derzeit nur vollständig abgearbeitet werden; bewusstes Verwerfen benötigt später einen eigenen bestätigten Vertrag.
-- eingebettete fremde Mounts in verschobenen Verzeichnissen werden noch nicht rekursiv analysiert.
+- nur sequenzielle Projektpapierkorbserien sind als lange Operation freigegeben,
+- kein Plan-Branching oder Verwerfen einer Redo-/Laufkette,
+- keine Schema-Migration für alte Laufcheckpoints,
+- `SIGKILL` bildet keinen echten Stromverlust mit Hardwarecache ab,
 - produktive GUI-Ausführung bleibt bis P1-001/P1-003 gesperrt.
