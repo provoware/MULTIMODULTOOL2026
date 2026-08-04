@@ -109,6 +109,7 @@ class SingleInstanceTests(unittest.TestCase):
         stale = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         stale.bind(str(paths.socket_path))
         stale.close()
+        os.chmod(paths.socket_path, 0o600)
         metadata = {
             "schemaVersion": 1,
             "pid": 99999999,
@@ -145,6 +146,7 @@ class SingleInstanceTests(unittest.TestCase):
         stale = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         stale.bind(str(paths.socket_path))
         stale.close()
+        os.chmod(paths.socket_path, 0o600)
         paths.metadata_path.write_text("{broken", encoding="utf-8")
         os.chmod(paths.metadata_path, 0o600)
 
