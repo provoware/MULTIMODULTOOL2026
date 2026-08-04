@@ -93,3 +93,13 @@ Nicht physisch geprüfte KDE-, X11-, Wayland-, DPI-, ACL-, Mount-, Stromausfall-
 - Erledigt gilt erst nach Umsetzung, Abnahme, Dokumentation, grünem CI-Lauf und GitHub-Commit.
 - Jede abgeschlossene Iteration wird auf `provoware/MULTIMODULTOOL2026` übertragen.
 - Tokens, Passwörter und private Schlüssel dürfen niemals im Repository liegen.
+
+## Linux-Releasevertrag P0-009
+
+- Releaseziel ist ein reproduzierbares `amd64`-Debian-Paket für Kubuntu 22.04/24.04.
+- Runtime-Dateien stammen ausschließlich aus `release/package-files.txt`.
+- Build-ID, Source-Manifest, installiertes SHA-256-Manifest und Wheelhouse-Manifest sind verpflichtend.
+- Der Erststart installiert PySide6 ausschließlich aus dem gebündelten lokalen Wheelhouse.
+- Installation, Upgrade, Rollback und Entfernung laufen nur nach Vorprüfung und ausdrücklichem `--yes`.
+- Normale Entfernung bewahrt Nutzerdaten; der Nutzerdaten-Purge benötigt eine eindeutig bestimmte Nicht-root-Identität.
+- Signaturen und Vertrauenskette bleiben bis `P3-009` ausdrücklich offen.

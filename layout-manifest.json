@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "schemaVersion": "1.4.0",
+  "schemaVersion": "1.5.0",
   "project": {
     "id": "multimodultool2026",
     "name": "MULTIMODULTOOL2026",
@@ -120,6 +120,19 @@
       "after-journal-completion"
     ]
   },
+  "releasePolicy": {
+    "packageFormat": "deb",
+    "packageName": "multimodultool2026",
+    "architecture": "amd64",
+    "buildIdPrefix": "MMTBUILD-",
+    "reproducibleBuildRequired": true,
+    "offlineFirstStartRequired": true,
+    "upgradeRequired": true,
+    "rollbackRequired": true,
+    "completeUninstallRequired": true,
+    "kubuntuMatrix": ["22.04", "24.04"],
+    "signatureDeferredTo": "P3-009"
+  },
   "transactionOverviewPolicy": {
     "readOnly": true,
     "visibleStates": ["prepared", "trashed", "restored", "damaged"],
@@ -175,6 +188,6 @@
   "validation": {
     "requiredZoneCount": 9,
     "requiredZoneOrder": ["Z01", "Z02", "Z03", "Z04", "Z05", "Z06", "Z07", "Z08", "Z09"],
-    "documentation": ["README.md", "docs/UI_BASISVORLAGE.md", "standards/UI_LAYOUT_STANDARD_2026.md", "AGENTS.md", "ANLEITUNG_TOOL.md", "CHANGELOG.md", "TODO.md", "SCHWACHSTELLEN.md", "UPGRADE_POOL.md", "ENTWICKLERDOKU.md", "docs/XDG_PFADVERTRAG.md", "docs/EINSTELLUNGSVERTRAG.md", "docs/FEHLER_UND_EREIGNISVERTRAG.md", "docs/SINGLE_INSTANCE_UND_DIAGNOSEVERTRAG.md", "docs/PAPIERKORBVERTRAG.md", "docs/UNDO_REDO_UND_TRANSAKTIONSVERTRAG.md", "docs/ABBRUCH_UND_WIEDERANLAUFVERTRAG.md"]
+    "documentation": ["README.md", "docs/UI_BASISVORLAGE.md", "standards/UI_LAYOUT_STANDARD_2026.md", "AGENTS.md", "ANLEITUNG_TOOL.md", "CHANGELOG.md", "TODO.md", "SCHWACHSTELLEN.md", "UPGRADE_POOL.md", "ENTWICKLERDOKU.md", "docs/XDG_PFADVERTRAG.md", "docs/EINSTELLUNGSVERTRAG.md", "docs/FEHLER_UND_EREIGNISVERTRAG.md", "docs/SINGLE_INSTANCE_UND_DIAGNOSEVERTRAG.md", "docs/PAPIERKORBVERTRAG.md", "docs/UNDO_REDO_UND_TRANSAKTIONSVERTRAG.md", "docs/ABBRUCH_UND_WIEDERANLAUFVERTRAG.md", "docs/LINUX_RELEASEVERTRAG.md"]
   }
 }

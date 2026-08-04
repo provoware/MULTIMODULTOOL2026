@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=MULTIMODULTOOL2026
+Comment=Sichere lokale Linux-Dateiorganisation
+Exec=multimodultool2026
+Icon=system-file-manager
+Terminal=false
+Categories=Utility;FileTools;
+StartupNotify=true
+X-KDE-FormFactor=desktop

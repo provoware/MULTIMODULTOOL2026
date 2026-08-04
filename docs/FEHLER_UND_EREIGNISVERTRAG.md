@@ -44,3 +44,7 @@ Reguläre Datei, ein Hardlink, aktueller Eigentümer, keine Symlinks, Modus `060
 ## Grenzen
 
 Journalrotation folgt `P3-003`. Physische KDE-, Stromausfall-, Sonder-Mount- und ACL-Abnahmen bleiben offen.
+
+## Release- und Installationsfehler
+
+Paket-SHA, Build-ID, Architektur, Abhängigkeiten, installierte Dateiliste, Offline-Runtime und Rollbackarchiv werden vor einer Fortsetzung geprüft. Eine fehlende oder widersprüchliche Voraussetzung blockiert Installation, Upgrade oder Rollback. Der Release-Manager verändert bei einem Vorprüfungsfehler weder Paketstand noch Nutzerdaten. Kryptografische Signaturfehler werden erst nach Einführung des signierten Release-Gates in `P3-009` bewertet.

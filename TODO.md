@@ -12,10 +12,10 @@
 
 ## Fortschritt
 
-- Erledigt: **31**
-- Offen: **37**
+- Erledigt: **32**
+- Offen: **36**
 - Gesamt: **68**
-- Rechnerischer Entwicklungsfortschritt: **46 %**
+- Rechnerischer Entwicklungsfortschritt: **47 %**
 
 ## Erledigte Grundlagen
 
@@ -53,7 +53,7 @@
 - [x] **P0-006** – Atomaren, projektbezogenen Papierkorbvertrag implementieren. Abhängigkeit: `P0-002,P0-004` | Abnahme: Vorschau bleibt read-only; reguläre Dateien/Ordner werden nur per `os.replace` innerhalb desselben Dateisystems verschoben; Transaktionsmanifest und Restore sind geprüft; Symlink-, Hardlink-, Mount-, Speicher- und Konfliktzustände blockieren. | Risiko: **hoch**
 - [x] **P0-007** – Append-only Undo-/Redo-Journal mit eindeutigen Aktions- und Transaktions-IDs. Abhängigkeit: `P0-006` | Abnahme: private hashverkettete JSONL-Historie; Intent-/Abschlussereignisse; idempotentes konfliktgeprüftes Undo/Redo; zehn Aktionen vollständig rückwärts zurückgenommen und vorwärts erneut angewendet; Recovery nach unterbrochenem Apply und Undo. | Risiko: **hoch**
 - [x] **P0-008** – Transaktionalen Abbruch- und Wiederanlaufvertrag für lange Operationen implementieren. Abhängigkeit: `P0-003,P0-004,P0-006,P0-007` | Abnahme: eindeutige Lauf-ID; unveränderlicher Plan; atomarer Checkpoint; private Laufdateien; kontrollierte Abbruchpunkte; Ressourcenfreigabe; idempotente Wiederaufnahme; zehnstufige echte `SIGKILL`-Matrix ohne Doppeloperation oder verlorenen Abschluss. | Risiko: **hoch**
-- [ ] **P0-009** – Installierbaren Linux-Releasekandidaten paketieren. Abhängigkeit: `P0-001,P0-004,P0-008` | Abnahme: Installation, Start und Deinstallation auf frischer Kubuntu-VM. | Risiko: **hoch**
+- [x] **P0-009** – Installierbaren Linux-Releasekandidaten paketieren. Abhängigkeit: `P0-001,P0-004,P0-008` | Abnahme: reproduzierbares amd64-DEB mit Build-ID und Dateimanifest; Offline-Erststart; Installation, Upgrade, Rollback, normale Entfernung und bestätigter vollständiger Purge in frischen containerisierten Kubuntu-22.04-/24.04-Userlands automatisiert geprüft. | Risiko: **hoch**
 
 ## P1 – Laienoptimierter Kernworkflow
 

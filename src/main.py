@@ -43,9 +43,9 @@ from .xdg_paths import (
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_PATH = PROJECT_ROOT / "layout-manifest.json"
-DEVELOPMENT_PROGRESS = 46
-COMPLETED_POINTS = 31
-OPEN_POINTS = 37
+DEVELOPMENT_PROGRESS = 47
+COMPLETED_POINTS = 32
+OPEN_POINTS = 36
 ZONE_OBJECT_NAMES = (
     "header",
     "navigation",
@@ -247,7 +247,7 @@ def build_window(
         ("Instanzschutz", "1 PRIMÄR", "Unix-Socket · Peer-UID"),
         ("Wiederanlauf", "CHECKPOINTS", "Lauf-ID · Abbruchpunkte"),
         ("Einstellungen", settings_status, "atomar · Rollback"),
-        ("Entwicklung", "46 %", "31 erledigt · 37 offen"),
+        ("Entwicklung", "46 %", "32 erledigt · 36 offen"),
     ):
         cards.addWidget(_panel(QtWidgets, title, f"{value}\n{detail}", "card"))
     grid.addWidget(summary, 1, 1)
@@ -285,7 +285,7 @@ def build_window(
     )
     progress = QtWidgets.QProgressBar()
     progress.setValue(DEVELOPMENT_PROGRESS)
-    progress.setFormat("Entwicklungsstand: 46 %")
+    progress.setFormat("Entwicklungsstand: 47 %")
     flow.addWidget(progress)
     grid.addWidget(workflow, 3, 1)
 
