@@ -30,7 +30,7 @@ Windows-, macOS-, Android-, iOS-, Browser- und PWA-Varianten werden nicht aufgen
 
 ## Ergebnis dieser Iteration
 
-Der Einrichtungsassistent ist Kernfunktion und deshalb als P0-001 abgeschlossen. Die Offline-Versorgung bleibt eine getrennte spätere Ausbauidee; sie wird nicht mit P0-001 vermischt.
+Die XDG-Pfadschicht ist als P0-002 abgeschlossen. Sie schafft die Grundlage für portable Linux-Ausgaben ohne gespeicherte Benutzerpfade (`U-002`) und datensparsame Diagnoseexporte (`U-008`). Diese Erweiterungen bleiben getrennt, bis Einstellungs-, Logging- und Releaseverträge stabil sind.
 
 ## Aufnahme in TODO.md
 
