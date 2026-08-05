@@ -1,4 +1,4 @@
-"""Qt-Offscreen tests for productive workflow, help, diagnostics and layout."""
+"""Qt-Offscreen tests for guided start, productive workflow, help and layout."""
 
 from __future__ import annotations
 
@@ -89,21 +89,32 @@ class OffscreenGuiSmokeTests(unittest.TestCase):
         self.assertTrue(context.widgetResizable())
         self.assertEqual(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff, workspace.horizontalScrollBarPolicy())
 
-    def test_unreleased_actions_are_disabled_and_explain_their_blocker(self) -> None:
+    def test_guided_actions_explain_and_enforce_initial_gate(self) -> None:
         navigation_names = (
             "analysisNavigation", "duplicatesNavigation", "organizeNavigation",
             "renameNavigation", "reportsNavigation",
         )
-        action_names = (
-            "chooseProjectAction", "analyzeProjectAction", "showPlanAction",
-            "executePlanAction", "undoPlanAction", "saveReportAction",
-        )
-        for name in (*navigation_names, *action_names):
+        for name in navigation_names:
             button = self.window.findChild(QtWidgets.QPushButton, name)
             self.assertIsNotNone(button, name)
             self.assertTrue(button.isEnabled(), name)
             self.assertTrue(button.toolTip().strip(), name)
-            self.assertTrue(button.accessibleDescription().strip(), name)
+
+        choose = self.window.findChild(QtWidgets.QPushButton, "chooseProjectAction")
+        self.assertIsNotNone(choose)
+        self.assertTrue(choose.isEnabled())
+        self.assertIn("Startassistent", choose.text())
+        self.assertTrue(choose.accessibleDescription().strip())
+
+        for name in (
+            "analyzeProjectAction", "showPlanAction", "executePlanAction",
+            "undoPlanAction", "saveReportAction",
+        ):
+            button = self.window.findChild(QtWidgets.QPushButton, name)
+            self.assertIsNotNone(button, name)
+            self.assertFalse(button.isEnabled(), name)
+            self.assertTrue(button.toolTip().strip(), name)
+
         settings = self.window.findChild(QtWidgets.QPushButton, "lockedSettingsNavigation")
         self.assertIsNotNone(settings)
         self.assertFalse(settings.isEnabled())
@@ -120,7 +131,36 @@ class OffscreenGuiSmokeTests(unittest.TestCase):
             "undoProductiveOperationButton", "saveAnalysisReportButton",
         ):
             self.assertIsNotNone(panel.findChild(QtWidgets.QPushButton, name), name)
+        self.assertTrue(panel.findChild(QtWidgets.QPushButton, "projectSelectButton").isEnabled())
+        for name in (
+            "analyzeProjectButton", "findDuplicatesButton", "previewOrganizationButton",
+            "previewRenameButton", "applyProductivePlanButton", "undoProductiveOperationButton",
+            "saveAnalysisReportButton",
+        ):
+            self.assertFalse(panel.findChild(QtWidgets.QPushButton, name).isEnabled(), name)
         self.assertFalse(self._sentinel_root.exists())
+
+    def test_start_assistant_dialog_is_guided_and_read_only_on_build(self) -> None:
+        from src.start_assistant import create_start_assistant_dialog
+
+        dialog = create_start_assistant_dialog(QtWidgets, self.window)
+        dialog.show()
+        self.app.processEvents()
+        self.assertEqual("startAssistantDialog", dialog.objectName())
+        for name in (
+            "assistantProjectField", "assistantTargetField", "assistantSafetyModeCombo",
+            "assistantValidateButton", "assistantSummary", "assistantConfirmationCheck",
+            "assistantAcceptButton", "assistantCancelButton",
+        ):
+            self.assertIsNotNone(dialog.findChild(QtWidgets.QWidget, name), name)
+        self.assertTrue(dialog.findChild(QtWidgets.QLineEdit, "assistantProjectField").isReadOnly())
+        self.assertTrue(dialog.findChild(QtWidgets.QLineEdit, "assistantTargetField").isReadOnly())
+        self.assertTrue(dialog.findChild(QtWidgets.QPlainTextEdit, "assistantSummary").isReadOnly())
+        self.assertEqual(3, dialog.findChild(QtWidgets.QComboBox, "assistantSafetyModeCombo").count())
+        self.assertFalse(dialog.findChild(QtWidgets.QCheckBox, "assistantConfirmationCheck").isEnabled())
+        self.assertFalse(dialog.findChild(QtWidgets.QPushButton, "assistantAcceptButton").isEnabled())
+        self.assertFalse(self._sentinel_root.exists())
+        dialog.close()
 
     def test_safety_states_are_textual_and_visible(self) -> None:
         labels = [label for label in self.window.findChildren(QtWidgets.QLabel) if bool(label.property("safetyStatus"))]
@@ -133,7 +173,10 @@ class OffscreenGuiSmokeTests(unittest.TestCase):
         button.click()
         self.app.processEvents()
         self.assertTrue(dialog.isVisible())
-        self.assertGreaterEqual(len(dialog.findChildren(QtWidgets.QFrame, "helpTopic")), 8)
+        self.assertGreaterEqual(len(dialog.findChildren(QtWidgets.QFrame, "helpTopic")), 9)
+        text = "\n".join(label.text() for label in dialog.findChildren(QtWidgets.QLabel))
+        self.assertIn("Startassistent", text)
+        self.assertIn("Sicherheitsmodi", text)
         self.assertIsNotNone(dialog.findChild(QtWidgets.QPushButton, "helpDialogCloseButton"))
         self.assertIsNone(dialog.findChild(QtWidgets.QPushButton, "helpDeleteButton"))
         self.assertIsNone(dialog.findChild(QtWidgets.QPushButton, "helpUploadButton"))
@@ -182,6 +225,40 @@ class OffscreenGuiSmokeTests(unittest.TestCase):
             self.assertIsNotNone(label, name)
             self.assertTrue(label.text().strip(), name)
         dialog.close()
+
+    def test_z_safety_modes_gate_report_and_execution(self) -> None:
+        from src.start_assistant import MODE_PRODUCTIVE, MODE_READ_ONLY, validate_start_selection
+
+        panel = self.window.findChild(QtWidgets.QFrame, "productiveWorkflowPanel")
+        project = Path(self._temp.name) / "assistant-project"
+        target = project / "target"
+        project.mkdir(exist_ok=True)
+        target.mkdir(exist_ok=True)
+        (project / "source.txt").write_text("source", encoding="utf-8")
+
+        read_only = validate_start_selection(project, target, MODE_READ_ONLY)
+        panel.apply_start_selection(read_only)
+        self.assertTrue(panel.findChild(QtWidgets.QPushButton, "analyzeProjectButton").isEnabled())
+        self.assertTrue(panel.findChild(QtWidgets.QPushButton, "previewOrganizationButton").isEnabled())
+        self.assertFalse(panel.findChild(QtWidgets.QPushButton, "saveAnalysisReportButton").isEnabled())
+        self.assertFalse(panel.findChild(QtWidgets.QPushButton, "applyProductivePlanButton").isEnabled())
+
+        productive = validate_start_selection(project, target, MODE_PRODUCTIVE)
+        panel.apply_start_selection(productive)
+        self.assertTrue(panel.findChild(QtWidgets.QPushButton, "saveAnalysisReportButton").isEnabled())
+        self.assertFalse(panel.findChild(QtWidgets.QPushButton, "applyProductivePlanButton").isEnabled())
+        self.assertEqual("target", panel.target_relative)
+
+        panel.start_selection = None
+        panel.root = None
+        panel.target_root = None
+        panel.target_relative = ""
+        panel._state(False)
+        for name in (
+            "analyzeProjectAction", "showPlanAction", "executePlanAction",
+            "undoPlanAction", "saveReportAction",
+        ):
+            self.window.findChild(QtWidgets.QPushButton, name).setEnabled(False)
 
 
 if __name__ == "__main__":
