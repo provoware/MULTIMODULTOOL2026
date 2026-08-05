@@ -1,0 +1,150 @@
+name: P3-009 Main Signature Evidence
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/p3-009-main-signature-evidence.yml
+      - .github/workflows/release-candidate.yml
+      - tools/collect_p3_009_main_signature_evidence.py
+      - tools/sign_release_artifacts.py
+      - tests/test_collect_p3_009_main_signature_evidence.py
+      - tests/test_sign_release_artifacts.py
+  workflow_run:
+    workflows: ["Linux Release Candidate"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      commit_sha:
+        description: Vollständiges main-Commit-SHA; leer verwendet den aktuellen Workflow-Commit
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  evidence-contract:
+    name: P3-009 Evidenzvertrag prüfen
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Nachweiswerkzeug auschecken
+        uses: actions/checkout@v4
+
+      - name: Python vorbereiten
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Evidenz- und Signaturregressionen ausführen
+        run: |
+          python3 -m unittest tests.test_collect_p3_009_main_signature_evidence -v
+          python3 -m unittest tests.test_sign_release_artifacts -v
+
+  verify-main-signatures:
+    name: Post-merge OIDC-Signaturartefakt nachweisen
+    if: >-
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_branch == 'main' &&
+       github.event.workflow_run.conclusion == 'success') ||
+      github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      EVIDENCE_DIR: dist/p3-009-main-signature-evidence
+      RELEASE_CERTIFICATE_IDENTITY_REGEXP: '^https://github.com/provoware/MULTIMODULTOOL2026/.github/workflows/release-candidate.yml@refs/(heads/main|tags/v.*)$'
+      RELEASE_OIDC_ISSUER: 'https://token.actions.githubusercontent.com'
+
+    steps:
+      - name: Nachweiswerkzeug auschecken
+        uses: actions/checkout@v4
+
+      - name: Python vorbereiten
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Offizielles Cosign installieren
+        uses: sigstore/cosign-installer@v4.1.2
+
+      - name: Evidenz- und Signaturregressionen ausführen
+        run: |
+          python3 -m unittest tests.test_collect_p3_009_main_signature_evidence -v
+          python3 -m unittest tests.test_sign_release_artifacts -v
+
+      - name: Zu prüfendes main-SHA bestimmen
+        id: target
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          WORKFLOW_RUN_SHA: ${{ github.event.workflow_run.head_sha }}
+          MANUAL_SHA: ${{ inputs.commit_sha }}
+          CURRENT_SHA: ${{ github.sha }}
+        run: |
+          set -Eeuo pipefail
+          if [[ "$EVENT_NAME" == "workflow_run" ]]; then
+            target_sha="$WORKFLOW_RUN_SHA"
+          elif [[ -n "$MANUAL_SHA" ]]; then
+            target_sha="$MANUAL_SHA"
+          else
+            target_sha="$CURRENT_SHA"
+          fi
+          [[ "$target_sha" =~ ^[0-9a-f]{40}$ ]]
+          echo "sha=$target_sha" >> "$GITHUB_OUTPUT"
+          echo "P3-009 main evidence target: $target_sha"
+
+      - name: main-Lauf, Artefakt, Identität, Aussteller und Digests verifizieren
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -Eeuo pipefail
+          python3 tools/collect_p3_009_main_signature_evidence.py \
+            --repository "$GITHUB_REPOSITORY" \
+            --commit-sha '${{ steps.target.outputs.sha }}' \
+            --output-directory "$EVIDENCE_DIR" \
+            --identity-regexp "$RELEASE_CERTIFICATE_IDENTITY_REGEXP" \
+            --issuer "$RELEASE_OIDC_ISSUER"
+
+      - name: Abschlussnachweis strikt prüfen
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path("dist/p3-009-main-signature-evidence")
+          evidence = json.loads((root / "P3_009_MAIN_SIGNATURE_EVIDENCE.json").read_text(encoding="utf-8"))
+          assert evidence["status"] == "verified"
+          assert evidence["mainCommitSha"] == "${{ steps.target.outputs.sha }}"
+          assert evidence["workflowRun"]["event"] == "push"
+          assert evidence["workflowRun"]["headBranch"] == "main"
+          assert evidence["workflowRun"]["conclusion"] == "success"
+          assert evidence["artifact"]["name"] == "multimodultool2026-release-signed"
+          assert evidence["artifact"]["fileCount"] == 14
+          assert len(evidence["files"]) == 14
+          assert evidence["verification"]["cosignVerified"] is True
+          assert evidence["verification"]["manifestDigestMatched"] is True
+          print(json.dumps({
+              "run_id": evidence["workflowRun"]["id"],
+              "artifact_id": evidence["artifact"]["id"],
+              "file_count": evidence["artifact"]["fileCount"],
+              "identity": evidence["verification"]["certificateIdentityRegexp"],
+              "issuer": evidence["verification"]["oidcIssuer"],
+              "manifest_sha256": evidence["verification"]["manifestSha256"],
+              "manifest_bundle_sha256": evidence["verification"]["manifestBundleSha256"],
+          }, indent=2, sort_keys=True))
+          PY
+          find "$EVIDENCE_DIR" -maxdepth 1 -type f -printf '%f\n' | sort
+          [[ "$(find "$EVIDENCE_DIR" -maxdepth 1 -type f | wc -l)" -eq 2 ]]
+
+      - name: P3-009-Abschlussnachweis hochladen
+        uses: actions/upload-artifact@v4
+        with:
+          name: p3-009-main-signature-evidence
+          path: dist/p3-009-main-signature-evidence
+          if-no-files-found: error
+          retention-days: 90

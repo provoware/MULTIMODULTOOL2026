@@ -100,6 +100,14 @@ class SignedReleaseContractTests(unittest.TestCase):
         with self.assertRaises(SigningContractError):
             primary_subjects(self.root)
 
+    def test_workflow_metadata_does_not_override_cosign_service_configuration(self) -> None:
+        workflow = Path(".github/workflows/release-candidate.yml").read_text(encoding="utf-8")
+        self.assertNotIn("COSIGN_OIDC_ISSUER:", workflow)
+        self.assertNotIn("COSIGN_IDENTITY_REGEXP:", workflow)
+        self.assertIn("RELEASE_OIDC_ISSUER:", workflow)
+        self.assertIn("RELEASE_CERTIFICATE_IDENTITY_REGEXP:", workflow)
+        self.assertIn("id-token: write", workflow)
+
 
 if __name__ == "__main__":
     unittest.main()
