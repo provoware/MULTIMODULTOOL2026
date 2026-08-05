@@ -12,10 +12,10 @@
 
 ## Fortschritt
 
-- Erledigt: **41**
-- Offen: **27**
+- Erledigt: **42**
+- Offen: **26**
 - Gesamt: **68**
-- Rechnerischer Entwicklungsfortschritt: **60 %**
+- Rechnerischer Entwicklungsfortschritt: **62 %**
 
 ## Erledigte Grundlagen
 
@@ -57,7 +57,7 @@
 
 ## P1 – Laienoptimierter Kernworkflow
 
-- [ ] **P1-001** – Geführten Startassistenten für Projektordner, Ziel und Sicherheitsmodus erstellen. | Risiko: **mittel**
+- [x] **P1-001** – Geführten Startassistenten für Projektordner, Ziel und Sicherheitsmodus erstellen. Abnahme: Projekt und getrenntes projektinternes Ziel ausschließlich per Dialog; drei Schreibgrenzen; vollständige Eigentümer-, Rechte-, Symlink-, Mount-, Dateisystem-, Speicher- und Inode-Prüfung; Übernahme erst nach verständlicher Zusammenfassung; Unit-, Qt-Offscreen-, reproduzierbare Build- und Kubuntu-22.04-/24.04-Abnahme grün in PR #105. | Risiko: **mittel**
 - [ ] **P1-002** – Kachelbasierte Modulnavigation mit aktivem Zustand und Zurück-Pfad umsetzen. | Risiko: **niedrig**
 - [x] **P1-003** – Linux-Ordnerauswahl mit Rechte-, Mount- und Speicherprüfung ergänzen. | Risiko: **hoch**
 - [x] **P1-004** – Dateibestandsanalyse für Typ, Größe, Datum, Symlinks und Namensmuster entwickeln. | Risiko: **mittel**
