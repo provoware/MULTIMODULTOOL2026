@@ -89,7 +89,7 @@ class OffscreenGuiSmokeTests(unittest.TestCase):
         self.assertTrue(context.widgetResizable())
         self.assertEqual(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff, workspace.horizontalScrollBarPolicy())
 
-    def test_productive_navigation_and_primary_actions_are_enabled(self) -> None:
+    def test_unreleased_actions_are_disabled_and_explain_their_blocker(self) -> None:
         navigation_names = (
             "analysisNavigation", "duplicatesNavigation", "organizeNavigation",
             "renameNavigation", "reportsNavigation",
@@ -104,6 +104,10 @@ class OffscreenGuiSmokeTests(unittest.TestCase):
             self.assertTrue(button.isEnabled(), name)
             self.assertTrue(button.toolTip().strip(), name)
             self.assertTrue(button.accessibleDescription().strip(), name)
+        settings = self.window.findChild(QtWidgets.QPushButton, "lockedSettingsNavigation")
+        self.assertIsNotNone(settings)
+        self.assertFalse(settings.isEnabled())
+        self.assertTrue(settings.toolTip().strip())
         self.assertEqual([], self.window.findChildren(QtWidgets.QPushButton, "lockedNavigation"))
         self.assertEqual([], self.window.findChildren(QtWidgets.QPushButton, "lockedPrimaryAction"))
 
@@ -123,7 +127,7 @@ class OffscreenGuiSmokeTests(unittest.TestCase):
         self.assertGreaterEqual(len(labels), 5)
         self.assertTrue(all(label.isVisible() and label.text().strip() for label in labels))
 
-    def test_help_button_opens_productive_contextual_help(self) -> None:
+    def test_help_button_opens_read_only_contextual_help(self) -> None:
         button = self.window.findChild(QtWidgets.QPushButton, "helpNavigation")
         dialog = self.window.findChild(QtWidgets.QDialog, "helpDialog")
         button.click()
@@ -135,7 +139,7 @@ class OffscreenGuiSmokeTests(unittest.TestCase):
         self.assertIsNone(dialog.findChild(QtWidgets.QPushButton, "helpUploadButton"))
         dialog.close()
 
-    def test_progress_widgets_use_authoritative_constants(self) -> None:
+    def test_progress_widgets_use_the_authoritative_constants(self) -> None:
         progress = self.window.findChild(QtWidgets.QProgressBar)
         self.assertEqual(self.development_progress, progress.value())
         self.assertEqual(f"Entwicklungsstand: {self.development_progress} %", progress.format())
