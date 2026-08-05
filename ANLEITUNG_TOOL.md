@@ -23,22 +23,38 @@ python3 -m src.main --show-diagnostics
 python3 -m src.main --help
 ```
 
-## Produktiven Projektordner wählen
+## P1-001: Geführten Startassistenten abschließen
 
-1. **Projektordner wählen …** anklicken.
-2. Nur den tatsächlichen Arbeitsordner auswählen, nicht `/`, das eigene Home-Verzeichnis oder einen Systemordner.
-3. Die grüne Projektprüfung abwarten.
-4. Bei Rot nichts manuell umgehen. Ursache und sicheren nächsten Schritt aus Dialog oder Tooltip übernehmen.
+1. **Startassistent öffnen …** anklicken.
+2. Den tatsächlichen Projektordner über den Auswahldialog wählen. `/`, der eigene Home-Stamm und Systemordner sind gesperrt.
+3. Einen davon getrennten Zielordner **innerhalb des Projekts** wählen. Dadurch bleiben Projektgrenze, Dateisystem und atomare `os.replace`-Operationen erhalten.
+4. Einen Sicherheitsmodus auswählen.
+5. **Auswahl vollständig prüfen** anklicken.
+6. Die Zusammenfassung zu Pfaden, Eigentümer, Rechten, Dateisystem, Mountgrenze, Symlinks, Speicher und Schreibgrenzen lesen.
+7. Erst danach die Bestätigung aktivieren und **Geprüfte Auswahl übernehmen** anklicken.
+
+Der Assistent legt bei Auswahl, Aufbau und Vorvalidierung keine Datei und keinen Steuerordner an. Ein Abbruch lässt eine bereits bestehende Freigabe unverändert.
+
+### Sicherheitsmodi
+
+| Modus | Analyse und Vorschau | JSON-/Markdown-Bericht | Dateiänderung |
+|---|---:|---:|---:|
+| **Nur prüfen** | erlaubt | gesperrt | gesperrt |
+| **Vorschau und Bericht** | erlaubt | erlaubt | gesperrt |
+| **Produktiv mit Bestätigung** | erlaubt | erlaubt | erst nach vollständiger Vorschau und zweiter Bestätigung |
 
 Vor der Freigabe prüft das Tool:
 
-- absoluten Linux-Pfad,
-- Eigentümer des Projektordners,
-- Lese-, Schreib- und Zugriffsrechte,
-- Symlink-Komponenten,
+- absolute Linux-Pfade,
+- getrennten Projekt- und Zielordner,
+- Ziel ausschließlich innerhalb der Projektgrenze,
+- Eigentümer beider Ordner,
+- Lese-, Schreib- und Zugriffsrechte passend zum Modus,
+- sämtliche vorhandenen Symlink-Komponenten,
 - Mount- und Dateisystemgrenze,
 - freien Speicher,
-- privaten Steuerordner `.multimodultool2026`.
+- Austausch des Zielordners über Geräte-ID und Inode,
+- Ausschluss des privaten Steuerordners `.multimodultool2026`.
 
 ## Dateibestand analysieren
 
@@ -66,7 +82,7 @@ Unter **Organisieren** steht eine der Regeln zur Auswahl:
 - nach Dateiendung,
 - nach Änderungsjahr.
 
-Das Ziel liegt unter `Sortiert/` innerhalb des geprüften Projekts. Zuerst wird eine vollständige Vorher-/Nachher-Vorschau erzeugt. Bereits belegte Ziele, doppelte Ziele, Symlinks, Mehrfach-Hardlinks oder Dateisystemwechsel blockieren den gesamten Plan.
+Das Ziel ist der im Startassistenten bestätigte projektinterne Zielordner. Zuerst wird eine vollständige Vorher-/Nachher-Vorschau erzeugt. Bereits belegte Ziele, doppelte Ziele, Symlinks, Mehrfach-Hardlinks, Zielwechsel oder Dateisystemwechsel blockieren den gesamten Plan.
 
 ## Massenumbenennung
 
@@ -78,7 +94,7 @@ Unter **Massenumbenennen** können markierte oder alle analysierten Dateien gew�
 - Beibehalten, klein oder GROSS,
 - fortlaufende Nummer mit Startwert und Stellenzahl.
 
-Dateiendungen bleiben erhalten. Leere, zu lange, unsichere, doppelte, zyklische oder bereits belegte Zielnamen werden vor der Ausführung blockiert.
+Dateiendungen bleiben erhalten. Leere, zu lange, unsichere, doppelte, zyklische oder bereits belegte Zielnamen werden vor der Ausführung blockiert. Die Umbenennung bleibt am jeweiligen Ursprungsort und überschreitet nicht die Projektgrenze.
 
 ## Vorschau und Bestätigung
 
@@ -91,7 +107,7 @@ Jeder produktive Plan zeigt:
 - SHA-256-Planhash,
 - Ergebnis der Konfliktprüfung.
 
-Erst **Geprüften Plan ausführen …** und eine zweite Bestätigung starten die Dateiaktion. Es gibt kein stilles Überschreiben.
+Im Modus **Produktiv mit Bestätigung** starten erst **Geprüften Plan ausführen …** und eine zweite Bestätigung die Dateiaktion. Die beiden anderen Modi halten die Ausführung sichtbar gesperrt. Es gibt kein stilles Überschreiben.
 
 ## Checkpoint, Fortsetzung und Rückgängig
 
@@ -120,11 +136,11 @@ Analyse- und Operationsberichte werden privat gespeichert:
 <Projekt>/.multimodultool2026/reports/
 ```
 
-JSON und Markdown enthalten ausschließlich projekt-relative Pfade. Es gibt keinen automatischen Upload.
+JSON und Markdown enthalten ausschließlich projekt-relative Pfade. Es gibt keinen automatischen Upload. Im Modus **Nur prüfen** bleibt auch diese lokale Schreibfunktion gesperrt.
 
 ## Hilfe und Tooltips
 
-Der Menüpunkt **Hilfe** erklärt Projektwahl, Analyse, Duplikate, Vorschau, Abbruch, Fortsetzung, Rückgängig, Berichte und Signaturprüfung. Tooltips nennen Zweck, Sicherheitsgrenze und Blocker. Weiterhin nicht freigegebene Funktionen bleiben sichtbar und begründen ihre Sperre.
+Der Menüpunkt **Hilfe** erklärt Startassistent, Sicherheitsmodi, Analyse, Duplikate, Vorschau, Abbruch, Fortsetzung, Rückgängig, Berichte und Signaturprüfung. Tooltips nennen Zweck, Sicherheitsgrenze und Blocker. Weiterhin nicht freigegebene Funktionen bleiben sichtbar und begründen ihre Sperre.
 
 ## Fertige `_save_`-Dateien
 
@@ -176,6 +192,7 @@ multimodultool2026 --verify-installation
 
 ```bash
 python3 tools/validate_repository.py
+python3 -m unittest tests.test_start_assistant -v
 python3 -m unittest tests.test_productive_workflow -v
 python3 -m unittest tests.test_sign_release_artifacts -v
 python3 -m unittest tests.test_finalize_release_artifacts -v
