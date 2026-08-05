@@ -4,8 +4,14 @@ on:
   pull_request:
     paths:
       - .github/workflows/p3-009-main-signature-evidence.yml
+      - .github/workflows/release-candidate.yml
       - tools/collect_p3_009_main_signature_evidence.py
+      - tools/sign_release_artifacts.py
       - tests/test_collect_p3_009_main_signature_evidence.py
+      - tests/test_sign_release_artifacts.py
+  workflow_run:
+    workflows: ["Linux Release Candidate"]
+    types: [completed]
   workflow_dispatch:
     inputs:
       commit_sha:
@@ -18,14 +24,39 @@ permissions:
   actions: read
 
 jobs:
+  evidence-contract:
+    name: P3-009 Evidenzvertrag prüfen
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Nachweiswerkzeug auschecken
+        uses: actions/checkout@v4
+
+      - name: Python vorbereiten
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Evidenz- und Signaturregressionen ausführen
+        run: |
+          python3 -m unittest tests.test_collect_p3_009_main_signature_evidence -v
+          python3 -m unittest tests.test_sign_release_artifacts -v
+
   verify-main-signatures:
     name: Post-merge OIDC-Signaturartefakt nachweisen
+    if: >-
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_branch == 'main' &&
+       github.event.workflow_run.conclusion == 'success') ||
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:
       EVIDENCE_DIR: dist/p3-009-main-signature-evidence
-      COSIGN_IDENTITY_REGEXP: '^https://github.com/provoware/MULTIMODULTOOL2026/.github/workflows/release-candidate.yml@refs/(heads/main|tags/v.*)$'
-      COSIGN_OIDC_ISSUER: 'https://token.actions.githubusercontent.com'
+      RELEASE_CERTIFICATE_IDENTITY_REGEXP: '^https://github.com/provoware/MULTIMODULTOOL2026/.github/workflows/release-candidate.yml@refs/(heads/main|tags/v.*)$'
+      RELEASE_OIDC_ISSUER: 'https://token.actions.githubusercontent.com'
 
     steps:
       - name: Nachweiswerkzeug auschecken
@@ -39,21 +70,23 @@ jobs:
       - name: Offizielles Cosign installieren
         uses: sigstore/cosign-installer@v4.1.2
 
-      - name: Evidenzregressionen ausführen
-        run: python3 -m unittest tests.test_collect_p3_009_main_signature_evidence -v
+      - name: Evidenz- und Signaturregressionen ausführen
+        run: |
+          python3 -m unittest tests.test_collect_p3_009_main_signature_evidence -v
+          python3 -m unittest tests.test_sign_release_artifacts -v
 
       - name: Zu prüfendes main-SHA bestimmen
         id: target
         shell: bash
         env:
           EVENT_NAME: ${{ github.event_name }}
-          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          WORKFLOW_RUN_SHA: ${{ github.event.workflow_run.head_sha }}
           MANUAL_SHA: ${{ inputs.commit_sha }}
           CURRENT_SHA: ${{ github.sha }}
         run: |
           set -Eeuo pipefail
-          if [[ "$EVENT_NAME" == "pull_request" ]]; then
-            target_sha="$PR_BASE_SHA"
+          if [[ "$EVENT_NAME" == "workflow_run" ]]; then
+            target_sha="$WORKFLOW_RUN_SHA"
           elif [[ -n "$MANUAL_SHA" ]]; then
             target_sha="$MANUAL_SHA"
           else
@@ -62,49 +95,6 @@ jobs:
           [[ "$target_sha" =~ ^[0-9a-f]{40}$ ]]
           echo "sha=$target_sha" >> "$GITHUB_OUTPUT"
           echo "P3-009 main evidence target: $target_sha"
-
-      - name: GitHub-Laufkandidaten für das Ziel-SHA protokollieren
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          TARGET_SHA: ${{ steps.target.outputs.sha }}
-        run: |
-          python3 - <<'PY'
-          import json
-          import os
-          from urllib.request import Request, urlopen
-
-          url = (
-              f"https://api.github.com/repos/{os.environ['GITHUB_REPOSITORY']}/actions/runs"
-              f"?head_sha={os.environ['TARGET_SHA']}&per_page=100"
-          )
-          request = Request(
-              url,
-              headers={
-                  "Accept": "application/vnd.github+json",
-                  "Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}",
-                  "X-GitHub-Api-Version": "2022-11-28",
-                  "User-Agent": "multimodultool2026-p3-009-evidence-diagnostic",
-              },
-          )
-          with urlopen(request, timeout=60) as response:
-              payload = json.load(response)
-          summary = [
-              {
-                  "id": run.get("id"),
-                  "name": run.get("name"),
-                  "path": run.get("path"),
-                  "event": run.get("event"),
-                  "head_branch": run.get("head_branch"),
-                  "head_sha": run.get("head_sha"),
-                  "status": run.get("status"),
-                  "conclusion": run.get("conclusion"),
-                  "run_attempt": run.get("run_attempt"),
-                  "html_url": run.get("html_url"),
-              }
-              for run in payload.get("workflow_runs", [])
-          ]
-          print(json.dumps(summary, indent=2, sort_keys=True))
-          PY
 
       - name: main-Lauf, Artefakt, Identität, Aussteller und Digests verifizieren
         env:
@@ -115,8 +105,8 @@ jobs:
             --repository "$GITHUB_REPOSITORY" \
             --commit-sha '${{ steps.target.outputs.sha }}' \
             --output-directory "$EVIDENCE_DIR" \
-            --identity-regexp "$COSIGN_IDENTITY_REGEXP" \
-            --issuer "$COSIGN_OIDC_ISSUER"
+            --identity-regexp "$RELEASE_CERTIFICATE_IDENTITY_REGEXP" \
+            --issuer "$RELEASE_OIDC_ISSUER"
 
       - name: Abschlussnachweis strikt prüfen
         shell: bash
