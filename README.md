@@ -1,17 +1,17 @@
 # MULTIMODULTOOL2026
 
-> **Entwicklungsfortschritt: 60 %**  
-> **Erledigte Punkte: 41**  
-> **Offene Punkte: 27**  
+> **Entwicklungsfortschritt: 62 %**  
+> **Erledigte Punkte: 42**  
+> **Offene Punkte: 26**  
 > **Gesamtpunkte: 68**  
-> **Aktuelle Phase:** P1-003 bis P1-009 und P3-009 abgenommen; P1-001/P1-002 bleiben offen  
+> **Aktuelle Phase:** P1-001 und P1-003 bis P1-009 sowie P3-009 abgenommen; P1-002 bleibt offen  
 > **Letzte Fortschrittsprüfung:** 2026-08-05
 
 > **Plattformvertrag:** ausschließlich Linux-Desktop; primär Kubuntu 22.04 LTS und Kubuntu 24.04 LTS unter KDE Plasma, X11 oder Wayland auf x86-64.
 
-MULTIMODULTOOL2026 ist ein lokal arbeitendes Linux-Desktop-Werkzeug für sichere Dateiorganisation. Der Schutzkern für XDG-Pfade, Einstellungen, Fehlerereignisse, Single-Instance, Projektpapierkorb, Undo/Redo, Abbruch, Wiederanlauf und reproduzierbare Debian-Pakete bleibt erhalten. Neu hinzugekommen sind ein produktiver, vorschaugebundener Dateiworkflow sowie ein schlüsselloses Sigstore-Release-Gate.
+MULTIMODULTOOL2026 ist ein lokal arbeitendes Linux-Desktop-Werkzeug für sichere Dateiorganisation. Der Schutzkern für XDG-Pfade, Einstellungen, Fehlerereignisse, Single-Instance, Projektpapierkorb, Undo/Redo, Abbruch, Wiederanlauf und reproduzierbare Debian-Pakete bleibt erhalten. Der produktive Dateiworkflow wird jetzt durch einen vollständig vorvalidierten Startassistenten mit getrenntem projektinternem Ziel und drei Sicherheitsmodi freigegeben; das schlüssellose Sigstore-Release-Gate ist kryptografisch nachgewiesen.
 
-Die formale Fortschrittszahl enthält jetzt den vollständig belegten produktiven P1-Dateikern sowie den kryptografisch nachgewiesenen P3-009-Hauptzweiglauf. P1-001 und P1-002 bleiben bis zu ihrer getrennten Bedienabnahme offen.
+Die formale Fortschrittszahl enthält P1-001 nach grüner Unit-, Qt-Offscreen-, reproduzierbarer Build- und Kubuntu-22.04-/24.04-Abnahme. P1-002 bleibt bis zur getrennten Navigationserprobung mit eindeutigem Aktivzustand und Zurück-Pfad offen.
 
 ## Schnellstart
 
@@ -30,19 +30,32 @@ python3 -m src.main --show-diagnostics
 python3 -m src.main --help
 ```
 
-## Produktiver Arbeitsablauf
+## Geführter und produktiver Arbeitsablauf
 
-1. **Projektordner wählen:** Eigentümer, Rechte, Symlink-Komponenten, Mountgrenzen und freier Speicher werden geprüft.
-2. **Bestand analysieren:** Typ, Größe, Änderungszeit, Dateiendung, Kategorie und Namenshinweise werden rein lesend erfasst.
-3. **Duplikate suchen:** Nur reguläre größenidentische Dateien werden streamend per SHA-256 verglichen. Es erfolgt keine automatische Löschung.
-4. **Vorschau erzeugen:** Organisation oder Massenumbenennung zeigt jeden Vorher-/Nachher-Pfad und bindet ihn an einen Planhash.
-5. **Ausdrücklich bestätigen:** Doppelte, belegte, unsichere oder zyklische Ziele blockieren den gesamten Plan.
-6. **Ausführen und nachprüfen:** Jeder Schritt nutzt `os.replace`, einen privaten Checkpoint und einen gebundenen Dateifingerabdruck.
-7. **Fortsetzen oder rückgängig:** Nach einer Unterbrechung werden Quelle und Ziel abgeglichen. Undo arbeitet rückwärts und nur bei unveränderten Dateien.
-8. **Bericht speichern:** JSON und Markdown enthalten ausschließlich projekt-relative Pfade.
+1. **Startassistent öffnen:** Projektordner und davon getrennten Zielordner ausschließlich über Dialoge wählen.
+2. **Sicherheitsmodus wählen:** `Nur prüfen`, `Vorschau und Bericht` oder `Produktiv mit Bestätigung`.
+3. **Vollständig vorvalidieren:** Eigentümer, Rechte, Symlink-Komponenten, Mountgrenzen, Dateisystem, freier Speicher sowie Geräte-ID und Inode des Zielordners werden geprüft.
+4. **Zusammenfassung bestätigen:** Ohne verständliche Freigabeübersicht bleiben Analyse, Bericht und Dateiänderung gesperrt.
+5. **Bestand analysieren:** Typ, Größe, Änderungszeit, Dateiendung, Kategorie und Namenshinweise werden rein lesend erfasst.
+6. **Duplikate suchen:** Nur reguläre größenidentische Dateien werden streamend per SHA-256 verglichen. Es erfolgt keine automatische Löschung.
+7. **Vorschau erzeugen:** Organisation nutzt ausschließlich den bestätigten Zielordner; Massenumbenennung zeigt jeden Vorher-/Nachher-Pfad und bindet ihn an einen Planhash.
+8. **Ausdrücklich bestätigen:** Doppelte, belegte, unsichere oder zyklische Ziele blockieren den gesamten Plan. Produktive Ausführung benötigt eine zweite Bestätigung.
+9. **Ausführen und nachprüfen:** Jeder Schritt nutzt `os.replace`, einen privaten Checkpoint und einen gebundenen Dateifingerabdruck.
+10. **Fortsetzen oder rückgängig:** Nach einer Unterbrechung werden Quelle und Ziel abgeglichen. Undo arbeitet rückwärts und nur bei unveränderten Dateien.
+11. **Bericht speichern:** JSON und Markdown enthalten ausschließlich projekt-relative Pfade; im Modus `Nur prüfen` bleibt auch dieser Schreibzugriff gesperrt.
+
+### Sicherheitsmodi
+
+| Modus | Analyse und Vorschau | Bericht | Dateiänderung |
+|---|---:|---:|---:|
+| `Nur prüfen` | erlaubt | gesperrt | gesperrt |
+| `Vorschau und Bericht` | erlaubt | erlaubt | gesperrt |
+| `Produktiv mit Bestätigung` | erlaubt | erlaubt | erst nach vollständiger Vorschau und zweiter Bestätigung |
 
 ### Harte Dateigrenzen
 
+- Projekt- und Zielordner müssen getrennt sein
+- Ziel bleibt innerhalb der geprüften Projektgrenze und auf demselben Dateisystem
 - kein stilles Überschreiben
 - keine Symlinkverfolgung
 - keine produktive Verarbeitung von Mehrfach-Hardlinks
@@ -50,8 +63,9 @@ python3 -m src.main --help
 - keine produktive Verarbeitung des internen Steuerordners
 - private Operationsordner `0700`, private Plan-/Checkpointdateien `0600`
 - Fingerabdruck aus Geräte-ID, Inode, Modus, Größe, Änderungszeit und Linkanzahl
+- Zielordner wird vor jeder kritischen Freigabe erneut gegen Geräte-ID, Inode und Eigentümer geprüft
 
-`P1-001` und `P1-002` bleiben offen: Der eigene Startassistent benötigt weiterhin separat wählbares Ziel und Sicherheitsmodus; die Kachelnavigation benötigt noch den vollständig geprüften aktiven Zustand und Zurück-Pfad. Die produktiven Operationen bleiben absichtlich innerhalb eines geprüften Projektordners.
+`P1-002` bleibt offen: Die kachelbasierte Navigation benötigt noch einen durchgehend geprüften aktiven Zustand, eine eindeutige Escape-/Zurück-Hierarchie und die sichere Rückkehr zum tatsächlichen Auslöser.
 
 ## Release-Dateistatus
 
@@ -59,7 +73,7 @@ Die Kennzeichnung `_save_` wird ausschließlich auf geprüfte Releaseausgaben an
 
 | Fertige Dateien nach grüner Kubuntu-Matrix | Unfertig oder nicht freigegeben |
 |---|---|
-| `multimodultool2026_<version>_amd64_save_.deb` | P1-001/P1-002: Startassistent sowie aktiver Kachelzustand und Zurück-Pfad |
+| `multimodultool2026_<version>_amd64_save_.deb` | P1-002: aktiver Kachelzustand, Zurück-Pfad und Fokus-Rückkehr |
 | `multimodultool2026_<version>_amd64_save_.deb.sha256` | P2: vollständige Tastatur-, Zoom-, Kontrast- und Responsive-Abnahme |
 | `multimodultool2026-<version>-amd64_save_.tar.gz` | P3: Journalrotation, Modulgrenzen, Abdeckung, Qualität und Migration |
 | `release-manager_save_.sh` | P4: optionale Medien-, Plugin- und portable Funktionen |
@@ -106,6 +120,7 @@ python3 tools/sign_release_artifacts.py verify \
 
 ```bash
 python3 tools/validate_repository.py
+python3 -m unittest tests.test_start_assistant -v
 python3 -m unittest tests.test_productive_workflow -v
 python3 -m unittest tests.test_sign_release_artifacts -v
 QT_QPA_PLATFORM=offscreen python3 -m unittest tests.test_gui_offscreen -v
