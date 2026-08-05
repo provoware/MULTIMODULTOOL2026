@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import tarfile
 import tempfile
 import unittest
 
@@ -26,10 +27,10 @@ class FinalizeReleaseArtifactsTests(unittest.TestCase):
         bundle = self.source / self.bundle_name
         package.write_bytes(b"candidate-package\n")
         bundle.write_bytes(b"candidate-bundle\n")
-        package_sha = hashlib.sha256(package.read_bytes()).hexdigest()
-        bundle_sha = hashlib.sha256(bundle.read_bytes()).hexdigest()
+        self.package_sha = hashlib.sha256(package.read_bytes()).hexdigest()
+        self.source_bundle_sha = hashlib.sha256(bundle.read_bytes()).hexdigest()
         (self.source / f"{self.package_name}.sha256").write_text(
-            f"{package_sha}  {self.package_name}\n",
+            f"{self.package_sha}  {self.package_name}\n",
             encoding="utf-8",
         )
         manager = self.source / "release-manager.sh"
@@ -41,9 +42,9 @@ class FinalizeReleaseArtifactsTests(unittest.TestCase):
                     "version": "0.9.0~rc1",
                     "buildId": "MMTBUILD-0.9.0~rc1-0123456789abcdef",
                     "package": f"dist/candidate-a/{self.package_name}",
-                    "packageSha256": package_sha,
+                    "packageSha256": self.package_sha,
                     "bundle": f"dist/candidate-a/{self.bundle_name}",
-                    "bundleSha256": bundle_sha,
+                    "bundleSha256": self.source_bundle_sha,
                     "installedManifestSha256": "f" * 64,
                 }
             ),
@@ -66,7 +67,7 @@ class FinalizeReleaseArtifactsTests(unittest.TestCase):
     def test_every_final_file_contains_save_suffix_and_hashes_remain_valid(self) -> None:
         manifest = finalize_release(self.source, self.output, self.policy)
         names = sorted(path.name for path in self.output.iterdir())
-        self.assertTrue(names)
+        self.assertEqual(6, len(names))
         self.assertTrue(all(SAVE_SUFFIX in name for name in names))
         self.assertIn("multimodultool2026_0.9.0~rc1_amd64_save_.deb", names)
         self.assertIn("multimodultool2026_0.9.0~rc1_amd64_save_.deb.sha256", names)
@@ -83,6 +84,28 @@ class FinalizeReleaseArtifactsTests(unittest.TestCase):
             (self.output / "CANDIDATE_BUILD_RESULT_save_.json").read_text(encoding="utf-8")
         )
         self.assertEqual("ready-after-green-kubuntu-matrix", normalized["releaseStatus"])
+        self.assertEqual(self.source_bundle_sha, normalized["sourceBundleSha256"])
+        final_bundle = self.output / normalized["bundle"]
+        self.assertEqual(
+            hashlib.sha256(final_bundle.read_bytes()).hexdigest(),
+            normalized["bundleSha256"],
+        )
+
+    def test_final_bundle_is_deterministic_and_internal_files_are_suffixed(self) -> None:
+        finalize_release(self.source, self.output, self.policy)
+        bundle = self.output / "multimodultool2026-0.9.0~rc1-amd64_save_.tar.gz"
+        first_bytes = bundle.read_bytes()
+        with tarfile.open(bundle, "r:gz") as archive:
+            members = archive.getmembers()
+        self.assertTrue(members)
+        self.assertTrue(all(SAVE_SUFFIX in Path(member.name).parts[0] for member in members))
+        regular_names = [Path(member.name).name for member in members if member.isfile()]
+        self.assertEqual(4, len(regular_names))
+        self.assertTrue(all(SAVE_SUFFIX in name for name in regular_names))
+        self.assertIn("INSTALLIEREN_save_.txt", regular_names)
+
+        finalize_release(self.source, self.output, self.policy)
+        self.assertEqual(first_bytes, bundle.read_bytes())
 
     def test_existing_generated_output_is_replaced_without_stale_files(self) -> None:
         self.output.mkdir()
