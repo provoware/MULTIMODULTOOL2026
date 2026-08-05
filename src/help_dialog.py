@@ -6,7 +6,7 @@ from .productive_integration import install_productive_ui
 
 HELP_SECTIONS: tuple[tuple[str, str], ...] = (
     (
-        "Projekt sicher wählen",
+        "Sicherer Einstieg – Projekt wählen",
         "Projektordner ausschließlich über den Auswahldialog wählen. Systemstämme, der Home-Stamm, "
         "fremde Eigentümer, Symlink-Komponenten, unzureichende Rechte und zu wenig freier Speicher "
         "werden vor jeder Analyse oder Dateiaktion blockiert.",
@@ -29,7 +29,7 @@ HELP_SECTIONS: tuple[tuple[str, str], ...] = (
         "Ausgeführt wird erst nach einer zweiten ausdrücklichen Bestätigung.",
     ),
     (
-        "Checkpoint, Fortsetzung und Rückgängig",
+        "Abbruch und Fortsetzung – Checkpoint und Rückgängig",
         "Jeder bestätigte Schritt wird in einem privaten Operationsordner protokolliert. Nach einer Unterbrechung "
         "werden Quelle, Ziel und Fingerabdruck mit dem unveränderlichen Plan abgeglichen. Rückgängig arbeitet "
         "rückwärts und nur bei unveränderten Zieldateien sowie freien Originalpfaden.",
@@ -40,13 +40,13 @@ HELP_SECTIONS: tuple[tuple[str, str], ...] = (
         "Sie enthalten ausschließlich projekt-relative Pfade und keinen automatischen Upload.",
     ),
     (
-        "Kryptografisch signierte Releases",
+        "Release-Dateien und kryptografische Signaturen",
         "Nach grüner Kubuntu-Matrix werden die _save_-Dateien mit Sigstore keyless OIDC signiert. Jede Datei erhält "
         "ein JSON-Bundle; zusätzlich wird ein SHA-256-Releasemanifest erstellt und selbst signiert. Die Prüfung bindet "
         "Workflowidentität und OIDC-Aussteller. Im Repository liegt kein langlebiger privater Schlüssel.",
     ),
     (
-        "Bewusste Grenzen",
+        "Gesperrte Bereiche und bewusste Grenzen",
         "Grafische Einstellungen, vollständige KDE-Tastaturabnahme, Zoom 80–200 Prozent, weitere Themes, "
         "Journalrotation, Datenmigration, Plugin-Sandbox und physische X11-/Wayland-Abnahme bleiben getrennte Aufgaben.",
     ),
@@ -54,7 +54,7 @@ HELP_SECTIONS: tuple[tuple[str, str], ...] = (
 
 
 def build_help_dialog(QtWidgets, parent=None):
-    """Build a non-destructive help dialog without reading or writing user data."""
+    """Build help and attach the local-only productive UI without touching project data."""
 
     if parent is not None:
         install_productive_ui(QtWidgets, parent)
