@@ -63,6 +63,49 @@ jobs:
           echo "sha=$target_sha" >> "$GITHUB_OUTPUT"
           echo "P3-009 main evidence target: $target_sha"
 
+      - name: GitHub-Laufkandidaten für das Ziel-SHA protokollieren
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          TARGET_SHA: ${{ steps.target.outputs.sha }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from urllib.request import Request, urlopen
+
+          url = (
+              f"https://api.github.com/repos/{os.environ['GITHUB_REPOSITORY']}/actions/runs"
+              f"?head_sha={os.environ['TARGET_SHA']}&per_page=100"
+          )
+          request = Request(
+              url,
+              headers={
+                  "Accept": "application/vnd.github+json",
+                  "Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}",
+                  "X-GitHub-Api-Version": "2022-11-28",
+                  "User-Agent": "multimodultool2026-p3-009-evidence-diagnostic",
+              },
+          )
+          with urlopen(request, timeout=60) as response:
+              payload = json.load(response)
+          summary = [
+              {
+                  "id": run.get("id"),
+                  "name": run.get("name"),
+                  "path": run.get("path"),
+                  "event": run.get("event"),
+                  "head_branch": run.get("head_branch"),
+                  "head_sha": run.get("head_sha"),
+                  "status": run.get("status"),
+                  "conclusion": run.get("conclusion"),
+                  "run_attempt": run.get("run_attempt"),
+                  "html_url": run.get("html_url"),
+              }
+              for run in payload.get("workflow_runs", [])
+          ]
+          print(json.dumps(summary, indent=2, sort_keys=True))
+          PY
+
       - name: main-Lauf, Artefakt, Identität, Aussteller und Digests verifizieren
         env:
           GITHUB_TOKEN: ${{ github.token }}
