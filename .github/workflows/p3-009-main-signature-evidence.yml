@@ -53,7 +53,7 @@ jobs:
        github.event.workflow_run.conclusion == 'success') ||
       github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 20
     env:
       EVIDENCE_DIR: dist/p3-009-main-signature-evidence
       RELEASE_CERTIFICATE_IDENTITY_REGEXP: '^https://github.com/provoware/MULTIMODULTOOL2026/.github/workflows/release-candidate.yml@refs/(heads/main|tags/v.*)$'
@@ -105,12 +105,23 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -Eeuo pipefail
-          python3 tools/collect_p3_009_main_signature_evidence.py \
-            --repository "$GITHUB_REPOSITORY" \
-            --commit-sha '${{ steps.target.outputs.sha }}' \
-            --output-directory "$EVIDENCE_DIR" \
-            --identity-regexp "$RELEASE_CERTIFICATE_IDENTITY_REGEXP" \
-            --issuer "$RELEASE_OIDC_ISSUER"
+          for attempt in $(seq 1 36); do
+            echo "Evidenzversuch $attempt/36 für main-SHA ${{ steps.target.outputs.sha }}"
+            if python3 tools/collect_p3_009_main_signature_evidence.py \
+              --repository "$GITHUB_REPOSITORY" \
+              --commit-sha '${{ steps.target.outputs.sha }}' \
+              --output-directory "$EVIDENCE_DIR" \
+              --identity-regexp "$RELEASE_CERTIFICATE_IDENTITY_REGEXP" \
+              --issuer "$RELEASE_OIDC_ISSUER"; then
+              exit 0
+            fi
+            rm -rf "$EVIDENCE_DIR"
+            if [[ "$attempt" -eq 36 ]]; then
+              echo 'Kein verifizierbarer erfolgreicher main-Signaturlauf innerhalb des kontrollierten Prüfintervalls.' >&2
+              exit 2
+            fi
+            sleep 20
+          done
 
       - name: Abschlussnachweis strikt prüfen
         shell: bash
