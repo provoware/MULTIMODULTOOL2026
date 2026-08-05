@@ -114,9 +114,10 @@ jobs:
           log="$report_dir/kubuntu-${{ matrix.series }}.log"
           outer_exit="$report_dir/kubuntu-${{ matrix.series }}.outer-exit-code"
           chmod 0755 tests/helpers/kubuntu_release_lifecycle.sh
-          tests/helpers/kubuntu_release_lifecycle.sh \
-            '${{ matrix.series }}' \
-            dist/release-artifacts 2>&1 | tee "$log"
+          timeout --signal=TERM --kill-after=30s 74m \
+            tests/helpers/kubuntu_release_lifecycle.sh \
+              '${{ matrix.series }}' \
+              dist/release-artifacts 2>&1 | tee "$log"
           code=${PIPESTATUS[0]}
           printf '%s\n' "$code" > "$outer_exit"
           exit "$code"
