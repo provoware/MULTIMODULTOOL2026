@@ -16,11 +16,32 @@ done
 REPORT_DIR="$ARTIFACT_DIR/lifecycle-reports"
 mkdir -p "$REPORT_DIR"
 REPORT="$REPORT_DIR/kubuntu-$SERIES.json"
-printf '[mmt-release-diagnostic] requested-series=%s container-image=ubuntu:%s artifact-dir=%s\n' \
+PHASE_FILE="$REPORT_DIR/kubuntu-$SERIES.phase"
+INNER_EXIT_FILE="$REPORT_DIR/kubuntu-$SERIES.inner-exit-code"
+printf '%s\n' 'prepare-container' > "$PHASE_FILE"
+printf '[mmt-release-diagnostic] requested-series=%s container-image=ubuntu:%s artifact-dir=%s phase=prepare-container\n' \
     "$SERIES" "$SERIES" "$ARTIFACT_DIR"
 
 DOCKER_SCRIPT='set -Eeuo pipefail
 export DEBIAN_FRONTEND=noninteractive
+PHASE_FILE=/artifacts/lifecycle-reports/kubuntu-'"$SERIES"'.phase
+INNER_EXIT_FILE=/artifacts/lifecycle-reports/kubuntu-'"$SERIES"'.inner-exit-code
+phase() {
+  printf "%s\n" "$1" > "$PHASE_FILE"
+  printf "[mmt-release-diagnostic] requested-series='"$SERIES"' actual-version-id=%s bash=%s phase=%s\n" \
+    "$(. /etc/os-release && printf "%s" "$VERSION_ID")" "$BASH_VERSION" "$1"
+}
+on_exit() {
+  code=$?
+  current_phase="$(cat "$PHASE_FILE" 2>/dev/null || printf unknown)"
+  printf "%s\n" "$code" > "$INNER_EXIT_FILE"
+  printf "[mmt-release-diagnostic] requested-series='"$SERIES"' phase=%s original-exit-code=%s\n" \
+    "$current_phase" "$code"
+  exit "$code"
+}
+trap on_exit EXIT
+
+phase prepare-kubuntu-packages
 printf "#!/bin/sh\nexit 101\n" > /usr/sbin/policy-rc.d
 chmod 0755 /usr/sbin/policy-rc.d
 apt-get update
@@ -30,11 +51,11 @@ apt-get update
 printf "sddm shared/default-x-display-manager select sddm\n" | debconf-set-selections || true
 apt-get install -y --no-install-recommends kubuntu-desktop plasma-desktop
 
-printf "[mmt-release-diagnostic] requested-series='"$SERIES"' actual-version-id=%s bash=%s phase=validate-package-state\n" \
-  "$(. /etc/os-release && printf "%s" "$VERSION_ID")" "$BASH_VERSION"
+phase validate-package-state
 dpkg-query -W -f="\${Status}\n" kubuntu-desktop | grep -q "install ok installed"
 dpkg-query -W -f="\${Status}\n" plasma-desktop | grep -q "install ok installed"
 
+phase prepare-test-user
 useradd -m -u 1000 -s /bin/bash mmt
 mkdir -p /run/user/1000
 chown 1000:1000 /run/user/1000
@@ -57,9 +78,11 @@ build_version() {
   /usr/bin/multimodultool2026 --build-info | python3 -c "import json,sys; print(json.load(sys.stdin)[\"version\"])"
 }
 
+phase verify-release-artifacts
 /artifacts/release-manager.sh verify /artifacts/multimodultool2026_0.8.0~rc1_amd64.deb
 /artifacts/release-manager.sh verify /artifacts/multimodultool2026_0.9.0~rc1_amd64.deb
 
+phase reject-misbound-checksum
 cp /artifacts/multimodultool2026_0.8.0~rc1_amd64.deb /artifacts/checksum-binding.deb
 cp /artifacts/multimodultool2026_0.8.0~rc1_amd64.deb.sha256 /artifacts/checksum-binding.deb.sha256
 if /artifacts/release-manager.sh verify /artifacts/checksum-binding.deb; then
@@ -68,6 +91,7 @@ if /artifacts/release-manager.sh verify /artifacts/checksum-binding.deb; then
 fi
 rm -f /artifacts/checksum-binding.deb /artifacts/checksum-binding.deb.sha256
 
+phase install-baseline
 /artifacts/release-manager.sh install /artifacts/multimodultool2026_0.8.0~rc1_amd64.deb --yes
 [[ "$(build_version)" == "0.8.0~rc1" ]]
 run_as_mmt /usr/bin/multimodultool2026 --validate-only
@@ -79,25 +103,30 @@ VENV_DIR="$RUNTIME_ROOT/venv-$SAFE_BASELINE_BUILD"
 [[ "$(stat -c %a /home/mmt/.local/share/multimodultool2026)" == "700" ]]
 [[ "$(stat -c %a "$RUNTIME_ROOT")" == "700" ]]
 
+phase recover-damaged-runtime
 rm -f "$VENV_DIR/bin/python"
 run_as_mmt /usr/bin/multimodultool2026 --validate-only
 [[ -x "$VENV_DIR/bin/python" ]]
 [[ "$(find "$RUNTIME_ROOT" -maxdepth 1 -name ".venv-*.tmp" -o -name ".venv-*.invalid" | wc -l)" -eq 0 ]]
 
+phase upgrade-candidate
 /artifacts/release-manager.sh upgrade /artifacts/multimodultool2026_0.9.0~rc1_amd64.deb --yes
 [[ "$(build_version)" == "0.9.0~rc1" ]]
 run_as_mmt /usr/bin/multimodultool2026 --validate-only
 CANDIDATE_BUILD="$(run_as_mmt /usr/bin/multimodultool2026 --build-info | python3 -c "import json,sys; print(json.load(sys.stdin)[\"buildId\"])" )"
 [[ "$BASELINE_BUILD" != "$CANDIDATE_BUILD" ]]
 
+phase rollback-baseline
 /artifacts/release-manager.sh rollback --yes
 [[ "$(build_version)" == "0.8.0~rc1" ]]
 run_as_mmt /usr/bin/multimodultool2026 --validate-only
 
+phase reupgrade-candidate
 /artifacts/release-manager.sh upgrade /artifacts/multimodultool2026_0.9.0~rc1_amd64.deb --yes
 [[ "$(build_version)" == "0.9.0~rc1" ]]
 run_as_mmt /usr/bin/multimodultool2026 --validate-only
 
+phase uninstall-preserve-user-data
 mkdir -p /home/mmt/.config/multimodultool2026
 printf preserved > /home/mmt/.config/multimodultool2026/preserve.test
 chown -R mmt:mmt /home/mmt/.config
@@ -107,6 +136,7 @@ chown -R mmt:mmt /home/mmt/.config
 [[ ! -e /usr/lib/multimodultool2026 ]]
 [[ ! -e /usr/share/applications/multimodultool2026.desktop ]]
 
+phase purge-selected-user-data
 /artifacts/release-manager.sh install /artifacts/multimodultool2026_0.9.0~rc1_amd64.deb --yes
 run_as_mmt /usr/bin/multimodultool2026 --validate-only
 MMT_PURGE_USER=mmt /artifacts/release-manager.sh uninstall --purge-system-state --purge-current-user-data --yes
@@ -119,6 +149,7 @@ MMT_PURGE_USER=mmt /artifacts/release-manager.sh uninstall --purge-system-state 
 [[ ! -e /home/mmt/.cache/multimodultool2026 ]]
 [[ ! -e /home/mmt/.local/state/multimodultool2026 ]]
 
+phase write-report
 python3 - <<PY > /artifacts/lifecycle-reports/kubuntu-'"$SERIES"'.json
 import json
 print(json.dumps({
@@ -136,8 +167,10 @@ print(json.dumps({
   "rollback": "passed",
   "removePreservesUserData": "passed",
   "purgeRemovesSelectedUserData": "passed",
+  "lastPhase": "completed"
 }, sort_keys=True, indent=2))
 PY
+phase completed
 '
 
 docker run --rm --platform linux/amd64 \
