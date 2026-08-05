@@ -44,9 +44,9 @@ from .xdg_paths import (
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_PATH = PROJECT_ROOT / "layout-manifest.json"
-DEVELOPMENT_PROGRESS = 60
-COMPLETED_POINTS = 41
-OPEN_POINTS = 27
+DEVELOPMENT_PROGRESS = 62
+COMPLETED_POINTS = 42
+OPEN_POINTS = 26
 ZONE_OBJECT_NAMES = (
     "header",
     "navigation",
