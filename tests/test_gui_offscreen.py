@@ -89,7 +89,7 @@ class OffscreenGuiSmokeTests(unittest.TestCase):
         self.assertTrue(context.widgetResizable())
         self.assertEqual(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff, workspace.horizontalScrollBarPolicy())
 
-    def test_guided_actions_explain_and_enforce_initial_gate(self) -> None:
+    def test_unreleased_actions_are_disabled_and_explain_their_blocker(self) -> None:
         navigation_names = (
             "analysisNavigation", "duplicatesNavigation", "organizeNavigation",
             "renameNavigation", "reportsNavigation",
