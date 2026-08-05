@@ -70,11 +70,12 @@
   ],
   "projectProgress": {
     "statusDate": "2026-08-05",
-    "completed": 41,
-    "open": 27,
+    "completed": 42,
+    "open": 26,
     "total": 68,
-    "percent": 60,
+    "percent": 62,
     "newlyVerifiedTasks": [
+      "P1-001",
       "P1-003",
       "P1-004",
       "P1-005",
@@ -85,13 +86,30 @@
       "P3-009"
     ],
     "remainingP1Tasks": [
-      "P1-001",
       "P1-002"
-    ]
+    ],
+    "p1StartAssistant": {
+      "status": "verified",
+      "mergeCommitSha": "efaea837a68795a1f7bf69b881f84f3c0b482757",
+      "pullRequest": 105,
+      "projectAndTargetSelectionByDialog": true,
+      "separateTargetInsideProject": true,
+      "safetyModes": [
+        "read-only",
+        "preview-report",
+        "productive"
+      ],
+      "summaryConfirmationRequired": true,
+      "unitAndQtOffscreenVerified": true,
+      "reproducibleBuildVerified": true,
+      "kubuntuMatrixVerified": [
+        "22.04",
+        "24.04"
+      ]
+    }
   },
   "unfinished": [
-    "P1-001 guided start assistant with separate target and safety-mode choice",
-    "P1-002 tile navigation active-state and validated back-path completion",
+    "P1-002 tile navigation active-state, back-path and focus-return completion",
     "P2 remaining accessibility, contrast, responsive and confirmation work",
     "P3-001 through P3-008 remaining architecture, journal rotation, module interface, coverage, quality, migration and build-ID work",
     "P4 optional media, plugin, portable and physical desktop acceptance"
