@@ -183,8 +183,8 @@ jobs:
       id-token: write
     env:
       SIGNED_DIR: dist/release-signed
-      COSIGN_IDENTITY_REGEXP: '^https://github.com/provoware/MULTIMODULTOOL2026/.github/workflows/release-candidate.yml@refs/(heads/main|tags/v.*)$'
-      COSIGN_OIDC_ISSUER: 'https://token.actions.githubusercontent.com'
+      RELEASE_CERTIFICATE_IDENTITY_REGEXP: '^https://github.com/provoware/MULTIMODULTOOL2026/.github/workflows/release-candidate.yml@refs/(heads/main|tags/v.*)$'
+      RELEASE_OIDC_ISSUER: 'https://token.actions.githubusercontent.com'
     steps:
       - name: Repository auschecken
         uses: actions/checkout@v4
@@ -218,8 +218,8 @@ jobs:
           set -Eeuo pipefail
           python3 tools/sign_release_artifacts.py manifest \
             --directory "$SIGNED_DIR" \
-            --identity-regexp "$COSIGN_IDENTITY_REGEXP" \
-            --issuer "$COSIGN_OIDC_ISSUER"
+            --identity-regexp "$RELEASE_CERTIFICATE_IDENTITY_REGEXP" \
+            --issuer "$RELEASE_OIDC_ISSUER"
           cosign sign-blob --yes \
             --bundle "$SIGNED_DIR/SIGNED_RELEASE_MANIFEST_save_.json.sigstore.json" \
             "$SIGNED_DIR/SIGNED_RELEASE_MANIFEST_save_.json"
@@ -228,8 +228,8 @@ jobs:
         run: |
           python3 tools/sign_release_artifacts.py verify \
             --directory "$SIGNED_DIR" \
-            --identity-regexp "$COSIGN_IDENTITY_REGEXP" \
-            --issuer "$COSIGN_OIDC_ISSUER"
+            --identity-regexp "$RELEASE_CERTIFICATE_IDENTITY_REGEXP" \
+            --issuer "$RELEASE_OIDC_ISSUER"
           python3 -m unittest tests.test_sign_release_artifacts -v
           find "$SIGNED_DIR" -maxdepth 1 -type f -printf '%f\n' | sort
           [[ "$(find "$SIGNED_DIR" -maxdepth 1 -type f | wc -l)" -eq 14 ]]
