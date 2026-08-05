@@ -51,6 +51,7 @@ class ReleaseBuilderTests(unittest.TestCase):
         )
         extract = self.root / "extract"
         subprocess.run(["dpkg-deb", "-x", result.package_path, extract], check=True)
+        app_root = extract / "usr/lib/multimodultool2026/app"
         info = json.loads(
             (extract / "usr/lib/multimodultool2026/BUILD_INFO.json").read_text(encoding="utf-8")
         )
@@ -65,6 +66,37 @@ class ReleaseBuilderTests(unittest.TestCase):
             capture_output=True,
         )
         self.assertEqual(0, completed.returncode, completed.stderr)
+
+        layout = json.loads((app_root / "layout-manifest.json").read_text(encoding="utf-8"))
+        reference_path = layout["referenceAsset"]["path"]
+        self.assertTrue((app_root / reference_path).is_file(), reference_path)
+        for relative in layout["validation"]["documentation"]:
+            self.assertTrue((app_root / relative).is_file(), relative)
+
+    def test_release_payload_list_contains_manifest_dependencies(self) -> None:
+        project_root = Path(__file__).resolve().parents[1]
+        payload_entries = {
+            line.strip()
+            for line in (project_root / "release/package-files.txt").read_text(encoding="utf-8").splitlines()
+            if line.strip() and not line.lstrip().startswith("#")
+        }
+        required_roots = {
+            "README.md",
+            "AGENTS.md",
+            "ANLEITUNG_TOOL.md",
+            "CHANGELOG.md",
+            "TODO.md",
+            "SCHWACHSTELLEN.md",
+            "UPGRADE_POOL.md",
+            "ENTWICKLERDOKU.md",
+            "assets/ui-reference",
+            "docs",
+            "standards",
+            "layout-manifest.json",
+            "requirements.txt",
+            "src",
+        }
+        self.assertTrue(required_roots.issubset(payload_entries))
 
     def test_release_manager_verifies_package_and_rejects_changed_bytes(self) -> None:
         result = build_release("0.9.0~rc1", self.wheelhouse, self.root / "out", 1_700_000_000)
