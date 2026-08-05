@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -97,6 +98,62 @@ class ReleaseBuilderTests(unittest.TestCase):
             "src",
         }
         self.assertTrue(required_roots.issubset(payload_entries))
+
+    def test_lifecycle_outer_shell_does_not_expand_inner_runtime_variables(self) -> None:
+        project_root = Path(__file__).resolve().parents[1]
+        artifacts = self.root / "lifecycle-artifacts"
+        artifacts.mkdir()
+        required_names = (
+            "multimodultool2026_0.8.0~rc1_amd64.deb",
+            "multimodultool2026_0.8.0~rc1_amd64.deb.sha256",
+            "multimodultool2026_0.9.0~rc1_amd64.deb",
+            "multimodultool2026_0.9.0~rc1_amd64.deb.sha256",
+        )
+        for name in required_names:
+            (artifacts / name).write_bytes(b"fixture\n")
+        manager = artifacts / "release-manager.sh"
+        manager.write_text("#!/bin/bash\nexit 0\n", encoding="utf-8")
+        manager.chmod(0o755)
+
+        fake_bin = self.root / "fake-bin"
+        fake_bin.mkdir()
+        fake_docker = fake_bin / "docker"
+        fake_docker.write_text(
+            """#!/bin/bash
+set -Eeuo pipefail
+artifact_dir=''
+series=''
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -v)
+      shift
+      artifact_dir="${1%%:*}"
+      ;;
+    ubuntu:*)
+      series="${1#ubuntu:}"
+      ;;
+  esac
+  shift
+done
+[[ -n "$artifact_dir" && -n "$series" ]]
+mkdir -p "$artifact_dir/lifecycle-reports"
+printf '{"series":"%s"}\n' "$series" > "$artifact_dir/lifecycle-reports/kubuntu-$series.json"
+""",
+            encoding="utf-8",
+        )
+        fake_docker.chmod(0o755)
+        environment = os.environ.copy()
+        environment["PATH"] = f"{fake_bin}:{environment.get('PATH', '')}"
+        helper = project_root / "tests/helpers/kubuntu_release_lifecycle.sh"
+        completed = subprocess.run(
+            ["bash", str(helper), "22.04", str(artifacts)],
+            env=environment,
+            text=True,
+            capture_output=True,
+        )
+        self.assertEqual(0, completed.returncode, completed.stderr)
+        self.assertNotIn("unbound variable", completed.stderr)
+        self.assertTrue((artifacts / "lifecycle-reports/kubuntu-22.04.json").is_file())
 
     def test_release_manager_verifies_package_and_rejects_changed_bytes(self) -> None:
         result = build_release("0.9.0~rc1", self.wheelhouse, self.root / "out", 1_700_000_000)
