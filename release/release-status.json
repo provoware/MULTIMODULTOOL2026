@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "releaseSuffix": "_save_",
+  "sourceRenameForbidden": true,
+  "suffixAppliedAfterGreenLifecycleMatrix": true,
+  "readyArtifacts": [
+    {
+      "kind": "debian-package",
+      "source": "candidate package from CANDIDATE_BUILD_RESULT.json",
+      "outputPattern": "multimodultool2026_<version>_amd64_save_.deb"
+    },
+    {
+      "kind": "package-checksum",
+      "source": "candidate package SHA-256 sidecar",
+      "outputPattern": "multimodultool2026_<version>_amd64_save_.deb.sha256"
+    },
+    {
+      "kind": "release-bundle",
+      "source": "candidate release bundle from CANDIDATE_BUILD_RESULT.json",
+      "outputPattern": "multimodultool2026-<version>-amd64_save_.tar.gz"
+    },
+    {
+      "kind": "release-manager",
+      "source": "release-manager.sh",
+      "outputPattern": "release-manager_save_.sh"
+    },
+    {
+      "kind": "build-result",
+      "source": "CANDIDATE_BUILD_RESULT.json",
+      "outputPattern": "CANDIDATE_BUILD_RESULT_save_.json"
+    },
+    {
+      "kind": "release-status",
+      "source": "generated from verified artifacts",
+      "outputPattern": "RELEASE_STATUS_save_.json"
+    }
+  ],
+  "testOnlyArtifacts": [
+    "multimodultool2026_0.8.0~rc1_amd64.deb",
+    "multimodultool2026_0.8.0~rc1_amd64.deb.sha256",
+    "raw lifecycle reports and diagnostic logs"
+  ],
+  "unfinished": [
+    "P1 guided project and file selection",
+    "P1 productive analysis, rename, duplicate and organization workflows",
+    "P2 remaining accessibility, contrast, responsive and confirmation work",
+    "P3 journal rotation, migration, quality gates and signed release",
+    "P4 optional media, plugin, portable and physical desktop acceptance"
+  ]
+}
