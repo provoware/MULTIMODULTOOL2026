@@ -12,10 +12,10 @@
 
 ## Fortschritt
 
-- Erledigt: **33**
-- Offen: **35**
+- Erledigt: **41**
+- Offen: **27**
 - Gesamt: **68**
-- Rechnerischer Entwicklungsfortschritt: **49 %**
+- Rechnerischer Entwicklungsfortschritt: **60 %**
 
 ## Erledigte Grundlagen
 
@@ -59,13 +59,13 @@
 
 - [ ] **P1-001** – Geführten Startassistenten für Projektordner, Ziel und Sicherheitsmodus erstellen. | Risiko: **mittel**
 - [ ] **P1-002** – Kachelbasierte Modulnavigation mit aktivem Zustand und Zurück-Pfad umsetzen. | Risiko: **niedrig**
-- [ ] **P1-003** – Linux-Ordnerauswahl mit Rechte-, Mount- und Speicherprüfung ergänzen. | Risiko: **hoch**
-- [ ] **P1-004** – Dateibestandsanalyse für Typ, Größe, Datum, Symlinks und Namensmuster entwickeln. | Risiko: **mittel**
-- [ ] **P1-005** – Vollständige Vorher-/Nachher-Vorschau erstellen. | Risiko: **hoch**
-- [ ] **P1-006** – Sicheren Massenumbenennungsworkflow implementieren. | Risiko: **hoch**
-- [ ] **P1-007** – Hashbasierten read-only Duplikatfinder entwickeln. | Risiko: **mittel**
-- [ ] **P1-008** – Regelbasiertes Sortieren/Verschieben mit Trockenlauf implementieren. | Risiko: **hoch**
-- [ ] **P1-009** – Ergebnisbericht als JSON und Markdown erzeugen. | Risiko: **mittel**
+- [x] **P1-003** – Linux-Ordnerauswahl mit Rechte-, Mount- und Speicherprüfung ergänzen. | Risiko: **hoch**
+- [x] **P1-004** – Dateibestandsanalyse für Typ, Größe, Datum, Symlinks und Namensmuster entwickeln. | Risiko: **mittel**
+- [x] **P1-005** – Vollständige Vorher-/Nachher-Vorschau erstellen. | Risiko: **hoch**
+- [x] **P1-006** – Sicheren Massenumbenennungsworkflow implementieren. | Risiko: **hoch**
+- [x] **P1-007** – Hashbasierten read-only Duplikatfinder entwickeln. | Risiko: **mittel**
+- [x] **P1-008** – Regelbasiertes Sortieren/Verschieben mit Trockenlauf implementieren. | Risiko: **hoch**
+- [x] **P1-009** – Ergebnisbericht als JSON und Markdown erzeugen. | Risiko: **mittel**
 
 ## P2 – Bedienung, Barrierearmut und Transparenz
 
@@ -89,7 +89,7 @@
 - [ ] **P3-006** – Komplexitäts- und statische Qualitätsgrenzen in CI ergänzen. | Risiko: **mittel**
 - [ ] **P3-007** – Versioniertes Datenmigrationssystem entwickeln. | Risiko: **hoch**
 - [ ] **P3-008** – Reproduzierbare Build-ID aus Version und Quellhash einführen. | Risiko: **mittel**
-- [ ] **P3-009** – Signiertes Linux-Release-Gate definieren. | Risiko: **hoch**
+- [x] **P3-009** – Signiertes Linux-Release-Gate definieren. Abnahme: post-merge `main`-Run `30970761299` erfolgreich; Signaturjob `92196203330` grün; Artefakt `8916623377` enthält exakt 14 geprüfte Dateien; Workflowidentität, OIDC-Aussteller und sämtliche Bundle-Digests bestätigt. | Risiko: **hoch**
 
 ## P4 – Erweiterungen nach stabilem Kern
 

@@ -1,17 +1,17 @@
 # MULTIMODULTOOL2026
 
-> **Entwicklungsfortschritt: 49 %**  
-> **Erledigte Punkte: 33**  
-> **Offene Punkte: 35**  
+> **Entwicklungsfortschritt: 60 %**  
+> **Erledigte Punkte: 41**  
+> **Offene Punkte: 27**  
 > **Gesamtpunkte: 68**  
-> **Aktuelle Phase:** produktiver P1-Dateikern und P3-009 in Releaseabnahme  
+> **Aktuelle Phase:** P1-003 bis P1-009 und P3-009 abgenommen; P1-001/P1-002 bleiben offen  
 > **Letzte Fortschrittsprüfung:** 2026-08-05
 
 > **Plattformvertrag:** ausschließlich Linux-Desktop; primär Kubuntu 22.04 LTS und Kubuntu 24.04 LTS unter KDE Plasma, X11 oder Wayland auf x86-64.
 
 MULTIMODULTOOL2026 ist ein lokal arbeitendes Linux-Desktop-Werkzeug für sichere Dateiorganisation. Der Schutzkern für XDG-Pfade, Einstellungen, Fehlerereignisse, Single-Instance, Projektpapierkorb, Undo/Redo, Abbruch, Wiederanlauf und reproduzierbare Debian-Pakete bleibt erhalten. Neu hinzugekommen sind ein produktiver, vorschaugebundener Dateiworkflow sowie ein schlüsselloses Sigstore-Release-Gate.
 
-Die formale Fortschrittszahl bleibt bis zum vollständig signierten `main`-Nachweis und der getrennten P1-001-Startassistentenabnahme konservativ unverändert.
+Die formale Fortschrittszahl enthält jetzt den vollständig belegten produktiven P1-Dateikern sowie den kryptografisch nachgewiesenen P3-009-Hauptzweiglauf. P1-001 und P1-002 bleiben bis zu ihrer getrennten Bedienabnahme offen.
 
 ## Schnellstart
 
@@ -51,7 +51,7 @@ python3 -m src.main --help
 - private Operationsordner `0700`, private Plan-/Checkpointdateien `0600`
 - Fingerabdruck aus Geräte-ID, Inode, Modus, Größe, Änderungszeit und Linkanzahl
 
-`P1-001` bleibt teilweise offen: Ein eigener Startassistent mit separat wählbarem Ziel und Sicherheitsmodus folgt als kleine Bedieniteration. Die jetzt produktiven Operationen bleiben absichtlich innerhalb eines geprüften Projektordners.
+`P1-001` und `P1-002` bleiben offen: Der eigene Startassistent benötigt weiterhin separat wählbares Ziel und Sicherheitsmodus; die Kachelnavigation benötigt noch den vollständig geprüften aktiven Zustand und Zurück-Pfad. Die produktiven Operationen bleiben absichtlich innerhalb eines geprüften Projektordners.
 
 ## Release-Dateistatus
 
@@ -59,7 +59,7 @@ Die Kennzeichnung `_save_` wird ausschließlich auf geprüfte Releaseausgaben an
 
 | Fertige Dateien nach grüner Kubuntu-Matrix | Unfertig oder nicht freigegeben |
 |---|---|
-| `multimodultool2026_<version>_amd64_save_.deb` | P1-001: eigener Ziel-/Sicherheitsmodus im Startassistenten |
+| `multimodultool2026_<version>_amd64_save_.deb` | P1-001/P1-002: Startassistent sowie aktiver Kachelzustand und Zurück-Pfad |
 | `multimodultool2026_<version>_amd64_save_.deb.sha256` | P2: vollständige Tastatur-, Zoom-, Kontrast- und Responsive-Abnahme |
 | `multimodultool2026-<version>-amd64_save_.tar.gz` | P3: Journalrotation, Modulgrenzen, Abdeckung, Qualität und Migration |
 | `release-manager_save_.sh` | P4: optionale Medien-, Plugin- und portable Funktionen |
@@ -81,6 +81,7 @@ Nach reproduzierbarem Build, grüner Kubuntu-22.04-/24.04-Matrix und `_save_`-Fi
 - `SIGNED_RELEASE_MANIFEST_save_.json.sigstore.json`
 - Prüfung der Workflowidentität und des Ausstellers `https://token.actions.githubusercontent.com`
 - insgesamt exakt 14 Dateien im signierten Workflowartefakt
+- Hauptzweignachweis: Run `30970761299`, Signaturjob `92196203330`, Artefakt `8916623377`, Archiv-SHA-256 `fad8a42f2132722cf89ae659d75887b8bd12c33557387d2d13b47778f31eedf3`
 
 Lokale Prüfung eines Bundles:
 
