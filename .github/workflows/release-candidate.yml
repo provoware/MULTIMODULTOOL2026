@@ -41,6 +41,7 @@ jobs:
       - name: Builder- und Vertragsregressionen ausführen
         run: |
           python3 -m unittest tests.test_release_builder -v
+          python3 -m unittest tests.test_finalize_release_artifacts -v
           python3 tools/validate_repository.py
 
       - name: Baseline und Releasekandidat bauen
@@ -103,15 +104,65 @@ jobs:
           name: multimodultool2026-linux-rc-amd64
           path: dist/release-artifacts
 
-      - name: Frische Kubuntu-Lebenszyklusmatrix ausführen
+      - name: Frischen Kubuntu-Lebenszyklus ausführen
+        id: lifecycle
+        shell: bash
         run: |
+          set +e
+          report_dir='dist/release-artifacts/lifecycle-reports'
+          mkdir -p "$report_dir"
+          log="$report_dir/kubuntu-${{ matrix.series }}.log"
+          outer_exit="$report_dir/kubuntu-${{ matrix.series }}.outer-exit-code"
           chmod 0755 tests/helpers/kubuntu_release_lifecycle.sh
-          tests/helpers/kubuntu_release_lifecycle.sh '${{ matrix.series }}' dist/release-artifacts
+          timeout --signal=TERM --kill-after=30s 74m \
+            tests/helpers/kubuntu_release_lifecycle.sh \
+              '${{ matrix.series }}' \
+              dist/release-artifacts 2>&1 | tee "$log"
+          code=${PIPESTATUS[0]}
+          printf '%s\n' "$code" > "$outer_exit"
+          exit "$code"
 
-      - name: Kubuntu-Abnahmebericht hochladen
+      - name: Kubuntu-Rohprotokoll und Ergebnis immer hochladen
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: kubuntu-${{ matrix.series }}-release-report
-          path: dist/release-artifacts/lifecycle-reports/kubuntu-${{ matrix.series }}.json
+          name: kubuntu-${{ matrix.series }}-release-evidence
+          path: dist/release-artifacts/lifecycle-reports/kubuntu-${{ matrix.series }}.*
           if-no-files-found: error
           retention-days: 14
+
+  finalize-release:
+    name: Geprüfte _save_-Releaseartefakte erzeugen
+    needs: [build-release, kubuntu-lifecycle]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+
+      - name: Geprüfte Rohartefakte laden
+        uses: actions/download-artifact@v4
+        with:
+          name: multimodultool2026-linux-rc-amd64
+          path: dist/release-artifacts
+
+      - name: Releaseartefakte atomar finalisieren
+        run: |
+          python3 tools/finalize_release_artifacts.py \
+            --source dist/release-artifacts \
+            --output dist/release-ready \
+            --policy release/release-status.json
+          python3 -m unittest tests.test_finalize_release_artifacts -v
+          find dist/release-ready -maxdepth 1 -type f -printf '%f\n' | sort
+          if find dist/release-ready -maxdepth 1 -type f ! -name '*_save_*' | grep -q .; then
+            echo 'Release-ready file without _save_ suffix found.' >&2
+            exit 1
+          fi
+
+      - name: Fertige _save_-Dateien hochladen
+        uses: actions/upload-artifact@v4
+        with:
+          name: multimodultool2026-release-save
+          path: dist/release-ready
+          if-no-files-found: error
+          retention-days: 30

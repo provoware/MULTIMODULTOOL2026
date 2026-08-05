@@ -19,6 +19,7 @@ from .error_events import (
     format_event_for_user,
     install_exception_hooks,
 )
+from .help_dialog import build_help_dialog
 from .manifest_validator import format_validation_result, validate_manifest
 from .settings_manager import (
     SettingsLoadResult,
@@ -43,9 +44,9 @@ from .xdg_paths import (
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 MANIFEST_PATH = PROJECT_ROOT / "layout-manifest.json"
-DEVELOPMENT_PROGRESS = 47
-COMPLETED_POINTS = 32
-OPEN_POINTS = 36
+DEVELOPMENT_PROGRESS = 49
+COMPLETED_POINTS = 33
+OPEN_POINTS = 35
 ZONE_OBJECT_NAMES = (
     "header",
     "navigation",
@@ -71,19 +72,37 @@ def platform_error_text() -> str:
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="MULTIMODULTOOL2026 starten oder prüfen")
-    parser.add_argument("--validate-only", action="store_true")
-    parser.add_argument("--paths-only", action="store_true")
-    parser.add_argument("--settings-only", action="store_true")
+    parser = argparse.ArgumentParser(
+        description="MULTIMODULTOOL2026 sicher starten oder rein lesend prüfen.",
+        epilog=(
+            "Die Prüfmodi verändern keine produktiven Nutzerdaten. Für die grafische Anwendung "
+            "ohne Optionen starten."
+        ),
+    )
+    parser.add_argument(
+        "--validate-only",
+        action="store_true",
+        help="Manifest, XDG-Pfadplan und Einstellungen rein lesend prüfen; danach beenden.",
+    )
+    parser.add_argument(
+        "--paths-only",
+        action="store_true",
+        help="Nur die berechneten XDG-Pfade, Grenzen und Sicherheitsbedingungen prüfen.",
+    )
+    parser.add_argument(
+        "--settings-only",
+        action="store_true",
+        help="Einstellungsschema und vorhandene Sicherung rein lesend prüfen; nichts speichern.",
+    )
     parser.add_argument(
         "--show-diagnostics",
         action="store_true",
-        help="Bestehende Instanz aktivieren und die Diagnosezentrale fokussieren.",
+        help="Bestehende Instanz aktivieren und die lokale Diagnosezentrale fokussieren.",
     )
     parser.add_argument(
         "--diagnostic-id",
         default="",
-        help="Erlaubte Diagnosekennung für den lokalen Diagnosefilter.",
+        help="Erlaubte Diagnosekennung für den lokalen Filter, zum Beispiel MMT-ABC123.",
     )
     return parser.parse_args(argv)
 
@@ -112,6 +131,15 @@ def _button(
         button.setObjectName(name)
     if tooltip:
         button.setToolTip(tooltip)
+        button.setStatusTip(tooltip)
+        button.setWhatsThis(tooltip)
+        button.setAccessibleDescription(tooltip)
+    return button
+
+
+def _disabled_button(QtWidgets, QtCore, text: str, *, name: str, tooltip: str):
+    button = _button(QtWidgets, text, enabled=False, name=name, tooltip=tooltip)
+    button.setAttribute(QtCore.Qt.WidgetAttribute.WA_AlwaysShowToolTips, True)
     return button
 
 
@@ -195,12 +223,21 @@ def build_window(
     navigation.setFixedWidth(208)
     nav = QtWidgets.QVBoxLayout(navigation)
     nav.addWidget(_label(QtWidgets, "HAUPTBEREICHE", "navTitle"))
-    nav.addWidget(_button(QtWidgets, "⌂  Start"))
+    start_button = _button(
+        QtWidgets,
+        "⌂  Start",
+        name="startNavigation",
+        tooltip="Zeigt die aktuelle Sicherheits-, Release- und Entwicklungsübersicht.",
+    )
+    nav.addWidget(start_button)
     trash_button = _button(
         QtWidgets,
         "♲  Verlauf & Wiederanlauf",
         name="trashNavigation",
-        tooltip="Papierkorb, Undo/Redo, Transaktionen und Laufcheckpoints anzeigen.",
+        tooltip=(
+            "Zeigt Papierkorb, Undo/Redo, Transaktionen und Laufcheckpoints ausschließlich lesend. "
+            "Es wird nichts automatisch repariert oder fortgesetzt."
+        ),
     )
     trash_button.setProperty("active", True)
     nav.addWidget(trash_button)
@@ -208,36 +245,67 @@ def build_window(
         QtWidgets,
         "⚕  Diagnose",
         name="diagnosticsNavigation",
-        tooltip="Lokale bereinigte Ereignisse ausschließlich lesend anzeigen.",
+        tooltip=(
+            "Öffnet die lokale, bereinigte Ereignisansicht. Filtern und Kopieren sind erlaubt; "
+            "Löschen, Upload und automatischer Export bleiben ausgeschlossen."
+        ),
     )
     nav.addWidget(diagnosis_button)
-    lock_tip = "Noch gesperrt, bis sichere Projekt- und Dateiauswahl verfügbar ist."
-    for text in (
-        "⌕  Analysieren",
-        "▣  Duplikate",
-        "↕  Organisieren",
-        "✎  Umbenennen",
-        "▤  Berichte",
-    ):
+    locked_navigation = (
+        (
+            "⌕  Analysieren",
+            "Noch gesperrt: zuerst sichere Projekt- und Ordnerauswahl sowie read-only Bestandsanalyse umsetzen.",
+        ),
+        (
+            "▣  Duplikate",
+            "Noch gesperrt: der hashbasierte Duplikatfinder und seine Speichergrenzen sind nicht freigegeben.",
+        ),
+        (
+            "↕  Organisieren",
+            "Noch gesperrt: Sortierregeln, Trockenlauf und vollständige Vorher-/Nachher-Vorschau fehlen.",
+        ),
+        (
+            "✎  Umbenennen",
+            "Noch gesperrt: Massenumbenennung benötigt Vorschau, Konfliktprüfung, Journal und Rückfallweg.",
+        ),
+        (
+            "▤  Berichte",
+            "Noch gesperrt: der produktive JSON-/Markdown-Ergebnisbericht ist noch nicht implementiert.",
+        ),
+    )
+    for text, tooltip in locked_navigation:
         nav.addWidget(
-            _button(
+            _disabled_button(
                 QtWidgets,
+                QtCore,
                 text,
-                enabled=False,
                 name="lockedNavigation",
-                tooltip=lock_tip,
+                tooltip=tooltip,
             )
         )
     nav.addStretch(1)
     nav.addWidget(
-        _button(
+        _disabled_button(
             QtWidgets,
+            QtCore,
             "⚙  Einstellungen",
-            enabled=False,
-            tooltip="Datenformat aktiv; Bedienseite folgt.",
+            name="lockedSettingsNavigation",
+            tooltip=(
+                "Das sichere Einstellungsformat ist aktiv. Die grafische Bearbeitung bleibt bis zur "
+                "validierten Bedienseite gesperrt."
+            ),
         )
     )
-    nav.addWidget(_button(QtWidgets, "?  Hilfe"))
+    help_button = _button(
+        QtWidgets,
+        "?  Hilfe",
+        name="helpNavigation",
+        tooltip=(
+            "Öffnet eine rein lesende Hilfe zu freigegebenen Funktionen, Sperrgründen, Diagnose, "
+            "Abbruch, Wiederanlauf und _save_-Releaseartefakten."
+        ),
+    )
+    nav.addWidget(help_button)
     grid.addWidget(navigation, 1, 0, 5, 1)
 
     summary = _zone(QtWidgets.QWidget(), "summaryCards", 3)
@@ -247,28 +315,51 @@ def build_window(
         ("Instanzschutz", "1 PRIMÄR", "Unix-Socket · Peer-UID"),
         ("Wiederanlauf", "CHECKPOINTS", "Lauf-ID · Abbruchpunkte"),
         ("Einstellungen", settings_status, "atomar · Rollback"),
-        ("Entwicklung", "46 %", "32 erledigt · 36 offen"),
+        (
+            "Entwicklung",
+            f"{DEVELOPMENT_PROGRESS} %",
+            f"{COMPLETED_POINTS} erledigt · {OPEN_POINTS} offen",
+        ),
     ):
         cards.addWidget(_panel(QtWidgets, title, f"{value}\n{detail}", "card"))
     grid.addWidget(summary, 1, 1)
 
     actions = _zone(QtWidgets.QWidget(), "primaryActionTiles", 4)
     action_layout = QtWidgets.QHBoxLayout(actions)
-    for text in (
-        "1\nProjekt wählen",
-        "2\nPlan prüfen",
-        "3\nCheckpoint",
-        "4\nSicher starten",
-        "5\nAbbruchpunkt",
-        "6\nErgebnis",
-    ):
+    locked_actions = (
+        (
+            "1\nProjekt wählen",
+            "Noch gesperrt: Projektgrenze, Eigentümer, Rechte, Symlinks, Mounts und Speicher müssen geführt geprüft werden.",
+        ),
+        (
+            "2\nPlan prüfen",
+            "Noch gesperrt: Ein produktiver Plan darf erst nach sicherer Auswahl und vollständiger Vorschau erzeugt werden.",
+        ),
+        (
+            "3\nCheckpoint",
+            "Technischer Checkpointkern ist geprüft; ein Nutzercheckpoint entsteht erst nach bestätigtem Plan.",
+        ),
+        (
+            "4\nSicher starten",
+            "Noch gesperrt: Ohne freigegebenen Plan, Vorschau und Rückfallweg startet keine produktive Dateiaktion.",
+        ),
+        (
+            "5\nAbbruchpunkt",
+            "Technischer Abbruchkern ist geprüft; eine Nutzeraktion wird nur an sicheren Transaktionsgrenzen freigegeben.",
+        ),
+        (
+            "6\nErgebnis",
+            "Noch gesperrt: Ergebnisbericht und Nachvalidierung folgen nach dem produktiven Kernworkflow.",
+        ),
+    )
+    for text, tooltip in locked_actions:
         action_layout.addWidget(
-            _button(
+            _disabled_button(
                 QtWidgets,
+                QtCore,
                 text,
-                enabled=False,
                 name="lockedPrimaryAction",
-                tooltip="Laufkern geprüft; geführte Projektauswahl folgt mit P1-001/P1-003.",
+                tooltip=tooltip,
             )
         )
     grid.addWidget(actions, 2, 1)
@@ -285,7 +376,7 @@ def build_window(
     )
     progress = QtWidgets.QProgressBar()
     progress.setValue(DEVELOPMENT_PROGRESS)
-    progress.setFormat("Entwicklungsstand: 47 %")
+    progress.setFormat(f"Entwicklungsstand: {DEVELOPMENT_PROGRESS} %")
     flow.addWidget(progress)
     grid.addWidget(workflow, 3, 1)
 
@@ -294,10 +385,10 @@ def build_window(
     work.addWidget(
         _panel(
             QtWidgets,
-            "P0-008 abgeschlossen",
-            "Lange Dateioperationen besitzen eine eindeutige Lauf-ID, einen unveränderlichen Plan, "
-            "atomare Checkpoints, kontrollierte Abbruchpunkte und einen idempotenten Wiederanlauf. "
-            "SIGKILL-Zustände werden aus Journal, Manifest, Originalpfad und Payload abgeglichen.",
+            "P0-009 Releasekern implementiert",
+            "Der reproduzierbare Linux-Releasekandidat besitzt Build-ID, Offline-Runtime, "
+            "Installation, Upgrade, Rollback, Deinstallation und kontrollierten Purge. Erst nach "
+            "grüner Kubuntu-Matrix erzeugt der Workflow die finalen _save_-Ausgabedateien.",
             "hero",
         )
     )
@@ -371,6 +462,14 @@ def build_window(
             f"{validation_text}\n\n{path_text}\n\n{settings_text}",
         )
     )
+    context_layout.addWidget(
+        _panel(
+            QtWidgets,
+            "Hilfe verfügbar",
+            "Der Hilfe-Button erklärt freigegebene Funktionen, konkrete Sperrgründe, sichere "
+            "Abbruchgrenzen und die _save_-Releasekennzeichnung ohne Datenzugriff.",
+        )
+    )
     if latest is not None:
         context_layout.addWidget(
             _panel(
@@ -406,7 +505,9 @@ def build_window(
         QtWidgets,
         "Diagnose fokussieren",
         name="focusDiagnosticsButton",
-        tooltip="Springt zur lokalen Diagnosekennungssuche.",
+        tooltip=(
+            "Springt direkt zum Diagnosekennungsfilter. Die Diagnose bleibt rein lesend und lokal."
+        ),
     )
     bottom.addWidget(focus_button)
     grid.addWidget(action_bar, 5, 1, 1, 2)
@@ -430,11 +531,21 @@ def build_window(
     )
     grid.addWidget(footer, 6, 0, 1, 3)
 
+    help_dialog = build_help_dialog(QtWidgets, window)
+
+    def show_help() -> None:
+        help_dialog.show()
+        help_dialog.raise_()
+        help_dialog.activateWindow()
+
+    start_button.clicked.connect(lambda: workspace_scroll.verticalScrollBar().setValue(0))
     diagnosis_button.clicked.connect(lambda: diagnostics_controller.focus_diagnostic())
     focus_button.clicked.connect(lambda: diagnostics_controller.focus_diagnostic())
     trash_button.clicked.connect(lambda: workspace_scroll.ensureWidgetVisible(contract_panel))
+    help_button.clicked.connect(show_help)
     window.diagnosticsController = diagnostics_controller
     window.instanceActivationStatus = activation_status
+    window.helpDialog = help_dialog
     return window
 
 

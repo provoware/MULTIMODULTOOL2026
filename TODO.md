@@ -1,6 +1,6 @@
 # TODO – MULTIMODULTOOL2026
 
-**Stand:** 2026-08-04
+**Stand:** 2026-08-05
 
 ## Steuerungsregeln
 
@@ -12,10 +12,10 @@
 
 ## Fortschritt
 
-- Erledigt: **32**
-- Offen: **36**
+- Erledigt: **33**
+- Offen: **35**
 - Gesamt: **68**
-- Rechnerischer Entwicklungsfortschritt: **47 %**
+- Rechnerischer Entwicklungsfortschritt: **49 %**
 
 ## Erledigte Grundlagen
 
@@ -72,7 +72,7 @@
 - [ ] **P2-001** – Vollständige Tastaturbedienung unter KDE prüfen. | Risiko: **mittel**
 - [ ] **P2-002** – Schriftgrößen-/Zoomsystem von 80–200 % ohne Abschneiden implementieren. | Risiko: **mittel**
 - [ ] **P2-003** – Kontrastprüfung für alle Themes automatisieren. | Risiko: **mittel**
-- [ ] **P2-004** – Kontextbezogene Hilfe je Arbeitsschritt erstellen. | Risiko: **niedrig**
+- [x] **P2-004** – Kontextbezogene Hilfe je Arbeitsschritt erstellen. Abnahme: funktionaler Hilfe-Dialog, konkrete Sperrgründe, sichere nächste Schritte, zugängliche Tooltips auch an deaktivierten Aktionen und Offscreen-Regressionsprüfung. | Risiko: **niedrig**
 - [ ] **P2-005** – Ampelzustände immer zusätzlich mit Text und Symbol kennzeichnen. | Risiko: **niedrig**
 - [ ] **P2-006** – Leere, Lade- und Fehlzustände aller Zonen definieren. | Risiko: **mittel**
 - [ ] **P2-007** – Responsives Verhalten zwischen 1024×680 und 4K umsetzen. | Risiko: **mittel**

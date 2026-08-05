@@ -68,8 +68,8 @@ QPlainTextEdit:focus {
 }
 QPushButton:disabled {
     background: #09131b;
-    color: #60727e;
-    border-color: #263b47;
+    color: #83939d;
+    border-color: #314550;
 }
 QPushButton[active="true"] {
     background: #102b36;
@@ -89,15 +89,17 @@ QProgressBar {
 QProgressBar::chunk { background: #00cfe8; border-radius: 6px; }
 
 QScrollArea#workspaceScroll,
-QScrollArea#contextScroll {
+QScrollArea#contextScroll,
+QScrollArea#helpDialogScroll {
     background: transparent;
     border: none;
 }
 QScrollArea#workspaceScroll > QWidget > QWidget,
-QScrollArea#contextScroll > QWidget > QWidget { background: transparent; }
+QScrollArea#contextScroll > QWidget > QWidget,
+QScrollArea#helpDialogScroll > QWidget > QWidget { background: transparent; }
 QScrollBar:vertical { background: #071019; width: 10px; margin: 0; }
 QScrollBar::handle:vertical {
-    background: #355668;
+    background: #466a7d;
     border-radius: 5px;
     min-height: 28px;
 }
@@ -126,10 +128,46 @@ QPushButton#diagnosticsCopyButton { border-color: #00dff5; }
 QLabel#diagnosticsStatus { color: #9eb2bf; }
 
 QToolTip {
-    background: #132631;
-    color: #f1f7fa;
-    border: 1px solid #5e8092;
-    padding: 6px;
+    background: #f2f7fa;
+    color: #071019;
+    border: 2px solid #00a9c0;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+QDialog#helpDialog {
+    background: #07131c;
+    border: 2px solid #00a9c0;
+}
+QLabel#helpDialogTitle {
+    color: #ffffff;
+    font-size: 21px;
+    font-weight: 850;
+}
+QLabel#helpDialogIntro {
+    color: #c3d4de;
+    font-size: 14px;
+}
+QFrame#helpTopic {
+    background: #0b1a24;
+    border: 1px solid #355668;
+    border-radius: 9px;
+}
+QLabel#helpTopicTitle {
+    color: #63e8f5;
+    font-size: 16px;
+    font-weight: 800;
+}
+QLabel#helpTopicBody {
+    color: #e3edf2;
+    line-height: 1.3;
+}
+QPushButton#helpDialogCloseButton {
+    border-color: #54ef9b;
+    text-align: center;
+    font-weight: 800;
 }
 
 QDialog#globalErrorDialog {

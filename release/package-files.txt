@@ -1,4 +1,14 @@
+AGENTS.md
+ANLEITUNG_TOOL.md
+CHANGELOG.md
+ENTWICKLERDOKU.md
+README.md
+SCHWACHSTELLEN.md
+TODO.md
+UPGRADE_POOL.md
+assets/ui-reference
+docs
 layout-manifest.json
 requirements.txt
 src
-standards/settings-schema-v1.json
+standards

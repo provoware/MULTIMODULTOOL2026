@@ -1,4 +1,4 @@
-"""Qt-Offscreen-Smoke-Test für Layout, Diagnose und globale Fehlerfelder."""
+"""Qt-Offscreen-Smoke-Test für Layout, Diagnose, Hilfe und globale Fehlerfelder."""
 
 from __future__ import annotations
 
@@ -22,7 +22,13 @@ class OffscreenGuiSmokeTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         from src.diagnostics_center import DiagnosticEntry, DiagnosticSnapshot
         from src.error_events import ErrorEventCenter, create_event
-        from src.main import ZONE_OBJECT_NAMES, build_window
+        from src.main import (
+            COMPLETED_POINTS,
+            DEVELOPMENT_PROGRESS,
+            OPEN_POINTS,
+            ZONE_OBJECT_NAMES,
+            build_window,
+        )
         from src.settings_manager import SettingsLoadResult, default_settings
         from src.xdg_paths import XDGPaths
 
@@ -71,9 +77,15 @@ class OffscreenGuiSmokeTests(unittest.TestCase):
         cls.window.show()
         cls.app.processEvents()
         cls.zone_names = ZONE_OBJECT_NAMES
+        cls.development_progress = DEVELOPMENT_PROGRESS
+        cls.completed_points = COMPLETED_POINTS
+        cls.open_points = OPEN_POINTS
 
     @classmethod
     def tearDownClass(cls) -> None:
+        help_dialog = cls.window.findChild(QtWidgets.QDialog, "helpDialog")
+        if help_dialog is not None:
+            help_dialog.close()
         cls.window.close()
         cls.app.processEvents()
 
@@ -108,11 +120,51 @@ class OffscreenGuiSmokeTests(unittest.TestCase):
         self.assertGreaterEqual(len(labels), 3)
         self.assertTrue(all(label.isVisible() and label.text().strip() for label in labels))
 
-    def test_unreleased_actions_are_disabled(self) -> None:
+    def test_unreleased_actions_are_disabled_and_explain_their_blocker(self) -> None:
         locked = self.window.findChildren(QtWidgets.QPushButton, "lockedPrimaryAction")
+        navigation = self.window.findChildren(QtWidgets.QPushButton, "lockedNavigation")
         self.assertEqual(6, len(locked))
-        self.assertTrue(all(not button.isEnabled() for button in locked))
-        self.assertTrue(all(button.toolTip().strip() for button in locked))
+        self.assertEqual(5, len(navigation))
+        for button in (*locked, *navigation):
+            self.assertFalse(button.isEnabled())
+            self.assertTrue(button.toolTip().strip())
+            self.assertTrue(button.statusTip().strip())
+            self.assertTrue(button.accessibleDescription().strip())
+            self.assertTrue(
+                button.testAttribute(QtCore.Qt.WidgetAttribute.WA_AlwaysShowToolTips)
+            )
+
+    def test_help_button_opens_read_only_contextual_help(self) -> None:
+        button = self.window.findChild(QtWidgets.QPushButton, "helpNavigation")
+        dialog = self.window.findChild(QtWidgets.QDialog, "helpDialog")
+        self.assertIsNotNone(button)
+        self.assertIsNotNone(dialog)
+        self.assertTrue(button.toolTip().strip())
+        button.click()
+        self.app.processEvents()
+        self.assertTrue(dialog.isVisible())
+        topics = dialog.findChildren(QtWidgets.QFrame, "helpTopic")
+        self.assertGreaterEqual(len(topics), 6)
+        self.assertIsNotNone(dialog.findChild(QtWidgets.QPushButton, "helpDialogCloseButton"))
+        self.assertIsNone(dialog.findChild(QtWidgets.QPushButton, "helpDeleteButton"))
+        self.assertIsNone(dialog.findChild(QtWidgets.QPushButton, "helpUploadButton"))
+        dialog.close()
+        self.app.processEvents()
+
+    def test_progress_widgets_use_the_authoritative_constants(self) -> None:
+        progress = self.window.findChild(QtWidgets.QProgressBar)
+        self.assertIsNotNone(progress)
+        self.assertEqual(self.development_progress, progress.value())
+        self.assertEqual(
+            f"Entwicklungsstand: {self.development_progress} %",
+            progress.format(),
+        )
+        label_text = "\n".join(label.text() for label in self.window.findChildren(QtWidgets.QLabel))
+        self.assertIn(f"{self.development_progress} %", label_text)
+        self.assertIn(
+            f"{self.completed_points} erledigt · {self.open_points} offen",
+            label_text,
+        )
 
     def test_diagnostics_center_is_read_only_filterable_and_copy_only(self) -> None:
         center = self.window.findChild(QtWidgets.QWidget, "diagnosticsCenter")

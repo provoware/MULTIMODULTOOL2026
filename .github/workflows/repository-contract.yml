@@ -26,7 +26,14 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Repository-Vertrag prüfen
+      - name: Shellskripte und Workflowhelfer syntaktisch prüfen
+        run: |
+          bash -n start.sh setup.sh
+          bash -n release/release-manager.sh
+          bash -n release/multimodultool2026-launcher.sh
+          bash -n tests/helpers/kubuntu_release_lifecycle.sh
+
+      - name: Repository-Vertrag und Überrestprüfung ausführen
         run: python3 tools/validate_repository.py
 
       - name: Linux-, Manifest-, XDG- und Einstellungsprüfung ausführen
@@ -37,6 +44,9 @@ jobs:
 
       - name: Reproduzierbaren Releasebuilder ausdrücklich prüfen
         run: python3 -m unittest tests.test_release_builder -v
+
+      - name: Atomare _save_-Releasefinalisierung ausdrücklich prüfen
+        run: python3 -m unittest tests.test_finalize_release_artifacts -v
 
       - name: Papierkorbvertrag ausdrücklich prüfen
         run: python3 -m unittest tests.test_project_trash -v
@@ -68,7 +78,7 @@ jobs:
       - name: PySide6 für Offscreen-Test installieren
         run: python3 -m pip install -r requirements.txt
 
-      - name: Offscreen-GUI-, Diagnose- und Fehlerdialog-Test ausführen
+      - name: Offscreen-GUI-, Hilfe-, Tooltip- und Fehlerdialog-Test ausführen
         run: python3 -m unittest tests.test_gui_offscreen -v
 
       - name: Offscreen-Papierkorb-, Transaktions- und Wiederanlaufvertrag prüfen
