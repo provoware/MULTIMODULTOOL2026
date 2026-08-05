@@ -10,13 +10,13 @@ import os
 from pathlib import Path
 import shutil
 import stat
+import sys
 import tempfile
 from typing import Any
 
 SAVE_SUFFIX = "_save_"
 BUILD_RESULT_NAME = "CANDIDATE_BUILD_RESULT.json"
 RELEASE_MANAGER_NAME = "release-manager.sh"
-STATUS_POLICY_NAME = "release-status.json"
 
 
 def fail(message: str) -> RuntimeError:
@@ -42,6 +42,13 @@ def save_name(name: str) -> str:
     if not path.suffix:
         return f"{name}{SAVE_SUFFIX}"
     return f"{path.stem}{SAVE_SUFFIX}{path.suffix}"
+
+
+def reject_symlink_components(path: Path, label: str) -> None:
+    absolute = path.absolute()
+    for candidate in (absolute, *absolute.parents):
+        if candidate.exists() and candidate.is_symlink():
+            raise fail(f"{label} contains a symlink component: {candidate}")
 
 
 def read_json(path: Path) -> dict[str, Any]:
@@ -108,15 +115,16 @@ def replace_directory_atomically(staged: Path, output: Path) -> None:
 
 
 def finalize_release(source: Path, output: Path, policy_path: Path) -> dict[str, Any]:
+    reject_symlink_components(source, "Source artifact directory")
+    reject_symlink_components(output, "Output directory")
+    reject_symlink_components(policy_path, "Release status policy")
     source = source.resolve()
     output = output.resolve()
     policy_path = policy_path.resolve()
-    if not source.is_dir() or source.is_symlink():
+    if not source.is_dir():
         raise fail(f"Source artifact directory is missing or unsafe: {source}")
     if output == source or source in output.parents:
         raise fail("Output directory must not be the source directory or a child of it.")
-    if output.parent.is_symlink():
-        raise fail(f"Output parent may not be a symlink: {output.parent}")
     output.parent.mkdir(parents=True, exist_ok=True)
 
     policy = read_json(policy_path)
@@ -146,7 +154,9 @@ def finalize_release(source: Path, output: Path, policy_path: Path) -> dict[str,
         raise fail("Candidate bundle does not match CANDIDATE_BUILD_RESULT.json.")
     read_sidecar(sidecar, package_name, package_sha)
 
-    staged = Path(tempfile.mkdtemp(prefix=f".{output.name}.tmp-", dir=output.parent))
+    staged: Path | None = Path(
+        tempfile.mkdtemp(prefix=f".{output.name}.tmp-", dir=output.parent)
+    )
     try:
         saved_package_name = save_name(package_name)
         saved_bundle_name = save_name(bundle_name)
@@ -225,10 +235,10 @@ def finalize_release(source: Path, output: Path, policy_path: Path) -> dict[str,
                 raise fail(f"Unexpected mode for {path.name}: {mode:o}")
 
         replace_directory_atomically(staged, output)
-        staged = Path()
+        staged = None
         return manifest
     finally:
-        if staged and staged.exists():
+        if staged is not None and staged.exists():
             shutil.rmtree(staged)
 
 
@@ -251,7 +261,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         manifest = finalize_release(args.source, args.output, args.policy)
     except (OSError, RuntimeError, ValueError) as exc:
-        print(f"ROT: Release-Finalisierung fehlgeschlagen: {exc}")
+        print(f"ROT: Release-Finalisierung fehlgeschlagen: {exc}", file=sys.stderr)
         return 1
     print(json.dumps(manifest, ensure_ascii=False, sort_keys=True))
     return 0
