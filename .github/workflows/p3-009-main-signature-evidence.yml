@@ -8,6 +8,7 @@ on:
       - tools/collect_p3_009_main_signature_evidence.py
       - tools/sign_release_artifacts.py
       - tests/test_collect_p3_009_main_signature_evidence.py
+      - tests/test_p3_009_artifact_redirect.py
       - tests/test_sign_release_artifacts.py
   workflow_run:
     workflows: ["Linux Release Candidate"]
@@ -38,9 +39,10 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Evidenz- und Signaturregressionen ausführen
+      - name: Evidenz-, Redirect- und Signaturregressionen ausführen
         run: |
           python3 -m unittest tests.test_collect_p3_009_main_signature_evidence -v
+          python3 -m unittest tests.test_p3_009_artifact_redirect -v
           python3 -m unittest tests.test_sign_release_artifacts -v
 
   verify-main-signatures:
@@ -70,9 +72,10 @@ jobs:
       - name: Offizielles Cosign installieren
         uses: sigstore/cosign-installer@v4.1.2
 
-      - name: Evidenz- und Signaturregressionen ausführen
+      - name: Evidenz-, Redirect- und Signaturregressionen ausführen
         run: |
           python3 -m unittest tests.test_collect_p3_009_main_signature_evidence -v
+          python3 -m unittest tests.test_p3_009_artifact_redirect -v
           python3 -m unittest tests.test_sign_release_artifacts -v
 
       - name: Zu prüfendes main-SHA bestimmen
