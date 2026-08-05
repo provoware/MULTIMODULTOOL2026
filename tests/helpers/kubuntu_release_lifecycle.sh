@@ -16,9 +16,13 @@ done
 REPORT_DIR="$ARTIFACT_DIR/lifecycle-reports"
 mkdir -p "$REPORT_DIR"
 REPORT="$REPORT_DIR/kubuntu-$SERIES.json"
+printf '[mmt-release-diagnostic] requested-series=%s container-image=ubuntu:%s artifact-dir=%s\n' \
+    "$SERIES" "$SERIES" "$ARTIFACT_DIR"
 
 DOCKER_SCRIPT='set -Eeuo pipefail
 export DEBIAN_FRONTEND=noninteractive
+printf "#!/bin/sh\nexit 101\n" > /usr/sbin/policy-rc.d
+chmod 0755 /usr/sbin/policy-rc.d
 apt-get update
 apt-get install -y --no-install-recommends ca-certificates software-properties-common passwd util-linux
 add-apt-repository -y universe
@@ -26,8 +30,10 @@ apt-get update
 printf "sddm shared/default-x-display-manager select sddm\n" | debconf-set-selections || true
 apt-get install -y --no-install-recommends kubuntu-desktop plasma-desktop
 
-dpkg-query -W -f="${Status}\n" kubuntu-desktop | grep -q "install ok installed"
-dpkg-query -W -f="${Status}\n" plasma-desktop | grep -q "install ok installed"
+printf "[mmt-release-diagnostic] requested-series='"$SERIES"' actual-version-id=%s bash=%s phase=validate-package-state\n" \
+  "$(. /etc/os-release && printf "%s" "$VERSION_ID")" "$BASH_VERSION"
+dpkg-query -W -f="\${Status}\n" kubuntu-desktop | grep -q "install ok installed"
+dpkg-query -W -f="\${Status}\n" plasma-desktop | grep -q "install ok installed"
 
 useradd -m -u 1000 -s /bin/bash mmt
 mkdir -p /run/user/1000
@@ -54,11 +60,29 @@ build_version() {
 /artifacts/release-manager.sh verify /artifacts/multimodultool2026_0.8.0~rc1_amd64.deb
 /artifacts/release-manager.sh verify /artifacts/multimodultool2026_0.9.0~rc1_amd64.deb
 
+cp /artifacts/multimodultool2026_0.8.0~rc1_amd64.deb /artifacts/checksum-binding.deb
+cp /artifacts/multimodultool2026_0.8.0~rc1_amd64.deb.sha256 /artifacts/checksum-binding.deb.sha256
+if /artifacts/release-manager.sh verify /artifacts/checksum-binding.deb; then
+  echo "checksum sidecar accepted a different package filename" >&2
+  exit 61
+fi
+rm -f /artifacts/checksum-binding.deb /artifacts/checksum-binding.deb.sha256
+
 /artifacts/release-manager.sh install /artifacts/multimodultool2026_0.8.0~rc1_amd64.deb --yes
 [[ "$(build_version)" == "0.8.0~rc1" ]]
 run_as_mmt /usr/bin/multimodultool2026 --validate-only
 BASELINE_BUILD="$(run_as_mmt /usr/bin/multimodultool2026 --build-info | python3 -c "import json,sys; print(json.load(sys.stdin)[\"buildId\"])" )"
-[[ -d "/home/mmt/.local/share/multimodultool2026/runtime/venv-${BASELINE_BUILD//[^A-Za-z0-9._-]/_}" ]]
+SAFE_BASELINE_BUILD="${BASELINE_BUILD//[^A-Za-z0-9._-]/_}"
+RUNTIME_ROOT="/home/mmt/.local/share/multimodultool2026/runtime"
+VENV_DIR="$RUNTIME_ROOT/venv-$SAFE_BASELINE_BUILD"
+[[ -d "$VENV_DIR" ]]
+[[ "$(stat -c %a /home/mmt/.local/share/multimodultool2026)" == "700" ]]
+[[ "$(stat -c %a "$RUNTIME_ROOT")" == "700" ]]
+
+rm -f "$VENV_DIR/bin/python"
+run_as_mmt /usr/bin/multimodultool2026 --validate-only
+[[ -x "$VENV_DIR/bin/python" ]]
+[[ "$(find "$RUNTIME_ROOT" -maxdepth 1 -name ".venv-*.tmp" -o -name ".venv-*.invalid" | wc -l)" -eq 0 ]]
 
 /artifacts/release-manager.sh upgrade /artifacts/multimodultool2026_0.9.0~rc1_amd64.deb --yes
 [[ "$(build_version)" == "0.9.0~rc1" ]]
@@ -105,6 +129,9 @@ print(json.dumps({
   "architecture": "amd64",
   "install": "passed",
   "firstStart": "passed",
+  "privateRuntime0700": "passed",
+  "damagedRuntimeRecovery": "passed",
+  "checksumBinding": "passed",
   "upgrade": "passed",
   "rollback": "passed",
   "removePreservesUserData": "passed",

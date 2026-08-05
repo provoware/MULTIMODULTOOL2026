@@ -9,6 +9,10 @@ PREVIOUS_FILE="$STATE_ROOT/previous.env"
 ASSUME_YES=0
 PURGE_SYSTEM_STATE=0
 PURGE_USER_DATA=0
+PURGE_USER=""
+PURGE_HOME=""
+PURGE_UID=""
+PURGE_PATHS=()
 
 usage() {
     cat <<'EOF'
@@ -89,8 +93,15 @@ PY
 verify_package() {
     local package="$1" sidecar="${1}.sha256"
     [[ -r "$sidecar" && ! -L "$sidecar" ]] || fail "SHA-256-Sidecar fehlt oder ist unsicher: $sidecar" 40
-    (cd "$(dirname "$package")" && sha256sum --quiet -c "$(basename "$sidecar")") \
-        || fail "Paket-SHA-256 ist ungültig." 41
+    local line_count expected listed actual
+    line_count="$(grep -cve '^[[:space:]]*$' "$sidecar" || true)"
+    [[ "$line_count" -eq 1 ]] || fail "SHA-256-Sidecar muss genau einen Eintrag enthalten." 41
+    read -r expected listed < "$sidecar"
+    [[ "$expected" =~ ^[a-fA-F0-9]{64}$ ]] || fail "SHA-256-Sidecar enthält keinen gültigen Digest." 41
+    listed="${listed#\*}"
+    [[ "$listed" == "$(basename "$package")" ]] || fail "SHA-256-Sidecar ist nicht an die angeforderte Paketdatei gebunden." 41
+    actual="$(sha256sum "$package" | awk '{print $1}')"
+    [[ "${actual,,}" == "${expected,,}" ]] || fail "Paket-SHA-256 ist ungültig." 41
     local metadata
     metadata="$(package_metadata "$package")"
     printf 'GRÜN: Paket geprüft: %s\n' "$metadata"
@@ -107,7 +118,7 @@ archive_package() {
     local safe_version="${version//[^A-Za-z0-9._~+-]/_}"
     local target="$ARCHIVE_ROOT/${safe_version}__${build_id}.deb"
     install -m 0600 "$package" "$target"
-    (cd "$ARCHIVE_ROOT" && sha256sum "$(basename "$target")" > "$(basename "$target").sha256")
+    printf '%s  %s\n' "$(sha256sum "$target" | awk '{print $1}')" "$(basename "$target")" > "$target.sha256"
     chmod 0600 "$target.sha256"
     sync -f "$target" 2>/dev/null || true
     sync -f "$target.sha256" 2>/dev/null || true
@@ -166,32 +177,61 @@ rollback_package() {
     printf 'GRÜN: Rollback abgeschlossen: Version %s, Build-ID %s\n' "$rollback_version" "$rollback_build"
 }
 
-purge_user_data() {
-    local user="${MMT_PURGE_USER:-${SUDO_USER:-}}"
-    [[ -n "$user" && "$user" != "root" ]] || fail "Für den Nutzerdaten-Purge muss MMT_PURGE_USER oder SUDO_USER auf einen Nicht-root-Nutzer zeigen." 48
-    local entry home uid
-    entry="$(getent passwd "$user")" || fail "Nutzer für Purge nicht gefunden: $user" 49
-    IFS=: read -r _ _ uid _ _ home _ <<<"$entry"
-    [[ -d "$home" && "$home" == /home/* ]] || fail "Unsicheres Nutzer-Home für Purge: $home" 50
-    local paths=(
-        "$home/.config/multimodultool2026"
-        "$home/.local/share/multimodultool2026"
-        "$home/.cache/multimodultool2026"
-        "$home/.local/state/multimodultool2026"
-        "/run/user/$uid/multimodultool2026"
+validate_no_symlink_components() {
+    local path="$1" current="/" part
+    [[ "$path" == /* ]] || fail "Purge-Ziel ist nicht absolut: $path" 50
+    IFS='/' read -r -a parts <<< "${path#/}"
+    for part in "${parts[@]}"; do
+        [[ -n "$part" ]] || continue
+        current="${current%/}/$part"
+        if [[ -L "$current" ]]; then
+            fail "Purge-Pfad enthält eine Symlink-Komponente und wurde blockiert: $current" 51
+        fi
+    done
+}
+
+prepare_user_purge() {
+    PURGE_USER="${MMT_PURGE_USER:-${SUDO_USER:-}}"
+    [[ -n "$PURGE_USER" && "$PURGE_USER" != "root" ]] || fail "Für den Nutzerdaten-Purge muss MMT_PURGE_USER oder SUDO_USER auf einen Nicht-root-Nutzer zeigen." 48
+    local entry
+    entry="$(getent passwd "$PURGE_USER")" || fail "Nutzer für Purge nicht gefunden: $PURGE_USER" 49
+    IFS=: read -r _ _ PURGE_UID _ _ PURGE_HOME _ <<<"$entry"
+    [[ -d "$PURGE_HOME" && "$PURGE_HOME" == /home/* ]] || fail "Unsicheres Nutzer-Home für Purge: $PURGE_HOME" 50
+    validate_no_symlink_components "$PURGE_HOME"
+    PURGE_PATHS=(
+        "$PURGE_HOME/.config/multimodultool2026"
+        "$PURGE_HOME/.local/share/multimodultool2026"
+        "$PURGE_HOME/.cache/multimodultool2026"
+        "$PURGE_HOME/.local/state/multimodultool2026"
+        "/run/user/$PURGE_UID/multimodultool2026"
     )
     local path
-    for path in "${paths[@]}"; do
-        [[ ! -L "$path" ]] || fail "Purge-Ziel ist ein Symlink und wurde blockiert: $path" 51
-        [[ "$path" == "$home"/* || "$path" == "/run/user/$uid/multimodultool2026" ]] \
+    for path in "${PURGE_PATHS[@]}"; do
+        [[ "$path" == "$PURGE_HOME"/* || "$path" == "/run/user/$PURGE_UID/multimodultool2026" ]] \
             || fail "Purge-Ziel verlässt die erlaubte Grenze: $path" 52
+        validate_no_symlink_components "$path"
+    done
+}
+
+purge_user_data() {
+    local path
+    for path in "${PURGE_PATHS[@]}"; do
         rm -rf --one-file-system -- "$path"
     done
+}
+
+prevalidate_uninstall() {
+    [[ "$PURGE_USER_DATA" -eq 0 ]] || prepare_user_purge
+    if [[ "$PURGE_SYSTEM_STATE" -eq 1 && -e "$STATE_ROOT" ]]; then
+        validate_no_symlink_components "$STATE_ROOT"
+        [[ -d "$STATE_ROOT" ]] || fail "Systemzustand ist kein Verzeichnis." 57
+    fi
 }
 
 uninstall_package() {
     require_root
     confirm_mutation
+    prevalidate_uninstall
     if [[ "$PURGE_SYSTEM_STATE" -eq 1 ]]; then
         DEBIAN_FRONTEND=noninteractive apt-get purge -y "$PACKAGE_NAME" || true
     else
@@ -204,7 +244,6 @@ uninstall_package() {
     [[ ! -e /usr/share/applications/multimodultool2026.desktop ]] || fail "Desktopdatei blieb nach Entfernung zurück." 56
     [[ "$PURGE_USER_DATA" -eq 0 ]] || purge_user_data
     if [[ "$PURGE_SYSTEM_STATE" -eq 1 && -e "$STATE_ROOT" ]]; then
-        [[ ! -L "$STATE_ROOT" ]] || fail "Systemzustand ist ein Symlink und wurde nicht gelöscht." 57
         rm -rf --one-file-system -- "$STATE_ROOT"
     fi
     printf 'GRÜN: Paketverwaltete Systemdateien vollständig entfernt.\n'

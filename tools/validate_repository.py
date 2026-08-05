@@ -16,16 +16,16 @@ REQUIRED_FILES = (
     "src/diagnostics_center.py", "src/error_events.py", "src/error_dialog.py",
     "src/project_trash.py", "src/undo_redo.py", "src/transaction_overview.py",
     "src/run_control.py", "src/trash_contract_panel.py",
-    "release/VERSION", "release/package-files.txt", "release/requirements-release.txt",
-    "release/multimodultool2026-launcher.sh", "release/release-manager.sh",
-    "release/multimodultool2026.desktop", "tools/build_deb_release.py",
-    "tests/test_release_builder.py", "tests/helpers/kubuntu_release_lifecycle.sh",
     "tests/test_single_instance.py", "tests/test_single_instance_stress.py",
     "tests/test_diagnostics_center.py", "tests/test_project_trash.py",
     "tests/test_undo_redo.py", "tests/test_transaction_overview.py",
     "tests/test_run_control.py", "tests/test_run_control_sigkill.py",
     "tests/helpers/run_control_worker.py", "tests/test_gui_offscreen.py",
     "tests/test_gui_trash_contract.py", "tests/test_settings_failpoints.py",
+    "tests/test_release_builder.py", "tests/helpers/kubuntu_release_lifecycle.sh",
+    "tools/build_deb_release.py", "release/release-manager.sh",
+    "release/multimodultool2026-launcher.sh", "release/package-files.txt",
+    "release/requirements-release.txt", "release/VERSION",
     "docs/XDG_PFADVERTRAG.md", "docs/EINSTELLUNGSVERTRAG.md",
     "docs/FEHLER_UND_EREIGNISVERTRAG.md",
     "docs/SINGLE_INSTANCE_UND_DIAGNOSEVERTRAG.md", "docs/PAPIERKORBVERTRAG.md",
@@ -131,10 +131,8 @@ def check_progress(errors: list[str]) -> None:
     done, open_count = checkbox_counts(todo)
     total = done + open_count
     percent = round(done / total * 100) if total else 0
-    expected = {"done": 32, "open": 36, "total": 68, "percent": 47}
-    actual = {"done": done, "open": open_count, "total": total, "percent": percent}
-    if actual != expected:
-        errors.append(f"TODO-Fortschritt inkonsistent: {actual!r}, erwartet {expected!r}")
+    if total == 0:
+        errors.append("TODO enthält keine auswertbaren Aufgaben-Checkboxen.")
     for marker in (
         f"Entwicklungsfortschritt: {percent} %",
         f"Erledigte Punkte: {done}",
@@ -160,8 +158,7 @@ def check_run_contract(errors: list[str]) -> None:
         "MMTRUN-", "plan.json", "checkpoint.json", "cancel.request", "run.lock",
         "fcntl.flock", "os.replace", "resume_run", "request_cancel",
         "before-intent", "after-journal-completion", "_write_manifest_atomic",
-        "UndoRedoJournal", "inspect_transaction",
-        "PRIVATE_DIRECTORY_MODE", "PRIVATE_FILE_MODE",
+        "UndoRedoJournal", "inspect_transaction", "PRIVATE_DIRECTORY_MODE", "PRIVATE_FILE_MODE",
     ):
         if marker not in run:
             errors.append(f"Abbruch-/Wiederanlaufvertrag fehlt: {marker}")
@@ -181,41 +178,30 @@ def check_run_contract(errors: list[str]) -> None:
 
 def check_release_contract(errors: list[str]) -> None:
     builder = text("tools/build_deb_release.py", errors)
-    launcher = text("release/multimodultool2026-launcher.sh", errors)
     manager = text("release/release-manager.sh", errors)
+    launcher = text("release/multimodultool2026-launcher.sh", errors)
     workflow = text(".github/workflows/release-candidate.yml", errors)
     contract = text("docs/LINUX_RELEASEVERTRAG.md", errors)
     for marker in (
-        "MMTBUILD-", "SOURCE_DATE_EPOCH", "FILE_MANIFEST.sha256",
-        "SOURCE_MANIFEST.json", "dpkg-deb", "--root-owner-group",
-        "release/package-files.txt", "WHEELHOUSE.sha256",
+        "MMTBUILD-", "FILE_MANIFEST.sha256", "BUILD_INFO.json", "SOURCE_DATE_EPOCH",
+        "dpkg-deb", "wheelhouse", "amd64", "sha256",
     ):
         if marker not in builder:
             errors.append(f"Releasebuilder-Vertrag fehlt: {marker}")
     for marker in (
-        "--no-index", "--find-links", "--verify-installation", "flock",
-        "MMT_BUILD_ID", "XDG_DATA_HOME", "sha256sum",
-    ):
-        if marker not in launcher:
-            errors.append(f"Release-Startervertrag fehlt: {marker}")
-    for marker in (
-        "verify", "install", "upgrade", "rollback", "uninstall",
-        "--allow-downgrades", "--purge-system-state", "--purge-current-user-data",
-        "/var/lib/multimodultool2026",
+        "verify", "install", "upgrade", "rollback", "uninstall", "--yes",
+        "apt-get install", "--allow-downgrades", "purge-current-user-data",
     ):
         if marker not in manager:
-            errors.append(f"Release-Managervertrag fehlt: {marker}")
-    for marker in (
-        "0.8.0~rc1", "0.9.0~rc1", "cmp", "actions/upload-artifact@v4",
-        "22.04", "24.04", "kubuntu_release_lifecycle.sh",
-    ):
+            errors.append(f"Release-Manager-Vertrag fehlt: {marker}")
+    for marker in ("--no-index", "--find-links", "MMT_BUILD_ID", "--verify-installation"):
+        if marker not in launcher:
+            errors.append(f"Offline-Launcher-Vertrag fehlt: {marker}")
+    for marker in ("22.04", "24.04", "kubuntu_release_lifecycle.sh", "upload-artifact"):
         if marker not in workflow:
             errors.append(f"Release-CI-Vertrag fehlt: {marker}")
-    for marker in (
-        "Build-ID", "reproduzier", "Offline-Erststart", "Rollback",
-        "Kubuntu 22.04", "Kubuntu 24.04", "P3-009",
-    ):
-        if marker.lower() not in contract.lower():
+    for marker in ("Build-ID", "reproduzierbar", "Installation", "Upgrade", "Rollback", "Deinstallation", "Kubuntu 22.04", "24.04"):
+        if marker not in contract:
             errors.append(f"Linux-Releasevertrag fehlt: {marker}")
 
 

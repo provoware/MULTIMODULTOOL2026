@@ -14,6 +14,25 @@ fail() {
     exit "${2:-20}"
 }
 
+safe_private_directory() {
+    local path="$1" parent current
+    [[ "$path" == /* ]] || fail "Privater Runtime-Pfad ist nicht absolut: $path" 18
+    current="/"
+    IFS='/' read -r -a parts <<< "${path#/}"
+    for part in "${parts[@]}"; do
+        [[ -n "$part" ]] || continue
+        current="${current%/}/$part"
+        if [[ -L "$current" ]]; then
+            fail "Runtime-Pfad enthält eine Symlink-Komponente: $current" 18
+        fi
+    done
+    mkdir -p -- "$path"
+    chmod 0700 "$path"
+    [[ -d "$path" && ! -L "$path" ]] || fail "Privater Runtime-Ordner ist unsicher: $path" 18
+    [[ "$(stat -c '%u:%a' "$path")" == "$(id -u):700" ]] \
+        || fail "Privater Runtime-Ordner benötigt Eigentümerrechte 0700: $path" 18
+}
+
 [[ "$(uname -s)" == "Linux" ]] || fail "Der Releasekandidat unterstützt ausschließlich Linux." 9
 [[ "$(uname -m)" == "x86_64" ]] || fail "Der Releasekandidat unterstützt ausschließlich x86-64." 10
 [[ -r "$BUILD_INFO" && -r "$FILE_MANIFEST" && -r "$REQUIREMENTS_LOCK" ]] || fail "Die installierten Release-Metadaten fehlen." 11
@@ -50,24 +69,30 @@ PY
 SAFE_BUILD_ID="${BUILD_ID//[^A-Za-z0-9._-]/_}"
 
 DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
-RUNTIME_ROOT="$DATA_HOME/multimodultool2026/runtime"
+APP_DATA_DIR="$DATA_HOME/multimodultool2026"
+RUNTIME_ROOT="$APP_DATA_DIR/runtime"
 VENV_DIR="$RUNTIME_ROOT/venv-$SAFE_BUILD_ID"
 LOCK_FILE="$RUNTIME_ROOT/runtime.lock"
 
-mkdir -p -- "$RUNTIME_ROOT"
-chmod 0700 "$RUNTIME_ROOT"
-[[ ! -L "$RUNTIME_ROOT" ]] || fail "Der lokale Runtime-Ordner darf kein Symlink sein." 18
+safe_private_directory "$APP_DATA_DIR"
+safe_private_directory "$RUNTIME_ROOT"
 
 exec 9>"$LOCK_FILE"
 chmod 0600 "$LOCK_FILE"
 flock -x 9
 
-if [[ ! -x "$VENV_DIR/bin/python" ]] || \
-   ! "$VENV_DIR/bin/python" -c 'import PySide6' >/dev/null 2>&1 || \
-   [[ ! -r "$VENV_DIR/MMT_BUILD_ID" ]] || \
-   [[ "$(cat "$VENV_DIR/MMT_BUILD_ID")" != "$BUILD_ID" ]]; then
+runtime_valid=0
+if [[ -x "$VENV_DIR/bin/python" ]] && \
+   "$VENV_DIR/bin/python" -c 'import PySide6' >/dev/null 2>&1 && \
+   [[ -r "$VENV_DIR/MMT_BUILD_ID" ]] && \
+   [[ "$(cat "$VENV_DIR/MMT_BUILD_ID")" == "$BUILD_ID" ]]; then
+    runtime_valid=1
+fi
+
+if [[ "$runtime_valid" -eq 0 ]]; then
     TMP_VENV="$RUNTIME_ROOT/.venv-$SAFE_BUILD_ID-$$.tmp"
-    rm -rf -- "$TMP_VENV"
+    OLD_VENV="$RUNTIME_ROOT/.venv-$SAFE_BUILD_ID-$$.invalid"
+    rm -rf -- "$TMP_VENV" "$OLD_VENV"
     python3 -m venv "$TMP_VENV" || fail "Die lokale Python-Runtime konnte nicht angelegt werden." 19
     "$TMP_VENV/bin/python" -m pip install \
         --disable-pip-version-check \
@@ -81,10 +106,11 @@ if [[ ! -x "$VENV_DIR/bin/python" ]] || \
     chmod 0600 "$TMP_VENV/MMT_BUILD_ID"
     chmod 0700 "$TMP_VENV"
     if [[ -e "$VENV_DIR" ]]; then
-        rm -rf -- "$TMP_VENV"
-    else
-        mv -- "$TMP_VENV" "$VENV_DIR"
+        [[ ! -L "$VENV_DIR" ]] || { rm -rf -- "$TMP_VENV"; fail "Vorhandener Runtime-Slot ist ein Symlink." 22; }
+        mv -- "$VENV_DIR" "$OLD_VENV"
     fi
+    mv -- "$TMP_VENV" "$VENV_DIR"
+    rm -rf -- "$OLD_VENV"
 fi
 
 flock -u 9
