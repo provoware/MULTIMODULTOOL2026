@@ -46,6 +46,7 @@ jobs:
   verify-main-signatures:
     name: Post-merge OIDC-Signaturartefakt nachweisen
     if: >-
+      github.event_name == 'pull_request' ||
       (github.event_name == 'workflow_run' &&
        github.event.workflow_run.event == 'push' &&
        github.event.workflow_run.head_branch == 'main' &&
@@ -80,12 +81,15 @@ jobs:
         shell: bash
         env:
           EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           WORKFLOW_RUN_SHA: ${{ github.event.workflow_run.head_sha }}
           MANUAL_SHA: ${{ inputs.commit_sha }}
           CURRENT_SHA: ${{ github.sha }}
         run: |
           set -Eeuo pipefail
-          if [[ "$EVENT_NAME" == "workflow_run" ]]; then
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            target_sha="$PR_BASE_SHA"
+          elif [[ "$EVENT_NAME" == "workflow_run" ]]; then
             target_sha="$WORKFLOW_RUN_SHA"
           elif [[ -n "$MANUAL_SHA" ]]; then
             target_sha="$MANUAL_SHA"
