@@ -155,15 +155,17 @@ MMT_PURGE_USER=mmt /artifacts/release-manager.sh uninstall --purge-system-state 
 [[ ! -e "$MMT_RUNTIME_DIR/multimodultool2026" ]]
 
 phase write-report
+export MMT_REPORT_UID="$MMT_UID"
 python3 - <<PY > /artifacts/lifecycle-reports/kubuntu-'"$SERIES"'.json
 import json
+import os
 print(json.dumps({
   "schemaVersion": 1,
   "series": "'"$SERIES"'",
   "kubuntuDesktop": True,
   "plasmaDesktop": True,
   "architecture": "amd64",
-  "testUserUid": int("'"$MMT_UID"'"),
+  "testUserUid": int(os.environ["MMT_REPORT_UID"]),
   "install": "passed",
   "firstStart": "passed",
   "privateRuntime0700": "passed",
