@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Collect and verify the post-merge P3-009 signed release artifact from GitHub Actions."""
+"""Collect and verify the post-merge P3-009 signed release artifact."""
 
 from __future__ import annotations
 
@@ -14,10 +14,10 @@ import shutil
 import stat
 import sys
 import tempfile
-from typing import Any
+from typing import Any, BinaryIO
 from urllib.error import HTTPError, URLError
-from urllib.parse import quote
-from urllib.request import Request, urlopen
+from urllib.parse import quote, urlsplit
+from urllib.request import HTTPRedirectHandler, Request, build_opener, urlopen
 import zipfile
 
 try:
@@ -28,7 +28,7 @@ try:
         SigningContractError,
         verify_signed_release,
     )
-except ImportError:  # pragma: no cover - direct script execution
+except ImportError:  # pragma: no cover - direct execution
     from sign_release_artifacts import (  # type: ignore
         BUNDLE_SUFFIX,
         MANIFEST_BUNDLE_NAME,
@@ -49,10 +49,27 @@ DEFAULT_IDENTITY_REGEXP = (
 )
 DEFAULT_OIDC_ISSUER = "https://token.actions.githubusercontent.com"
 MAX_ARCHIVE_BYTES = 4 * 1024 * 1024 * 1024
+REDIRECT_CODES = frozenset({301, 302, 303, 307, 308})
+USER_AGENT = "multimodultool2026-p3-009-evidence"
 
 
 class EvidenceError(RuntimeError):
-    """Raised when the main-branch signature evidence contract is violated."""
+    """Raised when the main-branch evidence contract is violated."""
+
+
+class _NoRedirect(HTTPRedirectHandler):
+    """Expose GitHub's signed storage URL instead of forwarding credentials."""
+
+    def redirect_request(  # type: ignore[override]
+        self,
+        req: Request,
+        fp: BinaryIO,
+        code: int,
+        msg: str,
+        headers: Any,
+        newurl: str,
+    ) -> None:
+        return None
 
 
 def _utc_now() -> str:
@@ -73,16 +90,17 @@ def _json_object(value: Any, context: str) -> dict[str, Any]:
     return value
 
 
+def _api_headers(token: str) -> dict[str, str]:
+    return {
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {token}",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": USER_AGENT,
+    }
+
+
 def _api_json(url: str, token: str) -> dict[str, Any]:
-    request = Request(
-        url,
-        headers={
-            "Accept": "application/vnd.github+json",
-            "Authorization": f"Bearer {token}",
-            "X-GitHub-Api-Version": "2022-11-28",
-            "User-Agent": "multimodultool2026-p3-009-evidence",
-        },
-    )
+    request = Request(url, headers=_api_headers(token))
     try:
         with urlopen(request, timeout=60) as response:
             return _json_object(json.load(response), f"GitHub-Antwort {url}")
@@ -90,27 +108,65 @@ def _api_json(url: str, token: str) -> dict[str, Any]:
         raise EvidenceError(f"GitHub-API-Abfrage fehlgeschlagen: {url}: {exc}") from exc
 
 
-def _download(url: str, token: str, target: Path) -> None:
-    request = Request(
-        url,
-        headers={
-            "Accept": "application/vnd.github+json",
-            "Authorization": f"Bearer {token}",
-            "X-GitHub-Api-Version": "2022-11-28",
-            "User-Agent": "multimodultool2026-p3-009-evidence",
-        },
-    )
+def _redirect_target(url: str, token: str) -> str:
+    """Resolve GitHub's artifact redirect without leaking its bearer token."""
+
+    request = Request(url, headers=_api_headers(token))
+    opener = build_opener(_NoRedirect())
     try:
-        with urlopen(request, timeout=120) as response, target.open("wb") as handle:
+        with opener.open(request, timeout=60) as response:
+            location = response.headers.get("Location")
+            status = getattr(response, "status", 200)
+            if status not in REDIRECT_CODES or not location:
+                raise EvidenceError(
+                    "GitHub-Artefaktendpunkt lieferte keinen signierten Download-Redirect."
+                )
+    except HTTPError as exc:
+        if exc.code not in REDIRECT_CODES:
+            raise EvidenceError(
+                f"GitHub-Artefaktredirect konnte nicht aufgelöst werden: HTTP {exc.code}"
+            ) from exc
+        location = exc.headers.get("Location")
+        if not location:
+            raise EvidenceError("GitHub-Artefaktredirect enthält kein Location-Ziel.") from exc
+    except (URLError, TimeoutError, OSError) as exc:
+        raise EvidenceError(f"GitHub-Artefaktredirect konnte nicht aufgelöst werden: {exc}") from exc
+
+    parsed = urlsplit(location)
+    if (
+        parsed.scheme != "https"
+        or not parsed.netloc
+        or parsed.username is not None
+        or parsed.password is not None
+    ):
+        raise EvidenceError("GitHub lieferte kein sicheres HTTPS-Artefaktziel.")
+    return location
+
+
+def _stream_download(url: str, target: Path) -> None:
+    """Download the signed storage URL deliberately without Authorization."""
+
+    request = Request(url, headers={"User-Agent": USER_AGENT})
+    try:
+        with urlopen(request, timeout=120) as response, target.open("xb") as handle:
             total = 0
             while block := response.read(1024 * 1024):
                 total += len(block)
                 if total > MAX_ARCHIVE_BYTES:
                     raise EvidenceError("Signaturartefakt überschreitet das Archivgrößenlimit.")
                 handle.write(block)
+    except EvidenceError:
+        target.unlink(missing_ok=True)
+        raise
     except (HTTPError, URLError, TimeoutError, OSError) as exc:
         target.unlink(missing_ok=True)
         raise EvidenceError(f"GitHub-Artefakt konnte nicht geladen werden: {exc}") from exc
+
+
+def _download(url: str, token: str, target: Path) -> None:
+    target.unlink(missing_ok=True)
+    storage_url = _redirect_target(url, token)
+    _stream_download(storage_url, target)
 
 
 def select_main_run(
@@ -357,11 +413,11 @@ def collect_evidence(
 
     api_base = api_base.rstrip("/")
     repo_path = quote(repository, safe="/")
-    run_query = (
+    run_payload = _api_json(
         f"{api_base}/repos/{repo_path}/actions/runs"
-        f"?head_sha={commit_sha}&event=push&branch=main&per_page=100"
+        f"?head_sha={commit_sha}&event=push&branch=main&per_page=100",
+        token,
     )
-    run_payload = _api_json(run_query, token)
     raw_runs = run_payload.get("workflow_runs")
     if not isinstance(raw_runs, list):
         raise EvidenceError("GitHub-Laufantwort enthält keine workflow_runs-Liste.")
@@ -474,11 +530,10 @@ def _parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     try:
-        token = os.environ.get(args.token_env, "")
         json_path, markdown_path = collect_evidence(
             repository=args.repository,
             commit_sha=args.commit_sha,
-            token=token,
+            token=os.environ.get(args.token_env, ""),
             output_directory=args.output_directory,
             api_base=args.api_base,
             workflow_path=args.workflow_path,
