@@ -1,43 +1,54 @@
-"""Contextual, read-only help dialog for the guarded Linux workflow."""
+"""Contextual, read-only help for productive and signed Linux workflows."""
 
 from __future__ import annotations
 
+from .productive_integration import install_productive_ui
+
 HELP_SECTIONS: tuple[tuple[str, str], ...] = (
     (
-        "Sicherer Einstieg",
-        "Start zeigt ausschließlich bereits geprüfte Schutzfunktionen. Produktive Dateiaktionen "
-        "bleiben deaktiviert, bis Projektordner, Rechte, Mountgrenzen und Speicherplatz über den "
-        "geführten Auswahlworkflow validiert werden können.",
+        "Projekt sicher wählen",
+        "Projektordner ausschließlich über den Auswahldialog wählen. Systemstämme, der Home-Stamm, "
+        "fremde Eigentümer, Symlink-Komponenten, unzureichende Rechte und zu wenig freier Speicher "
+        "werden vor jeder Analyse oder Dateiaktion blockiert.",
     ),
     (
-        "Verlauf und Wiederanlauf",
-        "Zeigt Papierkorbtransaktionen, Undo/Redo-Zustände, Laufpläne und Checkpoints rein lesend. "
-        "Nichts wird automatisch repariert, gelöscht oder fortgesetzt. Bei einem Widerspruch bleibt "
-        "der Datenstand unverändert blockiert.",
+        "Dateibestand analysieren",
+        "Die Analyse liest Typ, Größe, Änderungszeit, Dateiendung, Kategorie und Namenshinweise. "
+        "Symlinks werden sichtbar als ausgeschlossen gemeldet, nicht verfolgt. Mountgrenzen, interne "
+        "Steuerdaten und nicht reguläre Dateien werden nicht produktiv verarbeitet.",
     ),
     (
-        "Diagnose",
-        "Zeigt lokal gespeicherte und bereinigte Ereignisse. Nach Schweregrad oder Diagnosekennung "
-        "filtern und genau einen sicheren Bericht kopieren. Es gibt keinen Upload, keine Löschung und "
-        "keinen automatischen Export.",
+        "Duplikate per SHA-256",
+        "Nur reguläre Dateien gleicher Größe werden streamend gehasht. Vor und nach dem Hashen wird "
+        "der Dateifingerabdruck geprüft. Die Suche ist rein lesend: Sie löscht, verschiebt oder ersetzt nichts.",
     ),
     (
-        "Gesperrte Bereiche",
-        "Analysieren, Duplikate, Organisieren, Umbenennen und Berichte sind sichtbar, aber absichtlich "
-        "gesperrt. Der jeweilige Tooltip nennt die fehlende Freigabe. Eine Sperre darf nicht manuell "
-        "umgangen werden.",
+        "Organisieren und Massenumbenennen",
+        "Zuerst wird eine vollständige Vorher-/Nachher-Liste mit Planhash erzeugt. Doppelte Ziele, "
+        "belegte Namen, Rename-Zyklen, Hardlinks, Symlinks und Dateisystemwechsel blockieren den gesamten Plan. "
+        "Ausgeführt wird erst nach einer zweiten ausdrücklichen Bestätigung.",
     ),
     (
-        "Abbruch und Fortsetzung",
-        "Ein Abbruch wird nur vor einem neuen Intent oder nach einem vollständig bestätigten Schritt "
-        "übernommen. Nach einem Neustart werden Checkpoint, Journal, Manifest, Originalpfad und Payload "
-        "gemeinsam geprüft, damit keine Dateioperation doppelt ausgeführt wird.",
+        "Checkpoint, Fortsetzung und Rückgängig",
+        "Jeder bestätigte Schritt wird in einem privaten Operationsordner protokolliert. Nach einer Unterbrechung "
+        "werden Quelle, Ziel und Fingerabdruck mit dem unveränderlichen Plan abgeglichen. Rückgängig arbeitet "
+        "rückwärts und nur bei unveränderten Zieldateien sowie freien Originalpfaden.",
     ),
     (
-        "Release-Dateien",
-        "Erst nach grünen Kubuntu-22.04- und Kubuntu-24.04-Lebenszyklen werden die geprüften "
-        "Ausgabedateien mit dem Zusatz _save_ erzeugt. Quelldateien behalten ihre normalen Namen, "
-        "damit Imports, Startpfade und Manifeste stabil bleiben.",
+        "Berichte",
+        "Analyse- und Operationsberichte werden als JSON und Markdown im privaten Projektsteuerordner gespeichert. "
+        "Sie enthalten ausschließlich projekt-relative Pfade und keinen automatischen Upload.",
+    ),
+    (
+        "Kryptografisch signierte Releases",
+        "Nach grüner Kubuntu-Matrix werden die _save_-Dateien mit Sigstore keyless OIDC signiert. Jede Datei erhält "
+        "ein JSON-Bundle; zusätzlich wird ein SHA-256-Releasemanifest erstellt und selbst signiert. Die Prüfung bindet "
+        "Workflowidentität und OIDC-Aussteller. Im Repository liegt kein langlebiger privater Schlüssel.",
+    ),
+    (
+        "Bewusste Grenzen",
+        "Grafische Einstellungen, vollständige KDE-Tastaturabnahme, Zoom 80–200 Prozent, weitere Themes, "
+        "Journalrotation, Datenmigration, Plugin-Sandbox und physische X11-/Wayland-Abnahme bleiben getrennte Aufgaben.",
     ),
 )
 
@@ -45,22 +56,25 @@ HELP_SECTIONS: tuple[tuple[str, str], ...] = (
 def build_help_dialog(QtWidgets, parent=None):
     """Build a non-destructive help dialog without reading or writing user data."""
 
+    if parent is not None:
+        install_productive_ui(QtWidgets, parent)
+
     dialog = QtWidgets.QDialog(parent)
     dialog.setObjectName("helpDialog")
     dialog.setWindowTitle("MULTIMODULTOOL2026 – Hilfe und Sicherheitsgrenzen")
-    dialog.resize(760, 620)
+    dialog.resize(780, 660)
     dialog.setMinimumSize(620, 480)
     dialog.setModal(False)
 
     outer = QtWidgets.QVBoxLayout(dialog)
-    title = QtWidgets.QLabel("Hilfe, Status und sichere nächste Schritte")
+    title = QtWidgets.QLabel("Hilfe, produktiver Ablauf und sichere nächste Schritte")
     title.setObjectName("helpDialogTitle")
     title.setWordWrap(True)
     outer.addWidget(title)
 
     intro = QtWidgets.QLabel(
-        "Diese Hilfe erklärt nur freigegebene Funktionen und bewusst gesperrte Grenzen. "
-        "Sie verändert keine Einstellungen, Journale, Checkpoints, Manifeste oder Nutzerdaten."
+        "Diese Hilfe erklärt die freigegebenen lokalen Dateiworkflows und ihre harten Blocker. "
+        "Sie verändert keine Einstellungen, Projektdateien, Journale, Checkpoints oder Signaturen."
     )
     intro.setObjectName("helpDialogIntro")
     intro.setWordWrap(True)
