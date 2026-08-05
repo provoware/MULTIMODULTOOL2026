@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "releaseSuffix": "_save_",
   "sourceRenameForbidden": true,
   "suffixAppliedAfterGreenLifecycleMatrix": true,
@@ -35,16 +35,28 @@
       "outputPattern": "RELEASE_STATUS_save_.json"
     }
   ],
+  "signedRelease": {
+    "task": "P3-009",
+    "requiredAfterGreenLifecycleMatrix": true,
+    "mode": "sigstore-keyless-oidc",
+    "privateSigningKeyStored": false,
+    "oidcIssuer": "https://token.actions.githubusercontent.com",
+    "certificateIdentityRegexp": "^https://github.com/provoware/MULTIMODULTOOL2026/.github/workflows/release-candidate.yml@refs/(heads/main|tags/v.*)$",
+    "perArtifactBundleSuffix": ".sigstore.json",
+    "signedManifest": "SIGNED_RELEASE_MANIFEST_save_.json",
+    "signedManifestBundle": "SIGNED_RELEASE_MANIFEST_save_.json.sigstore.json",
+    "expectedPrimaryArtifacts": 6,
+    "expectedSignedOutputFiles": 14
+  },
   "testOnlyArtifacts": [
     "multimodultool2026_0.8.0~rc1_amd64.deb",
     "multimodultool2026_0.8.0~rc1_amd64.deb.sha256",
     "raw lifecycle reports and diagnostic logs"
   ],
   "unfinished": [
-    "P1 guided project and file selection",
-    "P1 productive analysis, rename, duplicate and organization workflows",
+    "P1 guided start assistant with separate target and safety-mode choice",
     "P2 remaining accessibility, contrast, responsive and confirmation work",
-    "P3 journal rotation, migration, quality gates and signed release",
+    "P3 journal rotation, module interface, coverage, quality and migration gates",
     "P4 optional media, plugin, portable and physical desktop acceptance"
   ]
 }
