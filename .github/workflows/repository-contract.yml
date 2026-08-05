@@ -42,6 +42,12 @@ jobs:
       - name: Unit-, Ereignis- und Kernregressionstests ausführen
         run: python3 -m unittest discover -s tests -p "test_*.py" -v
 
+      - name: Produktive Projekt- und Dateioperationen ausdrücklich prüfen
+        run: python3 -m unittest tests.test_productive_workflow -v
+
+      - name: P3-009 Signaturvertrag ausdrücklich prüfen
+        run: python3 -m unittest tests.test_sign_release_artifacts -v
+
       - name: Reproduzierbaren Releasebuilder ausdrücklich prüfen
         run: python3 -m unittest tests.test_release_builder -v
 
@@ -78,7 +84,7 @@ jobs:
       - name: PySide6 für Offscreen-Test installieren
         run: python3 -m pip install -r requirements.txt
 
-      - name: Offscreen-GUI-, Hilfe-, Tooltip- und Fehlerdialog-Test ausführen
+      - name: Offscreen-GUI-, Produktiv-, Hilfe-, Tooltip- und Fehlerdialog-Test ausführen
         run: python3 -m unittest tests.test_gui_offscreen -v
 
       - name: Offscreen-Papierkorb-, Transaktions- und Wiederanlaufvertrag prüfen
