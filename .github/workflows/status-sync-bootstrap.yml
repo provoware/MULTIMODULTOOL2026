@@ -1,0 +1,226 @@
+name: Temporary P1 P3 Status Sync
+
+on:
+  push:
+    branches:
+      - agent/sync-p1-p3-status
+    paths:
+      - .github/workflows/status-sync-bootstrap.yml
+
+permissions:
+  contents: write
+
+jobs:
+  synchronize:
+    name: Nachgewiesenen P1-/P3-Stand synchronisieren
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Statusdateien deterministisch aktualisieren
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 - <<'PY'
+          from __future__ import annotations
+
+          import json
+          from pathlib import Path
+          import re
+
+          root = Path('.')
+          completed_tasks = (
+              'P1-003', 'P1-004', 'P1-005', 'P1-006',
+              'P1-007', 'P1-008', 'P1-009', 'P3-009',
+          )
+
+          todo_path = root / 'TODO.md'
+          todo = todo_path.read_text(encoding='utf-8')
+          old_progress = '''- Erledigt: **33**
+          - Offen: **35**
+          - Gesamt: **68**
+          - Rechnerischer Entwicklungsfortschritt: **49 %**'''
+          new_progress = '''- Erledigt: **41**
+          - Offen: **27**
+          - Gesamt: **68**
+          - Rechnerischer Entwicklungsfortschritt: **60 %**'''
+          if old_progress not in todo:
+              raise SystemExit('TODO-Fortschrittsblock entspricht nicht dem erwarteten Ausgangsstand.')
+          todo = todo.replace(old_progress, new_progress, 1)
+          for task in completed_tasks:
+              pattern = rf'^- \[ \] \*\*{re.escape(task)}\*\*'
+              todo, count = re.subn(
+                  pattern,
+                  f'- [x] **{task}**',
+                  todo,
+                  count=1,
+                  flags=re.MULTILINE,
+              )
+              if count != 1:
+                  raise SystemExit(f'TODO-Aufgabe konnte nicht eindeutig abgeschlossen werden: {task}')
+          p3_line = '- [x] **P3-009** – Signiertes Linux-Release-Gate definieren. | Risiko: **hoch**'
+          p3_evidence = (
+              '- [x] **P3-009** – Signiertes Linux-Release-Gate definieren. '
+              'Abnahme: post-merge `main`-Run `30970761299` erfolgreich; Signaturjob '
+              '`92196203330` grün; Artefakt `8916623377` enthält exakt 14 geprüfte Dateien; '
+              'Workflowidentität, OIDC-Aussteller und sämtliche Bundle-Digests bestätigt. '
+              '| Risiko: **hoch**'
+          )
+          if p3_line not in todo:
+              raise SystemExit('P3-009-Ausgangszeile fehlt.')
+          todo = todo.replace(p3_line, p3_evidence, 1)
+          done = len(re.findall(r'^- \[x\]', todo, flags=re.MULTILINE))
+          open_count = len(re.findall(r'^- \[ \]', todo, flags=re.MULTILINE))
+          if (done, open_count, done + open_count) != (41, 27, 68):
+              raise SystemExit(f'Unerwartete TODO-Zählung: {done}/{open_count}/{done + open_count}')
+          todo_path.write_text(todo, encoding='utf-8')
+
+          readme_path = root / 'README.md'
+          readme = readme_path.read_text(encoding='utf-8')
+          replacements = {
+              '> **Entwicklungsfortschritt: 49 %**': '> **Entwicklungsfortschritt: 60 %**',
+              '> **Erledigte Punkte: 33**': '> **Erledigte Punkte: 41**',
+              '> **Offene Punkte: 35**': '> **Offene Punkte: 27**',
+              '> **Aktuelle Phase:** produktiver P1-Dateikern und P3-009 in Releaseabnahme': (
+                  '> **Aktuelle Phase:** P1-003 bis P1-009 und P3-009 abgenommen; '
+                  'P1-001/P1-002 bleiben offen'
+              ),
+              (
+                  'Die formale Fortschrittszahl bleibt bis zum vollständig signierten `main`-Nachweis '
+                  'und der getrennten P1-001-Startassistentenabnahme konservativ unverändert.'
+              ): (
+                  'Die formale Fortschrittszahl enthält jetzt den vollständig belegten produktiven '
+                  'P1-Dateikern sowie den kryptografisch nachgewiesenen P3-009-Hauptzweiglauf. '
+                  'P1-001 und P1-002 bleiben bis zu ihrer getrennten Bedienabnahme offen.'
+              ),
+              (
+                  '`P1-001` bleibt teilweise offen: Ein eigener Startassistent mit separat wählbarem '
+                  'Ziel und Sicherheitsmodus folgt als kleine Bedieniteration. Die jetzt produktiven '
+                  'Operationen bleiben absichtlich innerhalb eines geprüften Projektordners.'
+              ): (
+                  '`P1-001` und `P1-002` bleiben offen: Der eigene Startassistent benötigt weiterhin '
+                  'separat wählbares Ziel und Sicherheitsmodus; die Kachelnavigation benötigt noch '
+                  'den vollständig geprüften aktiven Zustand und Zurück-Pfad. Die produktiven '
+                  'Operationen bleiben absichtlich innerhalb eines geprüften Projektordners.'
+              ),
+              (
+                  '| `multimodultool2026_<version>_amd64_save_.deb` | '
+                  'P1-001: eigener Ziel-/Sicherheitsmodus im Startassistenten |'
+              ): (
+                  '| `multimodultool2026_<version>_amd64_save_.deb` | '
+                  'P1-001/P1-002: Startassistent sowie aktiver Kachelzustand und Zurück-Pfad |'
+              ),
+              '- insgesamt exakt 14 Dateien im signierten Workflowartefakt': (
+                  '- insgesamt exakt 14 Dateien im signierten Workflowartefakt\n'
+                  '- Hauptzweignachweis: Run `30970761299`, Signaturjob `92196203330`, '
+                  'Artefakt `8916623377`, Archiv-SHA-256 '
+                  '`fad8a42f2132722cf89ae659d75887b8bd12c33557387d2d13b47778f31eedf3`'
+              ),
+          }
+          for old, new in replacements.items():
+              if readme.count(old) != 1:
+                  raise SystemExit(f'README-Ausgangsmarker fehlt oder ist mehrdeutig: {old[:80]}')
+              readme = readme.replace(old, new, 1)
+          readme_path.write_text(readme, encoding='utf-8')
+
+          main_path = root / 'src/main.py'
+          main_source = main_path.read_text(encoding='utf-8')
+          for old, new in (
+              ('DEVELOPMENT_PROGRESS = 49', 'DEVELOPMENT_PROGRESS = 60'),
+              ('COMPLETED_POINTS = 33', 'COMPLETED_POINTS = 41'),
+              ('OPEN_POINTS = 35', 'OPEN_POINTS = 27'),
+          ):
+              if main_source.count(old) != 1:
+                  raise SystemExit(f'Fortschrittskonstante fehlt oder ist mehrdeutig: {old}')
+              main_source = main_source.replace(old, new, 1)
+          main_path.write_text(main_source, encoding='utf-8')
+
+          status_path = root / 'release/release-status.json'
+          status = json.loads(status_path.read_text(encoding='utf-8'))
+          signed = status.get('signedRelease')
+          if not isinstance(signed, dict) or signed.get('task') != 'P3-009':
+              raise SystemExit('P3-009-Signaturvertrag fehlt im Release-Status.')
+          signed['status'] = 'verified-on-main'
+          signed['evidence'] = {
+              'verifiedAt': '2026-08-05',
+              'mainCommitSha': 'a9fe8169acb47b2e78d93b62b7a367bb17a0ce3b',
+              'workflowRunId': 30970761299,
+              'signingJobId': 92196203330,
+              'artifactId': 8916623377,
+              'artifactName': 'multimodultool2026-release-signed',
+              'artifactFileCount': 14,
+              'artifactSha256': 'fad8a42f2132722cf89ae659d75887b8bd12c33557387d2d13b47778f31eedf3',
+              'certificateIdentity': (
+                  'https://github.com/provoware/MULTIMODULTOOL2026/'
+                  '.github/workflows/release-candidate.yml@refs/heads/main'
+              ),
+              'oidcIssuer': 'https://token.actions.githubusercontent.com',
+              'cosignVerified': True,
+              'manifestAndBundleDigestsVerified': True,
+          }
+          status['projectProgress'] = {
+              'statusDate': '2026-08-05',
+              'completed': 41,
+              'open': 27,
+              'total': 68,
+              'percent': 60,
+              'newlyVerifiedTasks': list(completed_tasks),
+              'remainingP1Tasks': ['P1-001', 'P1-002'],
+          }
+          status['unfinished'] = [
+              'P1-001 guided start assistant with separate target and safety-mode choice',
+              'P1-002 tile navigation active-state and validated back-path completion',
+              'P2 remaining accessibility, contrast, responsive and confirmation work',
+              'P3-001 through P3-008 remaining architecture, journal rotation, module interface, coverage, quality, migration and build-ID work',
+              'P4 optional media, plugin, portable and physical desktop acceptance',
+          ]
+          status_path.write_text(
+              json.dumps(status, ensure_ascii=False, indent=2) + '\n',
+              encoding='utf-8',
+          )
+
+          bootstrap = root / '.github/workflows/status-sync-bootstrap.yml'
+          bootstrap.unlink()
+          PY
+
+      - name: Konsistenz und Syntax vor Commit prüfen
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 tools/validate_repository.py
+          python3 -m py_compile src/main.py
+          python3 - <<'PY'
+          import json
+          import re
+          from pathlib import Path
+
+          todo = Path('TODO.md').read_text(encoding='utf-8')
+          readme = Path('README.md').read_text(encoding='utf-8')
+          main = Path('src/main.py').read_text(encoding='utf-8')
+          status = json.loads(Path('release/release-status.json').read_text(encoding='utf-8'))
+          assert len(re.findall(r'^- \[x\]', todo, flags=re.MULTILINE)) == 41
+          assert len(re.findall(r'^- \[ \]', todo, flags=re.MULTILINE)) == 27
+          assert 'Entwicklungsfortschritt: 60 %' in readme
+          assert 'DEVELOPMENT_PROGRESS = 60' in main
+          assert status['projectProgress']['completed'] == 41
+          assert status['signedRelease']['status'] == 'verified-on-main'
+          assert status['signedRelease']['evidence']['artifactFileCount'] == 14
+          assert not Path('.github/workflows/status-sync-bootstrap.yml').exists()
+          PY
+          git diff --check
+
+      - name: Ausschließlich den finalen Statuspatch committen
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add TODO.md README.md src/main.py release/release-status.json .github/workflows/status-sync-bootstrap.yml
+          git diff --cached --name-only
+          test "$(git diff --cached --name-only | sort | tr '\n' ' ')" = "README.md TODO.md release/release-status.json src/main.py "
+          git commit -m 'P1-/P3-Fortschrittsstand synchronisieren [status-sync-done]'
+          git push origin HEAD:agent/sync-p1-p3-status
