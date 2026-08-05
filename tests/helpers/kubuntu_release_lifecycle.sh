@@ -56,10 +56,14 @@ dpkg-query -W -f="\${Status}\n" kubuntu-desktop | grep -q "install ok installed"
 dpkg-query -W -f="\${Status}\n" plasma-desktop | grep -q "install ok installed"
 
 phase prepare-test-user
-useradd -m -u 1000 -s /bin/bash mmt
-mkdir -p /run/user/1000
-chown 1000:1000 /run/user/1000
-chmod 0700 /run/user/1000
+useradd -m -s /bin/bash mmt
+MMT_UID="$(id -u mmt)"
+MMT_GID="$(id -g mmt)"
+MMT_RUNTIME_DIR="/run/user/$MMT_UID"
+mkdir -p "$MMT_RUNTIME_DIR"
+chown "$MMT_UID:$MMT_GID" "$MMT_RUNTIME_DIR"
+chmod 0700 "$MMT_RUNTIME_DIR"
+[[ "$(stat -c %u:%g:%a "$MMT_RUNTIME_DIR")" == "$MMT_UID:$MMT_GID:700" ]]
 chmod 0755 /artifacts/release-manager.sh
 
 run_as_mmt() {
@@ -69,7 +73,7 @@ run_as_mmt() {
     XDG_DATA_HOME=/home/mmt/.local/share \
     XDG_CACHE_HOME=/home/mmt/.cache \
     XDG_STATE_HOME=/home/mmt/.local/state \
-    XDG_RUNTIME_DIR=/run/user/1000 \
+    XDG_RUNTIME_DIR="$MMT_RUNTIME_DIR" \
     QT_QPA_PLATFORM=offscreen \
     "$@"
 }
@@ -148,6 +152,7 @@ MMT_PURGE_USER=mmt /artifacts/release-manager.sh uninstall --purge-system-state 
 [[ ! -e /home/mmt/.local/share/multimodultool2026 ]]
 [[ ! -e /home/mmt/.cache/multimodultool2026 ]]
 [[ ! -e /home/mmt/.local/state/multimodultool2026 ]]
+[[ ! -e "$MMT_RUNTIME_DIR/multimodultool2026" ]]
 
 phase write-report
 python3 - <<PY > /artifacts/lifecycle-reports/kubuntu-'"$SERIES"'.json
@@ -158,6 +163,7 @@ print(json.dumps({
   "kubuntuDesktop": True,
   "plasmaDesktop": True,
   "architecture": "amd64",
+  "testUserUid": int("'"$MMT_UID"'"),
   "install": "passed",
   "firstStart": "passed",
   "privateRuntime0700": "passed",
