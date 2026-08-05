@@ -46,17 +46,54 @@
     "signedManifest": "SIGNED_RELEASE_MANIFEST_save_.json",
     "signedManifestBundle": "SIGNED_RELEASE_MANIFEST_save_.json.sigstore.json",
     "expectedPrimaryArtifacts": 6,
-    "expectedSignedOutputFiles": 14
+    "expectedSignedOutputFiles": 14,
+    "status": "verified-on-main",
+    "evidence": {
+      "verifiedAt": "2026-08-05",
+      "mainCommitSha": "a9fe8169acb47b2e78d93b62b7a367bb17a0ce3b",
+      "workflowRunId": 30970761299,
+      "signingJobId": 92196203330,
+      "artifactId": 8916623377,
+      "artifactName": "multimodultool2026-release-signed",
+      "artifactFileCount": 14,
+      "artifactSha256": "fad8a42f2132722cf89ae659d75887b8bd12c33557387d2d13b47778f31eedf3",
+      "certificateIdentity": "https://github.com/provoware/MULTIMODULTOOL2026/.github/workflows/release-candidate.yml@refs/heads/main",
+      "oidcIssuer": "https://token.actions.githubusercontent.com",
+      "cosignVerified": true,
+      "manifestAndBundleDigestsVerified": true
+    }
   },
   "testOnlyArtifacts": [
     "multimodultool2026_0.8.0~rc1_amd64.deb",
     "multimodultool2026_0.8.0~rc1_amd64.deb.sha256",
     "raw lifecycle reports and diagnostic logs"
   ],
+  "projectProgress": {
+    "statusDate": "2026-08-05",
+    "completed": 41,
+    "open": 27,
+    "total": 68,
+    "percent": 60,
+    "newlyVerifiedTasks": [
+      "P1-003",
+      "P1-004",
+      "P1-005",
+      "P1-006",
+      "P1-007",
+      "P1-008",
+      "P1-009",
+      "P3-009"
+    ],
+    "remainingP1Tasks": [
+      "P1-001",
+      "P1-002"
+    ]
+  },
   "unfinished": [
-    "P1 guided start assistant with separate target and safety-mode choice",
+    "P1-001 guided start assistant with separate target and safety-mode choice",
+    "P1-002 tile navigation active-state and validated back-path completion",
     "P2 remaining accessibility, contrast, responsive and confirmation work",
-    "P3 journal rotation, module interface, coverage, quality and migration gates",
+    "P3-001 through P3-008 remaining architecture, journal rotation, module interface, coverage, quality, migration and build-ID work",
     "P4 optional media, plugin, portable and physical desktop acceptance"
   ]
 }
