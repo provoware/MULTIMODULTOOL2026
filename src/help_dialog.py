@@ -2,14 +2,22 @@
 
 from __future__ import annotations
 
-from .productive_integration import install_productive_ui
+from .start_assistant_integration import install_guided_productive_ui
 
 HELP_SECTIONS: tuple[tuple[str, str], ...] = (
     (
-        "Sicherer Einstieg – Projekt wählen",
-        "Projektordner ausschließlich über den Auswahldialog wählen. Systemstämme, der Home-Stamm, "
-        "fremde Eigentümer, Symlink-Komponenten, unzureichende Rechte und zu wenig freier Speicher "
-        "werden vor jeder Analyse oder Dateiaktion blockiert.",
+        "Sicherer Einstieg – Startassistent",
+        "Der Startassistent führt nacheinander durch Projektordner, getrennten Zielordner und "
+        "Sicherheitsmodus. Beide Ordner werden ausschließlich über Auswahldialoge gewählt. Die "
+        "Übernahme bleibt gesperrt, bis Eigentümer, Rechte, Symlink-Komponenten, Mountgrenzen, "
+        "Dateisystem, Speicher und die verständliche Zusammenfassung vollständig geprüft sind.",
+    ),
+    (
+        "Sicherheitsmodi",
+        "Nur prüfen sperrt Berichte und Dateiänderungen. Vorschau und Bericht erlaubt private "
+        "JSON-/Markdown-Berichte, aber keine Dateiänderung. Produktiv mit Bestätigung erlaubt "
+        "Änderungen erst nach Startfreigabe, vollständiger Vorher-/Nachher-Vorschau und einer "
+        "zweiten ausdrücklichen Bestätigung.",
     ),
     (
         "Dateibestand analysieren",
@@ -24,9 +32,10 @@ HELP_SECTIONS: tuple[tuple[str, str], ...] = (
     ),
     (
         "Organisieren und Massenumbenennen",
-        "Zuerst wird eine vollständige Vorher-/Nachher-Liste mit Planhash erzeugt. Doppelte Ziele, "
-        "belegte Namen, Rename-Zyklen, Hardlinks, Symlinks und Dateisystemwechsel blockieren den gesamten Plan. "
-        "Ausgeführt wird erst nach einer zweiten ausdrücklichen Bestätigung.",
+        "Der bestätigte Zielordner gilt für die Organisation. Massenumbenennung bleibt am jeweiligen "
+        "Ursprungsort. Zuerst entsteht immer eine vollständige Vorher-/Nachher-Liste mit Planhash. "
+        "Doppelte Ziele, belegte Namen, Rename-Zyklen, Hardlinks, Symlinks und Dateisystemwechsel "
+        "blockieren den gesamten Plan.",
     ),
     (
         "Abbruch und Fortsetzung – Checkpoint und Rückgängig",
@@ -37,7 +46,8 @@ HELP_SECTIONS: tuple[tuple[str, str], ...] = (
     (
         "Berichte",
         "Analyse- und Operationsberichte werden als JSON und Markdown im privaten Projektsteuerordner gespeichert. "
-        "Sie enthalten ausschließlich projekt-relative Pfade und keinen automatischen Upload.",
+        "Sie enthalten ausschließlich projekt-relative Pfade und keinen automatischen Upload. Im Modus Nur prüfen "
+        "bleibt auch dieser Schreibzugriff gesperrt.",
     ),
     (
         "Release-Dateien und kryptografische Signaturen",
@@ -47,34 +57,36 @@ HELP_SECTIONS: tuple[tuple[str, str], ...] = (
     ),
     (
         "Gesperrte Bereiche und bewusste Grenzen",
-        "Grafische Einstellungen, vollständige KDE-Tastaturabnahme, Zoom 80–200 Prozent, weitere Themes, "
-        "Journalrotation, Datenmigration, Plugin-Sandbox und physische X11-/Wayland-Abnahme bleiben getrennte Aufgaben.",
+        "Die kachelbasierte Navigation mit vollständig geprüftem Aktivzustand und Zurück-Pfad, grafische Einstellungen, "
+        "vollständige KDE-Tastaturabnahme, Zoom 80–200 Prozent, weitere Themes, Journalrotation, Datenmigration, "
+        "Plugin-Sandbox und physische X11-/Wayland-Abnahme bleiben getrennte Aufgaben.",
     ),
 )
 
 
 def build_help_dialog(QtWidgets, parent=None):
-    """Build help and attach the local-only productive UI without touching project data."""
+    """Build help and attach the guided local-only productive UI without touching project data."""
 
     if parent is not None:
-        install_productive_ui(QtWidgets, parent)
+        install_guided_productive_ui(QtWidgets, parent)
 
     dialog = QtWidgets.QDialog(parent)
     dialog.setObjectName("helpDialog")
     dialog.setWindowTitle("MULTIMODULTOOL2026 – Hilfe und Sicherheitsgrenzen")
-    dialog.resize(780, 660)
+    dialog.resize(800, 680)
     dialog.setMinimumSize(620, 480)
     dialog.setModal(False)
 
     outer = QtWidgets.QVBoxLayout(dialog)
-    title = QtWidgets.QLabel("Hilfe, produktiver Ablauf und sichere nächste Schritte")
+    title = QtWidgets.QLabel("Hilfe, geführter Start und sichere nächste Schritte")
     title.setObjectName("helpDialogTitle")
     title.setWordWrap(True)
     outer.addWidget(title)
 
     intro = QtWidgets.QLabel(
-        "Diese Hilfe erklärt die freigegebenen lokalen Dateiworkflows und ihre harten Blocker. "
-        "Sie verändert keine Einstellungen, Projektdateien, Journale, Checkpoints oder Signaturen."
+        "Diese Hilfe erklärt den vollständig vorvalidierten Start sowie die freigegebenen lokalen "
+        "Dateiworkflows und ihre harten Blocker. Sie verändert keine Einstellungen, Projektdateien, "
+        "Journale, Checkpoints oder Signaturen."
     )
     intro.setObjectName("helpDialogIntro")
     intro.setWordWrap(True)
