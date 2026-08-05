@@ -2,6 +2,9 @@ name: Linux Release Candidate
 
 on:
   pull_request:
+  push:
+    branches: [main]
+    tags: ["v*"]
   workflow_dispatch:
 
 permissions:
@@ -38,10 +41,12 @@ jobs:
             --requirement release/requirements-release.txt
           ls -lh dist/wheelhouse
 
-      - name: Builder- und Vertragsregressionen ausführen
+      - name: Builder-, Produktiv- und Signaturregressionen ausführen
         run: |
           python3 -m unittest tests.test_release_builder -v
           python3 -m unittest tests.test_finalize_release_artifacts -v
+          python3 -m unittest tests.test_productive_workflow -v
+          python3 -m unittest tests.test_sign_release_artifacts -v
           python3 tools/validate_repository.py
 
       - name: Baseline und Releasekandidat bauen
@@ -166,3 +171,73 @@ jobs:
           path: dist/release-ready
           if-no-files-found: error
           retention-days: 30
+
+  sign-release:
+    name: P3-009 Sigstore keyless release signatures
+    if: github.event_name != 'pull_request'
+    needs: finalize-release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      SIGNED_DIR: dist/release-signed
+      COSIGN_IDENTITY_REGEXP: '^https://github.com/provoware/MULTIMODULTOOL2026/.github/workflows/release-candidate.yml@refs/(heads/main|tags/v.*)$'
+      COSIGN_OIDC_ISSUER: 'https://token.actions.githubusercontent.com'
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+
+      - name: Fertige _save_-Dateien laden
+        uses: actions/download-artifact@v4
+        with:
+          name: multimodultool2026-release-save
+          path: dist/release-signed
+
+      - name: Offizielles Cosign installieren
+        uses: sigstore/cosign-installer@v4.1.2
+
+      - name: Exakt sechs Primärdateien schlüssellos signieren
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          mapfile -t subjects < <(
+            python3 tools/sign_release_artifacts.py subjects --directory "$SIGNED_DIR"
+          )
+          [[ ${#subjects[@]} -eq 6 ]]
+          for name in "${subjects[@]}"; do
+            cosign sign-blob --yes \
+              --bundle "$SIGNED_DIR/$name.sigstore.json" \
+              "$SIGNED_DIR/$name"
+          done
+
+      - name: SHA-256-Releasemanifest erzeugen und signieren
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 tools/sign_release_artifacts.py manifest \
+            --directory "$SIGNED_DIR" \
+            --identity-regexp "$COSIGN_IDENTITY_REGEXP" \
+            --issuer "$COSIGN_OIDC_ISSUER"
+          cosign sign-blob --yes \
+            --bundle "$SIGNED_DIR/SIGNED_RELEASE_MANIFEST_save_.json.sigstore.json" \
+            "$SIGNED_DIR/SIGNED_RELEASE_MANIFEST_save_.json"
+
+      - name: Signaturen, Workflowidentität, Aussteller und Digests nachprüfen
+        run: |
+          python3 tools/sign_release_artifacts.py verify \
+            --directory "$SIGNED_DIR" \
+            --identity-regexp "$COSIGN_IDENTITY_REGEXP" \
+            --issuer "$COSIGN_OIDC_ISSUER"
+          python3 -m unittest tests.test_sign_release_artifacts -v
+          find "$SIGNED_DIR" -maxdepth 1 -type f -printf '%f\n' | sort
+          [[ "$(find "$SIGNED_DIR" -maxdepth 1 -type f | wc -l)" -eq 14 ]]
+
+      - name: Kryptografisch signierte Releaseausgabe hochladen
+        uses: actions/upload-artifact@v4
+        with:
+          name: multimodultool2026-release-signed
+          path: dist/release-signed
+          if-no-files-found: error
+          retention-days: 90

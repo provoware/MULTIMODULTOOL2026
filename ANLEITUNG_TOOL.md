@@ -23,76 +23,112 @@ python3 -m src.main --show-diagnostics
 python3 -m src.main --help
 ```
 
-## Hilfe und Tooltips
+## Produktiven Projektordner wählen
 
-Der Menüpunkt **Hilfe** öffnet ein rein lesendes Fenster. Es erklärt:
+1. **Projektordner wählen …** anklicken.
+2. Nur den tatsächlichen Arbeitsordner auswählen, nicht `/`, das eigene Home-Verzeichnis oder einen Systemordner.
+3. Die grüne Projektprüfung abwarten.
+4. Bei Rot nichts manuell umgehen. Ursache und sicheren nächsten Schritt aus Dialog oder Tooltip übernehmen.
 
-- welche Funktionen bereits freigegeben sind,
-- warum einzelne Bereiche weiterhin gesperrt sind,
-- welche Prüfung als Nächstes fehlt,
-- wie Diagnose, Abbruch und Wiederanlauf funktionieren,
-- wann Releaseartefakte den Zusatz `_save_` erhalten.
+Vor der Freigabe prüft das Tool:
 
-Deaktivierte Schaltflächen bleiben absichtlich sichtbar. Ihr Tooltip nennt den konkreten Blocker. Eine Sperre darf nicht durch manuelle Datei-, Manifest- oder Einstellungsänderung umgangen werden.
+- absoluten Linux-Pfad,
+- Eigentümer des Projektordners,
+- Lese-, Schreib- und Zugriffsrechte,
+- Symlink-Komponenten,
+- Mount- und Dateisystemgrenze,
+- freien Speicher,
+- privaten Steuerordner `.multimodultool2026`.
 
-## Sicherer langer Lauf
+## Dateibestand analysieren
 
-Der technische Laufkern arbeitet in dieser Reihenfolge:
+**Bestand analysieren** liest ausschließlich Metadaten. Erfasst werden Dateityp, Größe, Änderungszeit, Endung, Kategorie, Symlinkstatus und Namenshinweise.
 
-1. Projektgrenze und Quellen prüfen.
-2. Unveränderlichen Laufplan mit Planhash erzeugen.
-3. Vor dem ersten Intent einen atomaren Checkpoint schreiben.
-4. Jeden Schritt über Papierkorbmanifest und Undo-/Redo-Journal bestätigen.
-5. Abbruch nur vor einem neuen Intent oder nach einem vollständig bestätigten Schritt übernehmen.
-6. Nach Neustart Checkpoint, Journal, Manifest, Originalpfad und Payload gemeinsam abgleichen.
+- Symlinks werden gemeldet, aber nicht verfolgt.
+- Mountgrenzen werden nicht betreten.
+- der interne Steuerordner wird nicht analysiert,
+- eine kontrolliert abgebrochene Analyse verändert keine Projektdatei.
+
+## Duplikate suchen
+
+1. Nach der Analyse **Duplikate per SHA-256** anklicken.
+2. Das Tool bildet zuerst Größenklassen.
+3. Nur Größenklassen mit mindestens zwei regulären Dateien werden streamend gehasht.
+4. Vor und nach dem Hashen wird der Dateifingerabdruck geprüft.
+
+Die Duplikatsuche ist rein lesend. Sie löscht, verschiebt, verlinkt oder ersetzt keine Datei.
+
+## Dateien organisieren
+
+Unter **Organisieren** steht eine der Regeln zur Auswahl:
+
+- nach Dateityp,
+- nach Dateiendung,
+- nach Änderungsjahr.
+
+Das Ziel liegt unter `Sortiert/` innerhalb des geprüften Projekts. Zuerst wird eine vollständige Vorher-/Nachher-Vorschau erzeugt. Bereits belegte Ziele, doppelte Ziele, Symlinks, Mehrfach-Hardlinks oder Dateisystemwechsel blockieren den gesamten Plan.
+
+## Massenumbenennung
+
+Unter **Massenumbenennen** können markierte oder alle analysierten Dateien gewählt werden. Kombinierbar sind:
+
+- Präfix,
+- Suffix vor der Dateiendung,
+- Suchen und Ersetzen,
+- Beibehalten, klein oder GROSS,
+- fortlaufende Nummer mit Startwert und Stellenzahl.
+
+Dateiendungen bleiben erhalten. Leere, zu lange, unsichere, doppelte, zyklische oder bereits belegte Zielnamen werden vor der Ausführung blockiert.
+
+## Vorschau und Bestätigung
+
+Jeder produktive Plan zeigt:
+
+- eindeutige Operations-ID,
+- Typ der Operation,
+- Anzahl der Dateien,
+- vollständige Vorher-/Nachher-Pfade,
+- SHA-256-Planhash,
+- Ergebnis der Konfliktprüfung.
+
+Erst **Geprüften Plan ausführen …** und eine zweite Bestätigung starten die Dateiaktion. Es gibt kein stilles Überschreiben.
+
+## Checkpoint, Fortsetzung und Rückgängig
 
 Interner Speicherort:
 
 ```text
-<Projekt>/.multimodultool2026/runs/<MMTRUN-ID>/
+<Projekt>/.multimodultool2026/operations/<MMTOP-ID>/
 ├── plan.json
 ├── checkpoint.json
-├── run.lock
-└── cancel.request
+└── operation.lock
 ```
 
-Produktive Projektwahl und Massenoperationen sind noch nicht freigegeben. Der technische Kern darf deshalb nicht durch selbst erzeugte Laufdateien manuell gestartet werden.
+- Operationsordner: `0700`
+- Plan, Checkpoint und Sperrdatei: `0600`
+- exklusive Linux-`flock`-Sperre
+- atomare Dateischritte per `os.replace`
+- Fingerabdruck aus Geräte-ID, Inode, Modus, Größe, Änderungszeit und Linkanzahl
 
-## Diagnose
+Nach einer Unterbrechung gleicht das Tool Quelle und Ziel mit dem unveränderlichen Plan ab. Eine Fortsetzung wiederholt keinen bereits bestätigten Dateischritt. Rückgängig arbeitet in umgekehrter Reihenfolge und blockiert, sobald ein Ziel verändert oder ein Originalpfad wieder belegt wurde.
 
-```bash
-python3 -m src.main --show-diagnostics
+## Berichte
+
+Analyse- und Operationsberichte werden privat gespeichert:
+
+```text
+<Projekt>/.multimodultool2026/reports/
 ```
 
-Die Diagnose zeigt bereinigte lokale Ereignisse. Erlaubt sind Filtern und Kopieren eines einzelnen sicheren Berichts. Nicht vorhanden sind Löschen, Upload, automatische Reparatur oder automatischer Export.
+JSON und Markdown enthalten ausschließlich projekt-relative Pfade. Es gibt keinen automatischen Upload.
 
-## Releasekandidat bauen und prüfen
+## Hilfe und Tooltips
 
-```bash
-python3 tools/build_deb_release.py \
-  --wheelhouse dist/wheelhouse \
-  --output dist/release
-```
+Der Menüpunkt **Hilfe** erklärt Projektwahl, Analyse, Duplikate, Vorschau, Abbruch, Fortsetzung, Rückgängig, Berichte und Signaturprüfung. Tooltips nennen Zweck, Sicherheitsgrenze und Blocker. Weiterhin nicht freigegebene Funktionen bleiben sichtbar und begründen ihre Sperre.
 
-Die Rohartefakte sind noch keine final freigegebenen Dateien. Zuerst müssen Kubuntu 22.04 und 24.04 vollständig grün sein. Jeder Kubuntu-Job sichert unabhängig vom Ergebnis:
+## Fertige `_save_`-Dateien
 
-- vollständiges Rohprotokoll,
-- letzte erreichte Phase,
-- inneren und äußeren ursprünglichen Exit-Code,
-- vorhandenen JSON-Abnahmebericht.
-
-## Fertige `_save_`-Dateien erzeugen
-
-Nur nach erfolgreicher Matrix:
-
-```bash
-python3 tools/finalize_release_artifacts.py \
-  --source dist/release-artifacts \
-  --output dist/release-ready \
-  --policy release/release-status.json
-```
-
-Erzeugt werden ausschließlich:
+Erst nach erfolgreichem reproduzierbarem Build und grüner Kubuntu-22.04-/24.04-Matrix:
 
 ```text
 multimodultool2026_<version>_amd64_save_.deb
@@ -103,7 +139,30 @@ CANDIDATE_BUILD_RESULT_save_.json
 RELEASE_STATUS_save_.json
 ```
 
-Der Finalizer prüft Paket- und Bundlehash, Sidecar-Dateibindung, Symlinks, Dateirechte, Zielpfad und Namensschema. Ein vorhandener generierter Ausgabeordner wird erst nach vollständig erfolgreicher Vorvalidierung atomar ersetzt. Alte generierte Reste werden nicht übernommen.
+## P3-009: kryptografische Signatur prüfen
+
+Der `main`-Workflow signiert jede der sechs Primärdateien schlüssellos per Sigstore/Cosign. Zusätzlich entstehen ein SHA-256-Releasemanifest und dessen Signaturbundle.
+
+Beispiel:
+
+```bash
+cosign verify-blob \
+  --bundle 'multimodultool2026_<version>_amd64_save_.deb.sigstore.json' \
+  --certificate-identity-regexp '^https://github.com/provoware/MULTIMODULTOOL2026/.github/workflows/release-candidate.yml@refs/(heads/main|tags/v.*)$' \
+  --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
+  'multimodultool2026_<version>_amd64_save_.deb'
+```
+
+Gesamtprüfung:
+
+```bash
+python3 tools/sign_release_artifacts.py verify \
+  --directory dist/release-signed \
+  --identity-regexp '^https://github.com/provoware/MULTIMODULTOOL2026/.github/workflows/release-candidate.yml@refs/(heads/main|tags/v.*)$' \
+  --issuer 'https://token.actions.githubusercontent.com'
+```
+
+Im Repository wird kein privater Signaturschlüssel gespeichert. Das kurzlebige OIDC-Recht gilt nur im isolierten Signaturjob.
 
 ## Installation
 
@@ -113,21 +172,13 @@ sudo ./release-manager_save_.sh install ./multimodultool2026_<version>_amd64_sav
 multimodultool2026 --verify-installation
 ```
 
-Upgrade und Rollback:
-
-```bash
-sudo ./release-manager_save_.sh upgrade ./multimodultool2026_<version>_amd64_save_.deb --yes
-sudo ./release-manager_save_.sh rollback --yes
-```
-
-Normale Entfernung bewahrt XDG-Nutzerdaten. Der vollständige Purge benötigt zusätzlich `--purge-system-state --purge-current-user-data --yes` und wird bei Symlinks oder unklarer Nutzerzuordnung blockiert.
-
 ## Entwicklerprüfungen
 
 ```bash
 python3 tools/validate_repository.py
+python3 -m unittest tests.test_productive_workflow -v
+python3 -m unittest tests.test_sign_release_artifacts -v
 python3 -m unittest tests.test_finalize_release_artifacts -v
-python3 -m unittest tests.test_run_control -v
 python3 -m unittest tests.test_run_control_sigkill -v
 QT_QPA_PLATFORM=offscreen python3 -m unittest tests.test_gui_offscreen -v
 bash -n tests/helpers/kubuntu_release_lifecycle.sh

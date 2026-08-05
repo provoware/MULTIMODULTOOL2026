@@ -1,5 +1,36 @@
 # CHANGELOG
 
+## 2026-08-05 – P3-009 und produktiver P1-Dateikern
+
+### Hinzugefügt
+
+- schlüsselloses Sigstore-/Cosign-Release-Gate über kurzlebiges GitHub-OIDC
+- je `_save_`-Primärdatei ein vollständiges `.sigstore.json`-Bundle
+- `SIGNED_RELEASE_MANIFEST_save_.json` mit relativen Dateinamen, Größen und SHA-256-Digesten
+- eigene Signatur des Releasemanifests sowie Nachprüfung von Workflowidentität und OIDC-Aussteller
+- geführte Linux-Projektordnerwahl mit Eigentümer-, Rechte-, Symlink-, Mount- und Speicherprüfung
+- read-only Dateibestandsanalyse für Typ, Größe, Datum, Kategorie, Symlinks und Namenshinweise
+- streamende SHA-256-Duplikatsuche ohne automatische Löschung
+- regelbasierte Organisation nach Kategorie, Endung oder Änderungsjahr
+- Massenumbenennung mit Präfix, Suffix, Suchen/Ersetzen, Schreibweise und Nummerierung
+- vollständige Vorher-/Nachher-Vorschau mit unveränderlichem Planhash
+- private Operationsordner, atomare Checkpoints, `flock`, Unterbrechungsabgleich, Fortsetzung und Rückgängig
+- private JSON-/Markdown-Berichte mit ausschließlich projekt-relativen Pfaden
+
+### Sicherheitswirkung
+
+- Signaturrecht `id-token: write` gilt ausschließlich im isolierten Signaturjob; im Repository liegt kein langlebiger privater Schlüssel.
+- Signiert werden nur exakt sechs bereits durch reproduzierbaren Build und grüne Kubuntu-Matrix freigegebene Primärdateien.
+- Extra-Dateien, Symlinks, Hardlinks, manipulierte Bytes, falsche Workflowidentität und falscher OIDC-Aussteller blockieren die Signaturabnahme.
+- Produktive Dateioperationen überschreiben keine Ziele und folgen keinen Symlinks oder Dateisystemwechseln.
+- Jede Quelle wird an Geräte-ID, Inode, Modus, Größe, Änderungszeit und Linkanzahl gebunden.
+- Nach einem Prozessabbruch wird der reale Quelle-/Zielzustand abgeglichen, bevor Fortsetzung oder Undo möglich ist.
+
+### Bewusste Grenze
+
+- `P1-001` bleibt teilweise offen: Ein gesonderter Startassistent mit separat wählbarem Ziel und eigenem Sicherheitsmodus folgt als kleine Bedieniteration.
+- Grafische Einstellungen, vollständige KDE-Tastaturabnahme, Zoom, weitere Themes und physische X11-/Wayland-Abnahme bleiben offen.
+
 ## 2026-08-05 – Releasefinalisierung, Bereinigung und P2-004
 
 ### Hinzugefügt
