@@ -1,0 +1,61 @@
+name: P3-009 Main Run Status Probe
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/p3-009-main-run-status-probe.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  inspect:
+    name: Exakten main-Laufstatus ausgeben
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - name: Alle Workflowläufe zum PR-Basis-SHA abfragen
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          TARGET_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from urllib.request import Request, urlopen
+
+          repo = os.environ["GITHUB_REPOSITORY"]
+          sha = os.environ["TARGET_SHA"]
+          request = Request(
+              f"https://api.github.com/repos/{repo}/actions/runs?head_sha={sha}&per_page=100",
+              headers={
+                  "Accept": "application/vnd.github+json",
+                  "Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}",
+                  "X-GitHub-Api-Version": "2022-11-28",
+                  "User-Agent": "multimodultool2026-p3-009-status-probe",
+              },
+          )
+          with urlopen(request, timeout=60) as response:
+              payload = json.load(response)
+          runs = [
+              {
+                  "id": run.get("id"),
+                  "run_number": run.get("run_number"),
+                  "run_attempt": run.get("run_attempt"),
+                  "name": run.get("name"),
+                  "path": run.get("path"),
+                  "event": run.get("event"),
+                  "head_branch": run.get("head_branch"),
+                  "head_sha": run.get("head_sha"),
+                  "status": run.get("status"),
+                  "conclusion": run.get("conclusion"),
+                  "created_at": run.get("created_at"),
+                  "updated_at": run.get("updated_at"),
+                  "html_url": run.get("html_url"),
+              }
+              for run in payload.get("workflow_runs", [])
+          ]
+          print(json.dumps({"target_sha": sha, "runs": runs}, indent=2, sort_keys=True))
+          assert runs, "Kein Workflowlauf zum Ziel-SHA gefunden."
+          PY
