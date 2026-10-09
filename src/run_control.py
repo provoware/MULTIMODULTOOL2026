@@ -8,10 +8,9 @@ remain the authoritative record for individual file operations.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
+from dataclasses import replace
 from datetime import datetime, timezone
 import fcntl
-import hashlib
 import json
 import os
 from pathlib import Path
@@ -22,6 +21,28 @@ from typing import Callable, Iterable
 from uuid import uuid4
 
 from .error_events import SafeOperationError
+from .run_control_models import (
+    RunPaths,
+    RunItem,
+    RunPlan,
+    CurrentStep,
+    RunCheckpoint,
+    RunSnapshot,
+    RunResult,
+    RUN_SCHEMA_VERSION,
+    MAXIMUM_RUN_ITEMS,
+    RUN_OPERATION,
+    _RUN_ID_PATTERN,
+    _ALLOWED_RUN_STATES,
+)
+from .run_control_validation import (
+    _fail,
+    _safe_relative,
+    _canonical_hash,
+    _parse_plan,
+    _parse_current_step,
+    _parse_checkpoint,
+)
 from .project_trash import (
     MANIFEST_NAME,
     PAYLOAD_NAME,
@@ -49,146 +70,9 @@ PLAN_FILE_NAME = "plan.json"
 CHECKPOINT_FILE_NAME = "checkpoint.json"
 LOCK_FILE_NAME = "run.lock"
 CANCEL_FILE_NAME = "cancel.request"
-RUN_SCHEMA_VERSION = 1
 MAXIMUM_PLAN_BYTES = 2 * 1024 * 1024
 MAXIMUM_CHECKPOINT_BYTES = 512 * 1024
-MAXIMUM_RUN_ITEMS = 1000
-RUN_OPERATION = "project-trash-batch"
-
-_RUN_ID_PATTERN = re.compile(r"^MMTRUN-[0-9]{8}T[0-9]{6}-[A-F0-9]{12}$")
-_ALLOWED_RUN_STATES = {"prepared", "running", "cancelled", "completed", "blocked"}
 Failpoint = Callable[[str], None]
-
-
-@dataclass(frozen=True)
-class RunPaths:
-    project_root: Path
-    control_directory: Path
-    runs_directory: Path
-    run_directory: Path
-    plan_file: Path
-    checkpoint_file: Path
-    lock_file: Path
-    cancel_file: Path
-
-
-@dataclass(frozen=True)
-class RunItem:
-    index: int
-    source_relative_path: str
-
-    def as_dict(self) -> dict[str, object]:
-        return {"index": self.index, "sourceRelativePath": self.source_relative_path}
-
-
-@dataclass(frozen=True)
-class RunPlan:
-    schema_version: int
-    run_id: str
-    operation: str
-    created_utc: str
-    items: tuple[RunItem, ...]
-    plan_hash: str
-
-    def as_dict(self) -> dict[str, object]:
-        return {
-            "schemaVersion": self.schema_version,
-            "runId": self.run_id,
-            "operation": self.operation,
-            "createdUtc": self.created_utc,
-            "items": [item.as_dict() for item in self.items],
-            "planHash": self.plan_hash,
-        }
-
-
-@dataclass(frozen=True)
-class CurrentStep:
-    index: int
-    attempt: int
-    action_id: str
-    transaction_id: str
-    source_relative_path: str
-
-    def as_dict(self) -> dict[str, object]:
-        return {
-            "index": self.index,
-            "attempt": self.attempt,
-            "actionId": self.action_id,
-            "transactionId": self.transaction_id,
-            "sourceRelativePath": self.source_relative_path,
-        }
-
-
-@dataclass(frozen=True)
-class RunCheckpoint:
-    schema_version: int
-    run_id: str
-    plan_hash: str
-    state: str
-    next_index: int
-    completed_indices: tuple[int, ...]
-    attempt_counts: tuple[int, ...]
-    current_step: CurrentStep | None
-    generation: int
-    created_utc: str
-    updated_utc: str
-    cancel_requested: bool
-    message: str
-
-    def as_dict(self) -> dict[str, object]:
-        return {
-            "schemaVersion": self.schema_version,
-            "runId": self.run_id,
-            "planHash": self.plan_hash,
-            "state": self.state,
-            "nextIndex": self.next_index,
-            "completedIndices": list(self.completed_indices),
-            "attemptCounts": list(self.attempt_counts),
-            "currentStep": self.current_step.as_dict() if self.current_step else None,
-            "generation": self.generation,
-            "createdUtc": self.created_utc,
-            "updatedUtc": self.updated_utc,
-            "cancelRequested": self.cancel_requested,
-            "message": self.message,
-        }
-
-
-@dataclass(frozen=True)
-class RunSnapshot:
-    plan: RunPlan
-    checkpoint: RunCheckpoint
-    paths: RunPaths
-
-
-@dataclass(frozen=True)
-class RunResult:
-    run_id: str
-    state: str
-    completed_count: int
-    total_count: int
-    changed: bool
-    recovered: bool = False
-    message: str = ""
-
-
-def _fail(
-    cause: str,
-    *,
-    consequence: str = "Der lange Lauf wurde kontrolliert angehalten oder blockiert.",
-    data_state: str = "Projektdateien, Papierkorbmanifeste, Aktionsjournal und Laufcheckpoint blieben nachvollziehbar.",
-    solution: str = "Laufplan, Checkpoint, Journal, Manifest und Dateizustand gemeinsam prüfen.",
-    next_step: str = "Diagnosekennung sichern und den Lauf erst nach grüner Zustandsprüfung fortsetzen.",
-    technical_detail: str = "",
-) -> SafeOperationError:
-    return SafeOperationError(
-        category="run-control",
-        cause=cause,
-        consequence=consequence,
-        data_state=data_state,
-        solution=solution,
-        next_step=next_step,
-        technical_detail=technical_detail,
-    )
 
 
 def _utc_now() -> str:
@@ -203,15 +87,6 @@ def create_run_id() -> str:
 def _hit(failpoint: Failpoint | None, stage: str) -> None:
     if failpoint is not None:
         failpoint(stage)
-
-
-def _safe_relative(value: str) -> str:
-    if not isinstance(value, str) or not value.strip():
-        raise _fail("Laufplan enthält keinen gültigen relativen Projektpfad.")
-    path = Path(value)
-    if path.is_absolute() or path == Path(".") or ".." in path.parts:
-        raise _fail("Laufplanpfad überschreitet die Projektgrenze.")
-    return path.as_posix()
 
 
 def run_paths(project_root: Path, run_id: str) -> RunPaths:
@@ -276,18 +151,6 @@ def _validate_private_file(path: Path, *, maximum_bytes: int) -> os.stat_result:
     return metadata
 
 
-def _canonical_hash(value: dict[str, object], *, excluded: str) -> str:
-    payload = dict(value)
-    payload.pop(excluded, None)
-    encoded = json.dumps(
-        payload,
-        ensure_ascii=False,
-        sort_keys=True,
-        separators=(",", ":"),
-    ).encode("utf-8")
-    return hashlib.sha256(encoded).hexdigest()
-
-
 def _read_json(path: Path, *, maximum_bytes: int) -> object:
     _validate_private_file(path, maximum_bytes=maximum_bytes)
     flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
@@ -350,141 +213,6 @@ def _atomic_write_json(path: Path, value: dict[str, object], *, maximum_bytes: i
         if descriptor is not None:
             os.close(descriptor)
         temporary.unlink(missing_ok=True)
-
-
-def _parse_plan(value: object) -> RunPlan:
-    keys = {"schemaVersion", "runId", "operation", "createdUtc", "items", "planHash"}
-    if not isinstance(value, dict) or set(value) != keys:
-        raise _fail("Laufplan besitzt einen unbekannten Aufbau.")
-    if value["schemaVersion"] != RUN_SCHEMA_VERSION:
-        raise _fail("Laufplan verwendet eine unbekannte Schemaversion.")
-    run_id = value["runId"]
-    if not isinstance(run_id, str) or not _RUN_ID_PATTERN.fullmatch(run_id):
-        raise _fail("Laufplan enthält keine gültige Lauf-ID.")
-    if value["operation"] != RUN_OPERATION:
-        raise _fail("Laufplan enthält eine nicht freigegebene Operation.")
-    if not isinstance(value["createdUtc"], str) or not value["createdUtc"]:
-        raise _fail("Laufplan enthält keinen Erstellungszeitpunkt.")
-    raw_items = value["items"]
-    if not isinstance(raw_items, list) or not 1 <= len(raw_items) <= MAXIMUM_RUN_ITEMS:
-        raise _fail("Laufplan enthält keine zulässige Anzahl von Arbeitsschritten.")
-    items: list[RunItem] = []
-    seen: set[str] = set()
-    for expected, raw in enumerate(raw_items):
-        if not isinstance(raw, dict) or set(raw) != {"index", "sourceRelativePath"}:
-            raise _fail("Laufplan enthält einen unbekannten Arbeitsschritt.")
-        if raw["index"] != expected:
-            raise _fail("Laufplanindizes müssen lückenlos bei null beginnen.")
-        relative = _safe_relative(raw["sourceRelativePath"])
-        if relative in seen:
-            raise _fail("Laufplan enthält denselben Projektpfad mehrfach.")
-        seen.add(relative)
-        items.append(RunItem(expected, relative))
-    plan_hash = value["planHash"]
-    if not isinstance(plan_hash, str) or not re.fullmatch(r"[a-f0-9]{64}", plan_hash):
-        raise _fail("Laufplan enthält keinen gültigen Planhash.")
-    if _canonical_hash(value, excluded="planHash") != plan_hash:
-        raise _fail("Laufplan wurde nach seiner Erstellung verändert.")
-    return RunPlan(
-        RUN_SCHEMA_VERSION,
-        run_id,
-        RUN_OPERATION,
-        value["createdUtc"],
-        tuple(items),
-        plan_hash,
-    )
-
-
-def _parse_current_step(value: object, plan: RunPlan) -> CurrentStep | None:
-    if value is None:
-        return None
-    keys = {"index", "attempt", "actionId", "transactionId", "sourceRelativePath"}
-    if not isinstance(value, dict) or set(value) != keys:
-        raise _fail("Checkpoint enthält einen unbekannten aktuellen Arbeitsschritt.")
-    index = value["index"]
-    attempt = value["attempt"]
-    if not isinstance(index, int) or isinstance(index, bool) or not 0 <= index < len(plan.items):
-        raise _fail("Checkpoint enthält einen ungültigen Schrittindex.")
-    if not isinstance(attempt, int) or isinstance(attempt, bool) or attempt < 1:
-        raise _fail("Checkpoint enthält keinen gültigen Versuchszähler.")
-    action_id = value["actionId"]
-    transaction_id = value["transactionId"]
-    if not isinstance(action_id, str) or not re.fullmatch(
-        r"MMTACTION-[0-9]{8}T[0-9]{6}-[A-F0-9]{12}", action_id
-    ):
-        raise _fail("Checkpoint enthält keine gültige Aktions-ID.")
-    if not isinstance(transaction_id, str) or not re.fullmatch(
-        r"MMTTRASH-[0-9]{8}T[0-9]{6}-[A-F0-9]{12}", transaction_id
-    ):
-        raise _fail("Checkpoint enthält keine gültige Transaktions-ID.")
-    relative = _safe_relative(value["sourceRelativePath"])
-    if relative != plan.items[index].source_relative_path:
-        raise _fail("Checkpoint und Laufplan verweisen auf unterschiedliche Projektpfade.")
-    return CurrentStep(index, attempt, action_id, transaction_id, relative)
-
-
-def _parse_checkpoint(value: object, plan: RunPlan) -> RunCheckpoint:
-    keys = {
-        "schemaVersion", "runId", "planHash", "state", "nextIndex",
-        "completedIndices", "attemptCounts", "currentStep", "generation",
-        "createdUtc", "updatedUtc", "cancelRequested", "message",
-    }
-    if not isinstance(value, dict) or set(value) != keys:
-        raise _fail("Laufcheckpoint besitzt einen unbekannten Aufbau.")
-    if value["schemaVersion"] != RUN_SCHEMA_VERSION:
-        raise _fail("Laufcheckpoint verwendet eine unbekannte Schemaversion.")
-    if value["runId"] != plan.run_id or value["planHash"] != plan.plan_hash:
-        raise _fail("Laufcheckpoint gehört nicht zum unveränderten Laufplan.")
-    state = value["state"]
-    if not isinstance(state, str) or state not in _ALLOWED_RUN_STATES:
-        raise _fail("Laufcheckpoint enthält einen unbekannten Zustand.")
-    next_index = value["nextIndex"]
-    if not isinstance(next_index, int) or isinstance(next_index, bool) or not 0 <= next_index <= len(plan.items):
-        raise _fail("Laufcheckpoint enthält keinen gültigen nächsten Schritt.")
-    completed = value["completedIndices"]
-    if not isinstance(completed, list) or any(
-        not isinstance(item, int) or isinstance(item, bool) for item in completed
-    ):
-        raise _fail("Laufcheckpoint enthält ungültige Abschlussindizes.")
-    expected_completed = list(range(next_index))
-    if completed != expected_completed:
-        raise _fail("Laufcheckpoint besitzt keine lückenlose abgeschlossene Schrittfolge.")
-    attempts = value["attemptCounts"]
-    if (
-        not isinstance(attempts, list)
-        or len(attempts) != len(plan.items)
-        or any(not isinstance(item, int) or isinstance(item, bool) or item < 0 for item in attempts)
-    ):
-        raise _fail("Laufcheckpoint enthält ungültige Versuchszähler.")
-    current = _parse_current_step(value["currentStep"], plan)
-    if current is not None:
-        if current.index != next_index or attempts[current.index] != current.attempt:
-            raise _fail("Aktueller Schritt und Versuchszähler des Checkpoints widersprechen sich.")
-    generation = value["generation"]
-    if not isinstance(generation, int) or isinstance(generation, bool) or generation < 1:
-        raise _fail("Laufcheckpoint enthält keine gültige Generation.")
-    for field in ("createdUtc", "updatedUtc", "message"):
-        if not isinstance(value[field], str):
-            raise _fail("Laufcheckpoint enthält ungültige Textfelder.")
-    if not isinstance(value["cancelRequested"], bool):
-        raise _fail("Laufcheckpoint enthält kein gültiges Abbruchkennzeichen.")
-    if state == "completed" and next_index != len(plan.items):
-        raise _fail("Abgeschlossener Lauf enthält noch offene Schritte.")
-    return RunCheckpoint(
-        RUN_SCHEMA_VERSION,
-        plan.run_id,
-        plan.plan_hash,
-        state,
-        next_index,
-        tuple(completed),
-        tuple(attempts),
-        current,
-        generation,
-        value["createdUtc"],
-        value["updatedUtc"],
-        value["cancelRequested"],
-        value["message"],
-    )
 
 
 def _load_snapshot(paths: RunPaths) -> RunSnapshot:
