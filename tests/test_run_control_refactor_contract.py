@@ -6,6 +6,7 @@ Der laufende Anwendungs-Code wird durch diesen Test nicht verändert.
 
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 import tempfile
@@ -44,9 +45,14 @@ class RunControlRefactorContractTests(unittest.TestCase):
 
     def test_oversized_checkpoint_is_blocked_before_any_file_operation(self) -> None:
         snapshot = create_run(self.project, [self.source])
-        snapshot.paths.checkpoint_file.write_bytes(b" " * (MAXIMUM_CHECKPOINT_BYTES + 1))
+        payload = snapshot.checkpoint.as_dict()
+        payload["message"] = "x" * MAXIMUM_CHECKPOINT_BYTES
+        oversized_json = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        self.assertGreater(len(oversized_json), MAXIMUM_CHECKPOINT_BYTES)
+        self.assertEqual(json.loads(oversized_json), payload)
+        snapshot.paths.checkpoint_file.write_bytes(oversized_json)
         with self.assertRaises(SafeOperationError):
-            inspect_run(self.project, snapshot.plan.run_id)
+            resume_run(self.project, snapshot.plan.run_id)
         self.assertEqual(self.source.read_text(encoding="utf-8"), "unveränderte Nutzdaten")
 
     def test_invalid_cancel_request_blocks_without_trashing_source(self) -> None:
