@@ -182,6 +182,28 @@ class OffscreenGuiSmokeTests(unittest.TestCase):
         self.assertIsNone(dialog.findChild(QtWidgets.QPushButton, "helpUploadButton"))
         dialog.close()
 
+    def test_navigation_active_state_and_back_path(self) -> None:
+        start = self.window.findChild(QtWidgets.QPushButton, "startNavigation")
+        analysis = self.window.findChild(QtWidgets.QPushButton, "analysisNavigation")
+        back = self.window.findChild(QtWidgets.QPushButton, "backNavigation")
+        self.assertIsNotNone(back)
+        self.assertTrue(bool(start.property("active")))
+        self.assertFalse(back.isEnabled())
+
+        analysis.click()
+        self.app.processEvents()
+        self.assertTrue(bool(analysis.property("active")))
+        self.assertFalse(bool(start.property("active")))
+        self.assertTrue(back.isEnabled())
+        panel = self.window.findChild(QtWidgets.QFrame, "productiveWorkflowPanel")
+        self.assertTrue(panel.isVisible())
+
+        back.click()
+        self.app.processEvents()
+        self.assertTrue(bool(start.property("active")))
+        self.assertFalse(bool(analysis.property("active")))
+        self.assertFalse(back.isEnabled())
+
     def test_progress_widgets_use_the_authoritative_constants(self) -> None:
         progress = self.window.findChild(QtWidgets.QProgressBar)
         self.assertEqual(self.development_progress, progress.value())
