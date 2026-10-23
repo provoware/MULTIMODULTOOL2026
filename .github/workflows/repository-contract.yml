@@ -81,8 +81,21 @@ jobs:
       - name: Einstellungs-Failpoint-Matrix ausdrücklich prüfen
         run: python3 -m unittest tests.test_settings_failpoints -v
 
+      - name: Native Qt-Laufzeitbibliotheken für echte GUI-Prüfungen bereitstellen
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libegl1 libopengl0 libxkbcommon-x11-0 libxcb-cursor0
+
       - name: PySide6 für Offscreen-Test installieren
         run: python3 -m pip install -r requirements.txt
+
+      - name: PySide6-Import zwingend prüfen (kein stilles Überspringen)
+        run: |
+          python3 - <<'PY'
+          from PySide6 import QtCore, QtWidgets
+          print("Qt:", QtCore.qVersion(), "QApplication:", QtWidgets.QApplication.__name__)
+          PY
 
       - name: Offscreen-GUI-, Produktiv-, Hilfe-, Tooltip- und Fehlerdialog-Test ausführen
         run: python3 -m unittest tests.test_gui_offscreen -v

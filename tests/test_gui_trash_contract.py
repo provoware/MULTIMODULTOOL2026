@@ -49,7 +49,8 @@ class TrashContractGuiTests(unittest.TestCase):
         cls.app.processEvents()
 
     def test_contract_and_read_only_transaction_overview_are_visible(self) -> None:
-        contract = self.panel.findChild(QtWidgets.QFrame, "trashContractPanel")
+        contract = self.panel  # Das Wurzel-Widget wird von findChild nicht mitgesucht.
+        self.assertEqual("trashContractPanel", contract.objectName())
         status = self.panel.findChild(QtWidgets.QFrame, "trashStatusPanel")
         preview = self.panel.findChild(QtWidgets.QPushButton, "trashPreviewOnlyButton")
         overview = self.panel.findChild(QtWidgets.QFrame, "transactionOverview")
