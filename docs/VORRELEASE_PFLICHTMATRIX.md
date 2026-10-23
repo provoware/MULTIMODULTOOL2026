@@ -1,6 +1,6 @@
 # Vorrelease-Pflichtmatrix – MULTIMODULTOOL2026
 
-**Stichtag:** 23.10.2026 · **Basis:** `6299d000b4f613383acc17e510bb0386813a6cd5` · **Entwicklungszweig:** `sync/20261023-close-scandir`.
+**Stichtag:** 23.10.2026 · **Basis:** `476b7688fd181221eb956ddeb9cd8546b70bf777` · **Entwicklungszweig:** `fix/20261023-qt-gate-productive-ui`.
 
 | Pflichtbereich | Bisherige Evidenz | Status / weiterer Schritt |
 |---|---|---|
@@ -24,3 +24,14 @@
 - **Ausgangsnachweis:** Frühere isolierte Testkopie vom 21.10.2026 bestätigt den Ressourcenbefund; Tests auf diesem neuen GitHub-HEAD müssen nachgeholt werden.
 - **Restrisiko:** Gering; übrige Startvalidierung unverändert. Pflicht-Gates vor Merge: Syntax, Regressionsmodul, Projektvalidator, Gesamt-Regression gemäß AGENTS.md.
 - **PR/Commit:** in GitHub am Branch verifizierbar. Kein Merge und kein Release.
+
+## 2026-10-23 – GUI-Integration und wahrheitsgetreues Qt-Gate
+
+- **Befund auf `main`:** Der GUI-Aufbau band die vorhandene produktive Oberfläche und den geführten Startassistenten nicht ein. Die Qt-Offscreen-Tests wurden selbst nach erfolgreicher PySide6-Installation als **skipped** gemeldet. Der CI-Job war grün, obwohl die betreffenden GUI-Funktionen nicht geprüft wurden.
+- **Arbeitspaket:** Vorhandenen geführten Workflow in `build_window` anbinden, Navigations-Aktivzustand und sichtbaren Zurück-Pfad ergänzen. Bestehende Sicherheitsmodus- und Bestätigungsgrenzen bleiben maßgeblich.
+- **Test:** Neuer Offscreen-Test für Aktivzustand, Navigation und Zurück. CI verlangt vor GUI-Tests einen erfolgreichen QtCore-/QtWidgets-Import; erforderliche native Laufzeitbibliotheken werden installiert.
+- **Erwartete Wirkung:** Die zuvor nur vorhandenen, aber nicht angebundenen Fachmodule werden erreichbar. Eine fehlende Qt-Laufzeit darf die GUI-Abnahme nicht mehr unbemerkt überspringen.
+- **Risikoklasse:** R3 (CI-Gate) mit R1 (GUI-Verdrahtung); kein Datenformatwechsel, keine Migration, kein automatischer Schreibzugriff.
+- **Status:** Implementiert auf Entwicklungszweig; **PASS erst nach realem Qt-Test und grünen GitHub-Gates**. Container ersetzt keine physische Kubuntu-/KDE-Sichtprüfung.
+- **Offen:** 800×600 und 200-%-Skalierung, Tastaturmatrix, Barrierefreiheit, vollständige Integrations- und reale Desktopabnahme sowie alle noch nicht erledigten TODO-Pflichten.
+- **Nächster Schritt:** Erst GitHub-GUI-Gate und fachliche GUI-Tests auswerten; Fehler ursächlich korrigieren, danach nur nach grünen Pflicht-Gates Merge erwägen.
