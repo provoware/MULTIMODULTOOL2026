@@ -598,10 +598,8 @@ def build_window(
     # Die bisherigen direkten Fachmodul-Signale werden durch die Navigation mit
     # Aktivzustand und Zurück-Verlauf ersetzt. Fachaktionen selbst bleiben unverändert.
     for section, button in navigation_buttons.items():
-        try:
+        if section not in ("start", "trash", "diagnostics"):
             button.clicked.disconnect()
-        except (RuntimeError, TypeError):
-            pass
         button.clicked.connect(
             lambda checked=False, target=section: select_navigation(target)
         )
