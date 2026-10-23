@@ -216,7 +216,8 @@ def validate_start_selection(
         raise _fail("Freier Speicher im Zielordner reicht für den gewählten Modus nicht aus.")
 
     try:
-        target_is_empty = next(os.scandir(target), None) is None
+        with os.scandir(target) as entries:
+            target_is_empty = next(entries, None) is None
     except OSError as exc:
         raise _fail(f"Zielinhalt konnte nicht sicher geprüft werden: {exc}") from exc
 
