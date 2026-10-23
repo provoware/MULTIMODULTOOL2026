@@ -212,7 +212,7 @@ def build_window(
     header_layout.addWidget(
         _label(
             QtWidgets,
-            "● INSTANZ-, JOURNAL-, CHECKPOINT- UND FEHLERPRÜFUNG GRÜN",
+            "● SICHERHEITSKERN VORHANDEN · AKTUELLE PRÜFUNGEN SIEHE RECHTS",
             "statusOk",
             safety=True,
         )
@@ -239,7 +239,7 @@ def build_window(
             "Es wird nichts automatisch repariert oder fortgesetzt."
         ),
     )
-    trash_button.setProperty("active", True)
+    start_button.setProperty("active", True)
     nav.addWidget(trash_button)
     diagnosis_button = _button(
         QtWidgets,
@@ -306,6 +306,14 @@ def build_window(
         ),
     )
     nav.addWidget(help_button)
+    back_button = _button(
+        QtWidgets,
+        "←  Zurück",
+        enabled=False,
+        name="backNavigation",
+        tooltip="Kehrt zur vorherigen Ansicht zurück; verändert keine Dateien.",
+    )
+    nav.addWidget(back_button)
     grid.addWidget(navigation, 1, 0, 5, 1)
 
     summary = _zone(QtWidgets.QWidget(), "summaryCards", 3)
@@ -399,7 +407,7 @@ def build_window(
             QtWidgets,
             "Aktuelle Bediengrenze",
             "Papierkorb, Undo/Redo, Checkpoint-Läufe und Prozessabbruchmatrix sind geprüft. "
-            "Produktive Projekt- und Dateiauswahl bleibt bis P1-001/P1-003 gesperrt.",
+            "Dateiaktionen bleiben bis zur vollständigen Freigabe im Startassistenten gesperrt.",
             "warningPanel",
         )
     )
@@ -531,6 +539,11 @@ def build_window(
     )
     grid.addWidget(footer, 6, 0, 1, 3)
 
+    # Vorhandene Fachmodule nur hinter dem vollständig validierten Startassistenten anbinden.
+    # Der Aufbau liest keine Projektdateien und schaltet keine Schreibaktion frei.
+    from .start_assistant_integration import install_guided_productive_ui
+
+    productive_panel = install_guided_productive_ui(QtWidgets, window)
     help_dialog = build_help_dialog(QtWidgets, window)
 
     def show_help() -> None:
@@ -538,10 +551,63 @@ def build_window(
         help_dialog.raise_()
         help_dialog.activateWindow()
 
-    start_button.clicked.connect(lambda: workspace_scroll.verticalScrollBar().setValue(0))
-    diagnosis_button.clicked.connect(lambda: diagnostics_controller.focus_diagnostic())
-    focus_button.clicked.connect(lambda: diagnostics_controller.focus_diagnostic())
-    trash_button.clicked.connect(lambda: workspace_scroll.ensureWidgetVisible(contract_panel))
+    navigation_buttons = {
+        "start": start_button,
+        "trash": trash_button,
+        "diagnostics": diagnosis_button,
+    }
+    for section, name in (
+        ("analysis", "analysisNavigation"),
+        ("duplicates", "duplicatesNavigation"),
+        ("organize", "organizeNavigation"),
+        ("rename", "renameNavigation"),
+        ("reports", "reportsNavigation"),
+    ):
+        navigation_buttons[section] = window.findChild(QtWidgets.QPushButton, name)
+
+    navigation_history: list[str] = []
+    current_section = "start"
+
+    def select_navigation(section: str, *, remember: bool = True) -> None:
+        nonlocal current_section
+        if section not in navigation_buttons:
+            raise ValueError("Unbekannter Navigationsbereich.")
+        if remember and section != current_section:
+            navigation_history.append(current_section)
+        current_section = section
+        for key, button in navigation_buttons.items():
+            button.setProperty("active", key == section)
+            button.style().unpolish(button)
+            button.style().polish(button)
+        back_button.setEnabled(bool(navigation_history))
+        if section == "start":
+            workspace_scroll.verticalScrollBar().setValue(0)
+        elif section == "trash":
+            workspace_scroll.ensureWidgetVisible(contract_panel)
+        elif section == "diagnostics":
+            workspace_scroll.ensureWidgetVisible(diagnostics_controller.widget)
+            diagnostics_controller.focus_diagnostic()
+        else:
+            productive_panel.show_section(section)
+            workspace_scroll.ensureWidgetVisible(productive_panel)
+
+    def go_back() -> None:
+        if navigation_history:
+            select_navigation(navigation_history.pop(), remember=False)
+
+    # Die bisherigen direkten Fachmodul-Signale werden durch die Navigation mit
+    # Aktivzustand und Zurück-Verlauf ersetzt. Fachaktionen selbst bleiben unverändert.
+    for section, button in navigation_buttons.items():
+        try:
+            button.clicked.disconnect()
+        except (RuntimeError, TypeError):
+            pass
+        button.clicked.connect(
+            lambda checked=False, target=section: select_navigation(target)
+        )
+
+    back_button.clicked.connect(go_back)
+    focus_button.clicked.connect(lambda: select_navigation("diagnostics"))
     help_button.clicked.connect(show_help)
     window.diagnosticsController = diagnostics_controller
     window.instanceActivationStatus = activation_status
