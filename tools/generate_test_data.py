@@ -12,7 +12,6 @@ import hashlib
 import json
 import os
 from pathlib import Path
-import stat
 import sys
 
 
@@ -79,7 +78,10 @@ def create_fixture(destination: Path) -> dict[str, object]:
     records: list[dict[str, object]] = []
     for relative, data in sorted(FILES.items()):
         path = destination / relative
-        path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+        current = destination
+        for component in Path(relative).parts[:-1]:
+            current = current / component
+            current.mkdir(mode=0o700, exist_ok=True)
         _write_new(path, data)
         records.append({
             "path": relative,
