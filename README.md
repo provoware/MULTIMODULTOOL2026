@@ -116,6 +116,22 @@ python3 tools/sign_release_artifacts.py verify \
   --issuer 'https://token.actions.githubusercontent.com'
 ```
 
+## Reproduzierbare Testdaten (P3-004)
+
+Für isolierte Dateitests steht ein synthetischer, deterministischer
+Testdaten-Generator bereit. Er benötigt einen **neuen, absoluten Zielordner**,
+überschreibt nichts und erstellt ein Prüfsummenmanifest:
+
+```bash
+mkdir -p /tmp/mmt-fixtures
+python3 tools/generate_test_data.py --output /tmp/mmt-fixtures/testlauf-01
+python3 -m unittest tests.test_generate_test_data -v
+```
+
+Sicherheitsgrenzen, enthaltene Grenzfälle und bekannte Einschränkungen:
+[TESTDATENVERTRAG](docs/TESTDATENVERTRAG.md). Die P3-004-Aufgabe wird erst
+nach belegter Integration und erforderlichen grünen Prüfungen abgeschlossen.
+
 ## Automatische Prüfungen
 
 ```bash
