@@ -84,7 +84,7 @@
 - [ ] **P3-001** – Linux-Modulschnittstelle mit Manifest und isoliertem Datenbereich definieren. | Risiko: **hoch**
 - [ ] **P3-002** – Zentrale Design-Tokens als einzige QSS-Quelle einführen. | Risiko: **mittel**
 - [ ] **P3-003** – Ereignisjournal um Rotation, Größenlimit und Archivierung erweitern. | Risiko: **hoch**
-- [ ] **P3-004** – Reproduzierbaren Linux-Testdaten-Generator entwickeln. | Risiko: **niedrig**
+- [ ] **P3-004** – Reproduzierbaren Linux-Testdaten-Generator entwickeln. | Risiko: **niedrig** | Implementierung/8 Regressionstests auf `automation/p3-004-reproducible-fixtures-20261024`; vor Abschluss: finale GitHub-Gates, Integration und Fortschrittszähler synchronisieren. Siehe `docs/TESTDATENVERTRAG.md` und `docs/VORRELEASE_PFLICHTMATRIX.md`.
 - [ ] **P3-005** – Testabdeckung sicherheitskritischer Module auf mindestens 80 % erhöhen. | Risiko: **mittel**
 - [ ] **P3-006** – Komplexitäts- und statische Qualitätsgrenzen in CI ergänzen. | Risiko: **mittel**
 - [ ] **P3-007** – Versioniertes Datenmigrationssystem entwickeln. | Risiko: **hoch**
